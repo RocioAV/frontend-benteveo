@@ -1,4 +1,8 @@
-# 🐦 Benteveo — Te hace la gauchada
+<div align="center">
+  <img src="src/assets/logo-con-titulo.webp" alt="Logo Benteveo" width="300" />
+</div>
+
+# Benteveo — Te hace la gauchada
 
 Bienvenido al repositorio oficial de **Benteveo**. Una plataforma hiperlocal de alquiler P2P donde "entre vecinos nos entendemos".
 
