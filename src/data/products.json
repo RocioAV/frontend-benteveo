@@ -1,0 +1,12 @@
+[
+  {
+    "id": 1,
+    "idOwner": 1,
+    "name": "Máquina de coser",
+    "pricePerDay": 4500,
+    "deposit": 15000,
+    "city": "Lanús",
+    "image": "/images/maquinacoser.jpg",
+    "available": true
+  }
+]

@@ -1,5 +1,5 @@
 import './App.css'
-import Header from './components/header.jsx'
+import Reservation from './pages/Reservation.jsx'
 import { Routes, Route } from 'react-router-dom'
 import Home from './pages/Home.jsx'
 import Layout from './layouts/Layout.jsx'
@@ -12,6 +12,7 @@ function App() {
         
         {/* Rutas individuales */}
         <Route path="/" element={<Home />} />
+        <Route path="/reservation/:id" element={<Reservation />} />
       </Route>
     </Routes>
   )
