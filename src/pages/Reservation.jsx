@@ -12,11 +12,15 @@ const Reservation = () => {
     const [endDate, setEndDate] = useState("");
     const start = new Date(startDate);
     const end = new Date(endDate);
+    const hasInvalidDateRange = startDate && endDate && endDate <= startDate;
     const MS_PER_DAY = 1000 * 60 * 60 * 24;
     const daysOfRent =
-      startDate && endDate && endDate > startDate
-        ? Math.ceil((end - start) / MS_PER_DAY)
-        : 0;
+    startDate && endDate && !hasInvalidDateRange
+      ? Math.ceil((end - start) / MS_PER_DAY)
+      : 0;
+    if (!product) {
+      return <h2>Producto no encontrado</h2>;
+    }
     const totalPrice =
       daysOfRent > 0
         ? product.deposit + daysOfRent * product.pricePerDay
@@ -36,6 +40,11 @@ const Reservation = () => {
           <label>
             Fecha de fin
             <input type="date" onChange={(event) => setEndDate(event.target.value)}/>
+            {hasInvalidDateRange && (
+              <p className="reservation-error">
+                La fecha de fin debe ser posterior a la fecha de inicio.
+              </p>
+            )}
           </label>
 
           <div className="reservation-summary">
@@ -45,7 +54,11 @@ const Reservation = () => {
             <p>Total: {totalPrice}</p>
           </div>
 
-          <button type="button">Confirmar reserva</button>
+          <button
+            type="button"
+            disabled={!startDate || !endDate || hasInvalidDateRange}>
+            Confirmar reserva
+          </button>
         </form>
       </div>
     </section>

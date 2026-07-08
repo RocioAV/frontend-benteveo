@@ -40,3 +40,14 @@
   border-radius: 12px;
   cursor: pointer;
 }
+
+.reservation-error {
+  color: #c62828;
+  font-size: 14px;
+  margin: 0;
+}
+
+.reservation-form button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
