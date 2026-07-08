@@ -48,10 +48,10 @@ const Reservation = () => {
           </label>
 
           <div className="reservation-summary">
-            <p>Precio por día: ${product.pricePerDay}</p>
-            <p>Días: {daysOfRent}</p>
-            <p>Depósito: ${product.deposit}</p>
-            <p>Total: {totalPrice}</p>
+            <p><span>Precio por día</span><strong>${product.pricePerDay}</strong></p>
+            <p><span>Días</span><strong>{daysOfRent}</strong></p>
+            <p><span>Depósito</span><strong>${product.deposit}</strong></p>
+            <p><span>Total</span><strong>${totalPrice}</strong></p>
           </div>
 
           <button
