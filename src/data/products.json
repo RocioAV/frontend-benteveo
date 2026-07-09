@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "title": "Taladro",
+    "pricePerDay": 15000,
+    "city": "Mar del Plata",
+    "imageUrl": "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    "id": 2,
+    "title": "Escalera",
+    "pricePerDay": 8000,
+    "city": "Mar del Plata",
+    "imageUrl": "https://images.unsplash.com/photo-1540574163026-643ea20ade25?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    "id": 3,
+    "title": "Carpa",
+    "pricePerDay": 12000,
+    "city": "Mar del Plata",
+    "imageUrl": "https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80"
+  }
+]

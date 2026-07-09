@@ -1,0 +1,131 @@
+.catalogo {
+  --catalogo-accent-hover: #9424e8;
+  --catalogo-card-shadow: 0 0.25rem 1rem rgba(8, 6, 13, 0.07);
+  --catalogo-card-shadow-hover: 0 0.75rem 1.75rem rgba(8, 6, 13, 0.12);
+
+  width: min(100% - 2rem, 68.75rem);
+  margin: 0 auto;
+  padding: 2.5rem 0 4rem;
+}
+
+.catalogo__encabezado {
+  max-width: 38rem;
+  margin-bottom: 2.5rem;
+}
+
+.catalogo__titulo {
+  margin: 0 0 0.75rem;
+  color: var(--text-h);
+  line-height: 1.1;
+}
+
+.catalogo__descripcion {
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.catalogo__grilla {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.75rem;
+}
+
+.producto-card {
+  overflow: hidden;
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow: var(--catalogo-card-shadow);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.producto-card:hover {
+  border-color: var(--accent-border);
+  box-shadow: var(--catalogo-card-shadow-hover);
+  transform: translateY(-0.25rem);
+}
+
+.producto-card__imagen {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.producto-card__contenido {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.125rem;
+  padding: 1.5rem;
+}
+
+.producto-card__nombre,
+.producto-card__precio {
+  margin: 0;
+}
+
+.producto-card__precio {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.producto-card__precio span {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--text);
+}
+
+.producto-card__boton {
+  width: 100%;
+  padding: 0.8rem 1.25rem;
+  font: inherit;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: var(--accent);
+  border: 0;
+  border-radius: 0.625rem;
+  box-shadow: 0 0.25rem 0.75rem rgba(170, 59, 255, 0.2);
+  cursor: pointer;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.producto-card__boton:hover {
+  background-color: var(--catalogo-accent-hover);
+  box-shadow: 0 0.5rem 1rem rgba(170, 59, 255, 0.3);
+  transform: translateY(-0.125rem);
+}
+
+.producto-card__boton:focus-visible {
+  outline: 0.1875rem solid var(--accent-border);
+  outline-offset: 0.1875rem;
+}
+
+@media (min-width: 40rem) {
+  .catalogo {
+    padding-top: 3.5rem;
+  }
+
+  .catalogo__grilla {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 64rem) {
+  .catalogo {
+    padding-bottom: 5rem;
+  }
+
+  .catalogo__grilla {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .producto-card,
+  .producto-card__boton {
+    transition: none;
+  }
+}

@@ -1,38 +1,37 @@
-const productos = [
-  {
-    id: 1,
-    nombre: "Taladro",
-    precio: 15000,
-    imagen: "https://"
-  },
-  {
-    id: 2,
-    nombre: "Escalera",
-    precio: 8000,
-    imagen: "https://"
-  },
-  {
-    id: 3,
-    nombre: "Carpa",
-    precio: 12000,
-    imagen: "https://"
-  }
-];
+import './PageCatalogo.css'
+import productos from '../data/products.json'
 
 function PageCatalogo() {
   return (
-    <>
-      <h1>Catálogo</h1>
+    <section className="catalogo" aria-labelledby="catalogo-titulo">
+      <header className="catalogo__encabezado">
+        <h1 id="catalogo-titulo" className="catalogo__titulo">Catalogo</h1>
+        <p className="catalogo__descripcion">Encontra lo que necesitas cerca tuyo.</p>
+      </header>
 
-      <p>Encontrá lo que necesitás cerca tuyo.</p>
-      
-      {productos.map((producto) => (
-        <div key={producto.id}>
-          <h2>{producto.nombre}</h2>
-          <p>${producto.precio} por día</p>
-        </div>
-      ))}
-    </>
+      <div className="catalogo__grilla">
+        {productos.map((producto) => (
+          <article className="producto-card" key={producto.id}>
+            <img
+              className="producto-card__imagen"
+              src={producto.imageUrl}
+              alt={producto.title}
+            />
+
+            <div className="producto-card__contenido">
+              <h2 className="producto-card__nombre">{producto.title}</h2>
+              <p className="producto-card__ciudad">{producto.city}</p>
+              <p className="producto-card__precio">
+                ${producto.pricePerDay.toLocaleString('es-AR')} <span>por dia</span>
+              </p>
+              <button className="producto-card__boton" type="button">
+                Ver detalle
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
   )
 }
 
