@@ -1,33 +1,150 @@
-/* Header básico para Beenteveo */
-.bv-header{
-  background: #ffffff;
-  border-bottom: 1px solid #e6e6e6;
-}
-.bv-container{
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 12px 16px;
+/* Header Beenteveo */
+.bv-header {
+  background-color: var(--color-primary-hover);
+  padding: 15px 40px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-.bv-logo a{
-  font-weight: 700;
-  color: #111;
-  text-decoration: none;
-  font-size: 1.1rem;
-}
-.bv-nav a{
-  margin-left: 16px;
-  color: #555;
-  text-decoration: none;
-  font-size: 0.95rem;
-}
-.bv-nav a:hover{
-  color: #000;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-@media (max-width: 600px){
-  .bv-container{padding:10px}
-  .bv-nav{display:none}
+/* Grupo izquierdo: Logo + Buscador */
+.bv-header-left {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+/* Logo */
+.bv-logo {
+  height: 120px;
+  width: 200px;
+  border: none;
+  object-fit: contain;
+}
+
+/* Barra de búsqueda */
+.bv-search-bar {
+  width: 600px;
+  padding: 15px 30px;
+  border: none;
+  border-radius: 40px;
+  background: var(--color-surface);
+  box-shadow: 0 10px 7px rgba(0, 0, 0, 0.2);
+  outline: none;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.bv-search-bar:focus {
+  box-shadow: 0 10px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* Eslogan */
+.bv-header-slogan {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.bv-slogan-marca {
+  font-family: 'Georgia', serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-dark);
+}
+
+.bv-slogan-tagline {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--color-dark);
+  opacity: 0.75;
+}
+
+/* Redes Sociales */
+.bv-social-nav {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bv-social-link {
+  text-decoration: none;
+  color: var(--color-dark);
+  font-size: 1.5rem;
+  transition: transform 0.2s ease, color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Efectos hover por red social */
+.bv-whatsapp:hover {
+  transform: scale(1.2);
+  color: #25D366;
+}
+
+.bv-facebook:hover {
+  transform: scale(1.2);
+  color: #0d17ae;
+}
+
+.bv-instagram:hover {
+  transform: scale(1.2);
+  color: #b81165;
+}
+
+.bv-ubicacion:hover {
+  transform: scale(1.2);
+  color: #a82005;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .bv-header {
+    padding: 15px 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+
+  .bv-search-bar {
+    width: 100%;
+  }
+
+  .bv-header-left {
+    flex-direction: column;
+    width: 100%;
+    gap: 15px;
+  }
+
+  .bv-header-slogan {
+    order: -1;
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .bv-logo {
+    height: 80px;
+    width: 140px;
+  }
+
+  .bv-search-bar {
+    padding: 12px 20px;
+  }
+
+  .bv-social-nav {
+    gap: 16px;
+  }
+
+  .bv-social-link {
+    font-size: 1.3rem;
+  }
 }
