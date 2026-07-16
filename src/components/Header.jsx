@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import logo from '../assets/BenteveoLogo.webp'
 import mockUser from '../data/mockUser.json'
+
 import './header.css'
 
 const Header = ({ onSearch }) => {
@@ -10,6 +11,7 @@ const Header = ({ onSearch }) => {
   const [user, setUser] = useState(null)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const userMenuRef = useRef(null)
+  const navigate = useNavigate()
 
   const handleChange = (e) => {
     const value = e.target.value
@@ -137,7 +139,7 @@ const Header = ({ onSearch }) => {
           </>
         ) : (
           <div className="bv-auth-buttons">
-            <button className="bv-btn-login" onClick={handleLogin}>
+            <button className="bv-btn-login" onClick={() => navigate('/login')}>
               Iniciar sesion
             </button>
             <button className="bv-btn-register" onClick={handleLogin}>
