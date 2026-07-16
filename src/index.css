@@ -1,5 +1,6 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Montserrat:wght@400;500;700&display=swap');
+@import "tailwindcss";
+
 
 :root {
   --color-primary: #F2B705;       /* Amarillo Benteveo (Botones, links, acentos) */
