@@ -1,5 +1,6 @@
+import ProductCard from '../components/ProductCard/ProductCard.jsx'
 import './PageCatalogo.css'
-import productos from '../data/products.json'
+import products from '../data/products.json'
 
 function PageCatalogo() {
   return (
@@ -10,25 +11,11 @@ function PageCatalogo() {
       </header>
 
       <div className="catalogo__grilla">
-        {productos.map((producto) => (
-          <article className="producto-card" key={producto.id}>
-            <img
-              className="producto-card__imagen"
-              src={producto.imageUrl}
-              alt={producto.title}
-            />
-
-            <div className="producto-card__contenido">
-              <h2 className="producto-card__nombre">{producto.title}</h2>
-              <p className="producto-card__ciudad">{producto.city}</p>
-              <p className="producto-card__precio">
-                ${producto.pricePerDay.toLocaleString('es-AR')} <span>por dia</span>
-              </p>
-              <button className="producto-card__boton" type="button">
-                Ver detalle
-              </button>
-            </div>
-          </article>
+        {products.map((product) => (
+          <ProductCard
+            key={product.id}
+            product={product}
+          />
         ))}
       </div>
     </section>
