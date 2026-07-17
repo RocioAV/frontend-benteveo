@@ -1,11 +1,12 @@
 /* Header Beenteveo */
 .bv-header {
-  background-color: var(--color-primary-hover);
+  background-color: #f59e0b;
   padding: 0px 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  
 }
 
 /* Grupo izquierdo: Logo + Buscador */
