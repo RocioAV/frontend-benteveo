@@ -1,20 +1,32 @@
 [
   {
     "id": 1,
+    "idOwner": 1,
+    "name": "Máquina de coser",
+    "title": "Máquina de coser",
+    "pricePerDay": 4500,
+    "deposit": 15000,
+    "city": "Lanús",
+    "image": "/images/maquinacoser.jpg",
+    "imageUrl": "/images/maquinacoser.jpg",
+    "available": true
+  },
+  {
+    "id": 2,
     "title": "Taladro",
     "pricePerDay": 15000,
     "city": "Mar del Plata",
     "imageUrl": "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&w=800&q=80"
   },
   {
-    "id": 2,
+    "id": 3,
     "title": "Escalera",
     "pricePerDay": 8000,
     "city": "Mar del Plata",
     "imageUrl": "https://images.unsplash.com/photo-1540574163026-643ea20ade25?auto=format&fit=crop&w=800&q=80"
   },
   {
-    "id": 3,
+    "id": 4,
     "title": "Carpa",
     "pricePerDay": 12000,
     "city": "Mar del Plata",

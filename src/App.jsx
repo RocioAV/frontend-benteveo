@@ -1,20 +1,19 @@
 import './App.css'
-// import Header from './components/header.jsx'
+import Reservation from './pages/Reservation.jsx'
 import { Routes, Route } from 'react-router-dom'
 import Home from './pages/Home.jsx'
 import Layout from './layouts/Layout.jsx'
+import Login from './pages/Login.jsx'
 import PageCatalogo from './pages/PageCatalogo.jsx'
 
 function App() {
   return (
     <Routes>
-      {/* Envolvemos TODAS las rutas dentro del Layout común */}
       <Route element={<Layout />}>
-        
-        {/* Rutas individuales */}
         <Route path="/" element={<Home />} />
         <Route path="/catalogo" element={<PageCatalogo />} />
-        
+        <Route path="/reservation/:id" element={<Reservation />} />
+        <Route path="/login" element={<Login />} />
       </Route>
     </Routes>
   )
