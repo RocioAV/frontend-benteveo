@@ -50,7 +50,7 @@ const Header = ({ onSearch }) => {
       </button>
 
       <nav className={`bv-navbar ${menuOpen ? 'bv-open' : ''}`}>
-        <Link to="/explore" className="bv-nav-link" onClick={() => setMenuOpen(false)}>
+        <Link to="/explorar" className="bv-nav-link" onClick={() => setMenuOpen(false)}>
           <i className="fas fa-compass"></i> Explorar
         </Link>
 
