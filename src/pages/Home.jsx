@@ -1,16 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
+import products from '../data/products.json'
 import './Home.css'
 
-const carouselProducts = [
-  { id: 1, name: 'Máquina de coser', price: '$4.500/día', image: '/images/maquinacoser.jpg' },
-  { id: 2, name: 'Taladro eléctrico', price: '$2.000/día', image: '/images/taladro.jpg' },
-  { id: 3, name: 'Horno microondas', price: '$1.500/día', image: '/images/microondas.jpg' },
-  { id: 4, name: 'Bicicleta', price: '$3.000/día', image: '/images/bicicleta.jpg' },
-  { id: 5, name: 'Herramientas varias', price: '$1.800/día', image: '/images/herramientas.jpg' },
-  { id: 6, name: 'Consola de video', price: '$5.000/día', image: '/images/consola.jpg' },
-]
-
-const duplicated = [...carouselProducts, ...carouselProducts, ...carouselProducts]
+const duplicated = [...products, ...products, ...products]
 
 function Home() {
   const [activeStep, setActiveStep] = useState(0)
@@ -28,9 +21,9 @@ function Home() {
     const calcOffset = () => {
       if (!trackRef.current) return
       const cards = trackRef.current.children
-      const totalCards = carouselProducts.length
+      const totalCards = products.length
       let width = 0
-      for (let i = 0; i < totalCards; i++) {
+      for (let i = 0; i < 5; i++) {
         const card = cards[i]
         width += card.offsetWidth
         if (i < totalCards - 1) {
@@ -77,7 +70,7 @@ function Home() {
             sin comprarlo.
           </p>
           <a
-            href="#explorar"
+            href="/explorar"
             className="inline-block bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-amber-500/30 hover:shadow-amber-500/40 transition-all duration-200 hover:-translate-y-0.5"
           >
             Explorar
@@ -94,12 +87,12 @@ function Home() {
               <div className="carousel-card" key={`${product.id}-${index}`}>
                 <img
                   className="carousel-card-img"
-                  src={product.image}
-                  alt={product.name}
+                  src={product.imageUrl}
+                  alt={product.title}
                 />
                 <div className="p-3 text-center">
-                  <p className="text-sm font-semibold text-[#1a1a1a] truncate m-0">{product.name}</p>
-                  <p className="text-xs font-bold text-amber-500 mt-1 m-0">{product.price}</p>
+                  <p className="text-sm font-semibold text-[#1a1a1a] truncate m-0">{product.title}</p>
+                  <p className="text-xs font-bold text-amber-500 mt-1 m-0">${product.pricePerDay.toLocaleString('es-AR')}/día</p>
                 </div>
               </div>
             ))}
@@ -187,6 +180,83 @@ function Home() {
             </div>
             <h3 className="text-lg font-semibold text-[#1a1a1a] mb-2">¡Listo! Alquilalo</h3>
             <p className="text-sm text-[#78716c] leading-relaxed m-0">Recibís pedidos y ganás dinero</p>
+          </div>
+        </div>
+      </section>
+
+      {/* PRODUCTOS DESTACADOS */}
+      <section className="py-16 px-6 md:px-10 bg-[#FAF8F5]">
+        <div className="max-w-[1100px] mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#1a1a1a] text-center mb-2">
+            Productos Destacados
+          </h2>
+          <p className="text-base md:text-lg text-[#78716c] text-center mb-10">
+            Lo que la gente está alquilando ahora
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {products.slice(0, 8).map((product) => (
+              <Link
+                to={`/detalle/${product.id}`}
+                key={product.id}
+                className="product-card group block bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 no-underline border border-[#e7e5e4]/50"
+              >
+                <div className="relative overflow-hidden">
+                  <img
+                    src={product.imageUrl}
+                    alt={product.title}
+                    className="w-full h-52 object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <span className="absolute top-3 left-3 bg-amber-500 text-white text-[11px] font-bold px-3 py-1 rounded-full shadow-lg shadow-amber-500/30 uppercase tracking-wide">
+                    {product.category}
+                  </span>
+                  <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+                    <span className="bg-white text-amber-500 text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
+                      Ver más →
+                    </span>
+                  </div>
+                </div>
+                <div className="p-5">
+                  <h3 className="text-base font-bold text-[#1a1a1a] mb-1 group-hover:text-amber-500 transition-colors duration-200">
+                    {product.title}
+                  </h3>
+                  <p className="text-sm text-[#78716c] mb-4 line-clamp-2 leading-relaxed">
+                    {product.description}
+                  </p>
+                  <div className="flex items-center gap-1.5 text-xs text-[#78716c] mb-3">
+                    <svg className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                      <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    <span>{product.city}, {product.region}</span>
+                  </div>
+                  <div className="border-t border-[#e7e5e4] pt-3 flex items-end justify-between">
+                    <div>
+                      <span className="text-2xl font-extrabold text-[#1a1a1a]">
+                        ${product.pricePerDay.toLocaleString('es-AR')}
+                      </span>
+                      <span className="text-xs font-medium text-[#78716c] ml-1">/día</span>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] text-[#a8a29e] uppercase tracking-wider mb-0.5">Seña</p>
+                      <p className="text-sm font-semibold text-[#57534e] m-0">
+                        ${product.deposit.toLocaleString('es-AR')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          <div className="text-center mt-10">
+            <Link
+              to="/explorar"
+              className="inline-block border-2 border-amber-500 text-amber-500 font-semibold py-2.5 px-8 rounded-xl hover:bg-amber-500 hover:text-white transition-all duration-200 no-underline"
+            >
+              Ver todos los productos
+            </Link>
           </div>
         </div>
       </section>
