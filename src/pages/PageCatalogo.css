@@ -1,8 +1,12 @@
 .catalogo {
-  --catalogo-accent-hover: #9424e8;
+  --catalogo-primary-hover: color-mix(
+  in srgb,
+  var(--color-amber-500) 90%,
+  var(--color-amber-600) 10%
+  );
   --catalogo-card-shadow: 0 0.25rem 1rem rgba(8, 6, 13, 0.07);
   --catalogo-card-shadow-hover: 0 0.75rem 1.75rem rgba(8, 6, 13, 0.12);
-
+  --catalogo-primary: var(--color-amber-500);
   width: min(100% - 2rem, 68.75rem);
   margin: 0 auto;
   padding: 2.5rem 0 4rem;
@@ -23,7 +27,39 @@
   font-size: 1.05rem;
   line-height: 1.6;
 }
-
+.category-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+.category-filter {
+  padding: 0.65rem 1rem;
+  font: inherit;
+  color: var(--color-dark);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+.category-filter:hover {
+  border-color: var(--catalogo-primary);
+  transform: transLateY(-2px);
+}
+.category-filter:focus-visible {
+  outline: 3px solid var(--catalogo-primary);
+  outline-offset: 3px;
+}
+.category-filter--active {
+  color:white;
+  background-color: var(--catalogo-primary);
+  border-color: var(--catalogo-primary);
+}
 .catalogo__grilla {
   display: grid;
   grid-template-columns: 1fr;
@@ -49,7 +85,8 @@
   display: block;
   width: 100%;
   aspect-ratio: 4 / 3;
-  object-fit: cover;
+  object-fit: contain;
+  background-color: #ffffff;
 }
 
 .product-card__content {
@@ -83,17 +120,17 @@
   font: inherit;
   font-weight: 600;
   color: #ffffff;
-  background-color: var(--accent);
+  background-color: var(--catalogo-primary);
   border: 0;
   border-radius: 0.625rem;
-  box-shadow: 0 0.25rem 0.75rem rgba(170, 59, 255, 0.2);
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.50);
   cursor: pointer;
   transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .product-card__button:hover {
-  background-color: var(--catalogo-accent-hover);
-  box-shadow: 0 0.5rem 1rem rgba(170, 59, 255, 0.3);
+  background-color: var(--catalogo-primary-hover);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.45);
   transform: translateY(-0.125rem);
 }
 
