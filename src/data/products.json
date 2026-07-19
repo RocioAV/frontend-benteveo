@@ -1,12 +1,62 @@
 [
   {
     "id": 1,
-    "idOwner": 1,
-    "name": "Máquina de coser",
+    "ownerId": 1,
+    "title": "Máquina de coser",
+    "description": "Máquina de coser disponible para alquiler.",
     "pricePerDay": 4500,
+    "pricePerMonth": 90000,
     "deposit": 15000,
+    "category": "Electrodomesticos",
+    "region": "Buenos Aires",
     "city": "Lanús",
-    "image": "/images/maquinacoser.jpg",
-    "available": true
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "/images/maquina-de-coser.webp",
+    "isAvailable": true
+  },
+  {
+    "id": 2,
+    "ownerId": 2,
+    "title": "Taladro",
+    "description": "Taladro eléctrico disponible para trabajos en el hogar.",
+    "pricePerDay": 15000,
+    "pricePerMonth": 300000,
+    "deposit": 40000,
+    "category": "Herramientas",
+    "region": "Buenos Aires",
+    "city": "Mar del Plata",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "/images/taladro.webp",
+    "isAvailable": true
+  },
+  {
+    "id": 3,
+    "ownerId": 3,
+    "title": "Escalera",
+    "description": "Escalera práctica para tareas de mantenimiento y reparaciones.",
+    "pricePerDay": 8000,
+    "pricePerMonth": 160000,
+    "deposit": 25000,
+    "category": "Herramientas",
+    "region": "Buenos Aires",
+    "city": "Mar del Plata",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "/images/escalera.webp",
+    "isAvailable": true
+  },
+  {
+    "id": 4,
+    "ownerId": 4,
+    "title": "Carpa",
+    "description": "Carpa para actividades al aire libre y escapadas de camping.",
+    "pricePerDay": 12000,
+    "pricePerMonth": 240000,
+    "deposit": 35000,
+    "category": "Aire libre",
+    "region": "Buenos Aires",
+    "city": "Mar del Plata",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "/images/carpa.webp",
+    "isAvailable": true
   }
 ]
