@@ -93,8 +93,8 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 1.125rem;
-  padding: 1.5rem;
+  gap: 0.875rem;
+  padding: 1.125rem;
 }
 
 .product-card__title,
@@ -103,7 +103,7 @@
 }
 
 .product-card__price {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--text-h);
 }
@@ -116,7 +116,7 @@
 
 .product-card__button {
   width: 100%;
-  padding: 0.8rem 1.25rem;
+  padding: 0.65rem 1rem;
   font: inherit;
   font-weight: 600;
   color: #ffffff;
@@ -155,8 +155,8 @@
   }
 
   .catalogo__grilla {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
   }
 }
 
