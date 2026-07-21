@@ -115,11 +115,14 @@
 }
 
 .product-card__button {
+  display: block;
   width: 100%;
   padding: 0.65rem 1rem;
   font: inherit;
   font-weight: 600;
   color: #ffffff;
+  text-align: center;
+  text-decoration: none;
   background-color: var(--catalogo-primary);
   border: 0;
   border-radius: 0.625rem;
