@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import './ProductCard.css'
 // Funcion de una tajeta de producto que recibe un objeto de producto como propiedad y renderiza su imagen, titulo, ciudad y precio por día.
 function ProductCard({ product }) {
@@ -22,9 +23,9 @@ function ProductCard({ product }) {
           <span>por día</span>
         </p>
 
-        <button className="product-card__button" type="button"> {/* Botón para ver detalle del producto */}
+        <Link to={`/detalle/${product.id}`} className="product-card__button">
           Ver detalle
-        </button>
+        </Link>
       </div>
     </article>
   )
