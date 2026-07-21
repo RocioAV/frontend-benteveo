@@ -12,7 +12,23 @@
     "city": "Lanús",
     "deliveryMethod": "A coordinar",
     "imageUrl": "/images/maquina-de-coser.webp",
-    "isAvailable": true
+    "isAvailable": true,
+    "rating": 4.8,
+    "reviewCount": 18,
+    "completedRentals": 32,
+    "distance": "2.3 km",
+    "owner": {
+      "name": "Carlos García",
+      "initials": "CG",
+      "verified": true,
+      "memberSince": 2022
+    },
+    "policies": "Depósito mínimo requerido al momento de la reserva. El producto debe devolverse en las mismas condiciones. Se permite hasta 24 horas de gracia para cancelaciones sin cargo.",
+    "reviews": [
+      { "id": 1, "author": "María L.", "initials": "ML", "rating": 5, "date": "15 Jun 2025", "comment": "Excelente máquina, funciona perfecto. Muy recomendable." },
+      { "id": 2, "author": "Juan P.", "initials": "JP", "rating": 5, "date": "02 May 2025", "comment": "La usé para un proyecto de costura y quedé muy conforme." },
+      { "id": 3, "author": "Ana R.", "initials": "AR", "rating": 4, "date": "18 Abr 2025", "comment": "Muy buena máquina, solo tardé un poco en entender el manual." }
+    ]
   },
   {
     "id": 2,
@@ -27,7 +43,23 @@
     "city": "Mar del Plata",
     "deliveryMethod": "A coordinar",
     "imageUrl": "/images/taladro.webp",
-    "isAvailable": true
+    "isAvailable": true,
+    "rating": 4.9,
+    "reviewCount": 24,
+    "completedRentals": 45,
+    "distance": "1.2 km",
+    "owner": {
+      "name": "Carlos García",
+      "initials": "CG",
+      "verified": true,
+      "memberSince": 2023
+    },
+    "policies": "Depósito mínimo requerido al momento de la reserva. El producto debe devolverse en las mismas condiciones. Se permite hasta 24 horas de gracia para cancelaciones sin cargo.",
+    "reviews": [
+      { "id": 1, "author": "Pedro M.", "initials": "PM", "rating": 5, "date": "20 Jun 2025", "comment": "Muy potente y fácil de usar. Lo usé para arreglar la casa." },
+      { "id": 2, "author": "Laura S.", "initials": "LS", "rating": 5, "date": "10 May 2025", "comment": "Excelente taladro, viene con todo lo necesario." },
+      { "id": 3, "author": "Roberto G.", "initials": "RG", "rating": 5, "date": "28 Abr 2025", "comment": "Recomendable 100%. Muy buen estado." }
+    ]
   },
   {
     "id": 3,
@@ -42,7 +74,22 @@
     "city": "Lomas de Zamora",
     "deliveryMethod": "A coordinar",
     "imageUrl": "/images/escalera.webp",
-    "isAvailable": true
+    "isAvailable": true,
+    "rating": 4.7,
+    "reviewCount": 15,
+    "completedRentals": 28,
+    "distance": "3.5 km",
+    "owner": {
+      "name": "María López",
+      "initials": "ML",
+      "verified": true,
+      "memberSince": 2022
+    },
+    "policies": "Depósito mínimo requerido al momento de la reserva. El producto debe devolverse en las mismas condiciones. Se permite hasta 24 horas de gracia para cancelaciones sin cargo.",
+    "reviews": [
+      { "id": 1, "author": "Diego F.", "initials": "DF", "rating": 5, "date": "12 Jun 2025", "comment": "Muy práctica y liviana. La usé para pintar la casa." },
+      { "id": 2, "author": "Sofía A.", "initials": "SA", "rating": 4, "date": "01 May 2025", "comment": "Buena escalera, cumple con su función." }
+    ]
   },
   {
     "id": 4,
@@ -57,7 +104,23 @@
     "city": "Mar del Plata",
     "deliveryMethod": "A coordinar",
     "imageUrl": "/images/carpa.webp",
-    "isAvailable": true
+    "isAvailable": true,
+    "rating": 4.6,
+    "reviewCount": 20,
+    "completedRentals": 38,
+    "distance": "5.1 km",
+    "owner": {
+      "name": "Lucas Martínez",
+      "initials": "LM",
+      "verified": true,
+      "memberSince": 2021
+    },
+    "policies": "Depósito mínimo requerido al momento de la reserva. El producto debe devolverse en las mismas condiciones. Se permite hasta 24 horas de gracia para cancelaciones sin cargo.",
+    "reviews": [
+      { "id": 1, "author": "Martín R.", "initials": "MR", "rating": 5, "date": "05 Jun 2025", "comment": "Carpita muy buena, resistente y fácil de armar." },
+      { "id": 2, "author": "Valentina C.", "initials": "VC", "rating": 4, "date": "20 May 2025", "comment": "Pasamos una noche genial. Impermeable de verdad." },
+      { "id": 3, "author": "Andrés B.", "initials": "AB", "rating": 5, "date": "08 May 2025", "comment": "Excelente relación precio-calidad." }
+    ]
   },
   {
     "id": 5,
@@ -72,7 +135,22 @@
     "city": "Villa Carlos Paz",
     "deliveryMethod": "A coordinar",
     "imageUrl": "https://www.patagoniabiketrips.com/wp-content/uploads/2025/05/Bicicleta-Trail-all-mountain.jpg",
-    "isAvailable": true
+    "isAvailable": true,
+    "rating": 4.8,
+    "reviewCount": 22,
+    "completedRentals": 40,
+    "distance": "8.0 km",
+    "owner": {
+      "name": "Fernando Díaz",
+      "initials": "FD",
+      "verified": true,
+      "memberSince": 2022
+    },
+    "policies": "Depósito mínimo requerido al momento de la reserva. El producto debe devolverse en las mismas condiciones. Se permite hasta 24 horas de gracia para cancelaciones sin cargo.",
+    "reviews": [
+      { "id": 1, "author": "Camila V.", "initials": "CV", "rating": 5, "date": "18 Jun 2025", "comment": "Bici en muy buen estado, pasé un día increíble." },
+      { "id": 2, "author": "Lucas H.", "initials": "LH", "rating": 5, "date": "05 Jun 2025", "comment": "Muy buena bicicleta, liviana y resistente." }
+    ]
   },
   {
     "id": 6,
@@ -87,7 +165,23 @@
     "city": "CABA",
     "deliveryMethod": "A coordinar",
     "imageUrl": "https://s3.us-east-2.amazonaws.com/ccp-prd-s3-uploads/2019/3/12/41bcf90e04ce562a9006bbcf07f77c3197121c4e.jpeg",
-    "isAvailable": true
+    "isAvailable": true,
+    "rating": 4.9,
+    "reviewCount": 30,
+    "completedRentals": 55,
+    "distance": "0.8 km",
+    "owner": {
+      "name": "Martín Ruiz",
+      "initials": "MR",
+      "verified": true,
+      "memberSince": 2021
+    },
+    "policies": "Depósito mínimo requerido al momento de la reserva. El producto debe devolverse en las mismas condiciones. Se permite hasta 24 horas de gracia para cancelaciones sin cargo.",
+    "reviews": [
+      { "id": 1, "author": "Nicolás T.", "initials": "NT", "rating": 5, "date": "22 Jun 2025", "comment": "¡Una bomba! La pasamos increíble con los pibes." },
+      { "id": 2, "author": "Julia P.", "initials": "JP", "rating": 5, "date": "12 Jun 2025", "comment": "Consola en perfecto estado, muy recomendable." },
+      { "id": 3, "author": "Mateo S.", "initials": "MS", "rating": 5, "date": "01 Jun 2025", "comment": "Vinieron con todos los juegos y mandos. Todo perfecto." }
+    ]
   },
   {
     "id": 7,
@@ -102,7 +196,22 @@
     "city": "Avellaneda",
     "deliveryMethod": "A coordinar",
     "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e0/Micro_linea.JPG",
-    "isAvailable": true
+    "isAvailable": true,
+    "rating": 4.5,
+    "reviewCount": 12,
+    "completedRentals": 20,
+    "distance": "4.0 km",
+    "owner": {
+      "name": "Roberto Sánchez",
+      "initials": "RS",
+      "verified": true,
+      "memberSince": 2023
+    },
+    "policies": "Depósito mínimo requerido al momento de la reserva. El producto debe devolverse en las mismas condiciones. Se permite hasta 24 horas de gracia para cancelaciones sin cargo.",
+    "reviews": [
+      { "id": 1, "author": "Gabriela F.", "initials": "GF", "rating": 5, "date": "10 Jun 2025", "comment": "Perfecto para mi mudanza, funcionó de maravilla." },
+      { "id": 2, "author": "Pablo E.", "initials": "PE", "rating": 4, "date": "25 May 2025", "comment": "Buen microondas, cumple con todo." }
+    ]
   },
   {
     "id": 8,
@@ -117,7 +226,22 @@
     "city": "Quilmes",
     "deliveryMethod": "A coordinar",
     "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRbwg_VAr__yUKg13ij0kOhfBkEIZ2FRfmfoMZHAZIaqgGgB5iBEizwQHTQ&s=10",
-    "isAvailable": true
+    "isAvailable": true,
+    "rating": 4.7,
+    "reviewCount": 16,
+    "completedRentals": 25,
+    "distance": "6.2 km",
+    "owner": {
+      "name": "Luciana Gómez",
+      "initials": "LG",
+      "verified": true,
+      "memberSince": 2022
+    },
+    "policies": "Depósito mínimo requerido al momento de la reserva. El producto debe devolverse en las mismas condiciones. Se permite hasta 24 horas de gracia para cancelaciones sin cargo.",
+    "reviews": [
+      { "id": 1, "author": "Fernando A.", "initials": "FA", "rating": 5, "date": "08 Jun 2025", "comment": "Muy cómoda, la uso todos los días para trabajar." },
+      { "id": 2, "author": "Carolina M.", "initials": "CM", "rating": 4, "date": "22 May 2025", "comment": "Buena silla, el soporte lumbar se nota." }
+    ]
   },
   {
     "id": 9,
@@ -132,7 +256,22 @@
     "city": "La Plata",
     "deliveryMethod": "A coordinar",
     "imageUrl": "https://images.fravega.com/f1000/f38d1f274013e431be929827366815d1.jpg",
-    "isAvailable": true
+    "isAvailable": true,
+    "rating": 4.6,
+    "reviewCount": 19,
+    "completedRentals": 35,
+    "distance": "7.5 km",
+    "owner": {
+      "name": "Alejandro Vargas",
+      "initials": "AV",
+      "verified": true,
+      "memberSince": 2022
+    },
+    "policies": "Depósito mínimo requerido al momento de la reserva. El producto debe devolverse en las mismas condiciones. Se permite hasta 24 horas de gracia para cancelaciones sin cargo.",
+    "reviews": [
+      { "id": 1, "author": "Isabel R.", "initials": "IR", "rating": 5, "date": "14 Jun 2025", "comment": "¡Hicimos cine en el patio! Imagen excelente." },
+      { "id": 2, "author": "Tomás L.", "initials": "TL", "rating": 4, "date": "02 Jun 2025", "comment": "Muy buen proyector, fácil de configurar." }
+    ]
   },
   {
     "id": 10,
@@ -147,6 +286,22 @@
     "city": "Tigre",
     "deliveryMethod": "A coordinar",
     "imageUrl": "https://mall.icbc.com.ar/27747618-large_default/conservadora-coleman-chest-100-qt-ruedas-heladera-portatil.jpg",
-    "isAvailable": true
+    "isAvailable": true,
+    "rating": 4.8,
+    "reviewCount": 21,
+    "completedRentals": 30,
+    "distance": "9.0 km",
+    "owner": {
+      "name": "Patricia Romero",
+      "initials": "PR",
+      "verified": true,
+      "memberSince": 2023
+    },
+    "policies": "Depósito mínimo requerido al momento de la reserva. El producto debe devolverse en las mismas condiciones. Se permite hasta 24 horas de gracia para cancelaciones sin cargo.",
+    "reviews": [
+      { "id": 1, "author": "Gustavo N.", "initials": "GN", "rating": 5, "date": "16 Jun 2025", "comment": "La llevé a un camping y funcionó perfecto." },
+      { "id": 2, "author": "Laura B.", "initials": "LB", "rating": 5, "date": "04 Jun 2025", "comment": "Muy práctica, enfría de verdad." },
+      { "id": 3, "author": "Sergio C.", "initials": "SC", "rating": 4, "date": "20 May 2025", "comment": "Buena heladera portátil, la recomiendo." }
+    ]
   }
 ]
