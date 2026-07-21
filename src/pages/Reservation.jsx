@@ -1,13 +1,7 @@
 import './reservation.css'
-import products from "../data/products.json";
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
 
-const Reservation = () => {
-    const { id } = useParams();
-    const productId = Number(id);
-    const product = products.find(product => product.id === productId);
-
+const Reservation = ({ product }) => {
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
     const start = new Date(startDate);
@@ -29,7 +23,7 @@ const Reservation = () => {
   return (
     <section className="reservation-page">
       <div className="reservation-card">
-        <h1>Reservar {product.name} en {product.city}</h1>
+        <h1>Reservar {product.title} en {product.city}</h1>
 
         <form className="reservation-form">
           <label>
@@ -48,10 +42,10 @@ const Reservation = () => {
           </label>
 
           <div className="reservation-summary">
-            <p><span>Precio por día</span><strong>${product.pricePerDay}</strong></p>
+            <p><span>Precio por día</span><strong>${product.pricePerDay.toLocaleString('es-AR')}</strong></p>
             <p><span>Días</span><strong>{daysOfRent}</strong></p>
-            <p><span>Depósito</span><strong>${product.deposit}</strong></p>
-            <p><span>Total</span><strong>${totalPrice}</strong></p>
+            <p><span>Depósito</span><strong>${product.deposit.toLocaleString('es-AR')}</strong></p>
+            <p><span>Total</span><strong>${totalPrice.toLocaleString('es-AR')}</strong></p>
           </div>
 
           <button
