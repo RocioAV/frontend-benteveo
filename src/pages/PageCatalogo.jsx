@@ -13,8 +13,8 @@ function PageCatalogo() {
   return (
     <section className="catalogo" aria-labelledby="catalogo-titulo">
       <header className="catalogo__encabezado">
-        <h1 id="catalogo-titulo" className="catalogo__titulo">Catalogo</h1>
-        <p className="catalogo__descripcion">Encontra lo que necesitas cerca tuyo.</p>
+        <h1 id="catalogo-titulo" className="catalogo__titulo">Explorá productos</h1>
+        <p className="catalogo__descripcion">Encontrá lo que necesitás cerca tuyo.</p>
       </header>
       <div className="category-filters" aria-label="Filtros por categoria">
         {categories.map((category) => (
