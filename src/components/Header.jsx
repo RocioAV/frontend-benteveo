@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/useAuth'
 import logo from '../assets/BenteveoLogo.webp'
-import mockUser from '../data/mockUser.json'
 
 import './header.css'
 
 const Header = ({ onSearch }) => {
   const [query, setQuery] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
-  const [user, setUser] = useState(null)
+  const { user, logout } = useAuth()
   const navigate = useNavigate()
 
   const handleChange = (e) => {
@@ -17,14 +17,10 @@ const Header = ({ onSearch }) => {
     if (onSearch) onSearch(value)
   }
 
-  const handleLogin = () => {
-    setUser(mockUser)
-    setMenuOpen(false)
-  }
-
   const handleLogout = () => {
-    setUser(null)
+    logout()
     setMenuOpen(false)
+    navigate('/')
   }
 
   return (
@@ -73,7 +69,7 @@ const Header = ({ onSearch }) => {
         )}
 
         {!user && (
-          <button className="bv-nav-link bv-nav-btn" onClick={() => { navigate('/login'); setMenuOpen(false); handleLogin() }}>
+          <button className="bv-nav-link bv-nav-btn" onClick={() => { navigate('/login'); setMenuOpen(false) }}>
             <i className="fas fa-sign-in-alt"></i> Iniciar sesión
           </button>
         )}

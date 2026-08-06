@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { useAuth } from '../context/useAuth'
 import logo from '../assets/BenteveoLogo.png'
 import './Registro.css'
 
 function Registro() {
   const navigate = useNavigate()
+  const { register } = useAuth()
 
   const [formData, setFormData] = useState({
     name: '',
@@ -18,6 +21,7 @@ function Registro() {
   const [passwordError, setPasswordError] = useState('')
   const [passwordStrengthError, setPasswordStrengthError] = useState('')
   const [emailError, setEmailError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const checkPasswordStrength = (password) => {
     if (!password) return ''
@@ -90,21 +94,18 @@ function Registro() {
       return
     }
 
+    setLoading(true)
+
     try {
-      const response = await fetch('/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      })
-
-      if (!response.ok) {
-        throw new Error('Error en el registro')
-      }
-
+      const dataToSend = { ...formData }
+      delete dataToSend.password2
+      await register(dataToSend)
+      toast.success('¡Cuenta creada! Ahora iniciá sesión')
       navigate('/login')
-    } catch (error) {
-      console.error(error)
-      alert('Hubo un problema al registrarte. Intentá de nuevo.')
+    } catch (err) {
+      toast.error(err.message || 'Hubo un problema al registrarte')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -235,8 +236,8 @@ function Registro() {
           )}
         </div>
 
-        <button type="submit" className="registro-submit-btn">
-          Registrarse
+        <button type="submit" className="registro-submit-btn" disabled={loading}>
+          {loading ? 'Registrando...' : 'Registrarse'}
         </button>
       </form>
     </div>
