@@ -1,6 +1,31 @@
-import { useNavigate } from "react-router-dom"
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
+import { useAuth } from '../context/useAuth'
+
 function Login() {
-    const navigate = useNavigate()
+  const navigate = useNavigate()
+  const { login } = useAuth()
+
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      await login({ email, password })
+      toast.success('¡Bienvenido!')
+      navigate('/')
+    } catch (err) {
+      toast.error(err.message || 'Correo o contraseña incorrectos')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="flex w-full flex-1 ">
         {/*ocupa lado izquierdo */}
@@ -8,37 +33,59 @@ function Login() {
         <div className="bg-white px-10 py-20 rounded-3xl border-2 border-gray-100">
             <h1 className="text-5xl font-semibold">Bienvenido de nuevo</h1>
             <p className="font-medium text.lg text-gray-500 mt-4">¡Bienvenido de nuevo! Por favor, introduzca sus datos.</p>
-            <div className="mt-8">
+            <form onSubmit={handleSubmit} className="mt-8">
                 <div>
-                    <label className="text-lg font-medium" htmlFor="">Correo electrónico</label>
-                    <input className="w-full border-2 border-gray-100 rounded-xl p-4 mt-1 bg-transparent" placeholder="Introduce tu correo electronico" type="text" id=""/>
+                    <label className="text-lg font-medium" htmlFor="email">Correo electrónico</label>
+                    <input
+                      className="w-full border-2 border-gray-100 rounded-xl p-4 mt-1 bg-transparent"
+                      placeholder="Introduce tu correo electronico"
+                      type="email"
+                      id="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
                 </div>
                 <div>
-                    <label className="text-lg font-medium" htmlFor="">Contraseña</label>
-                    <input className="w-full border-2 border-gray-100 rounded-xl p-4 mt-1 bg-transparent" placeholder="Introduce tu contraseña" type="password" id=""/>
+                    <label className="text-lg font-medium" htmlFor="password">Contraseña</label>
+                    <input
+                      className="w-full border-2 border-gray-100 rounded-xl p-4 mt-1 bg-transparent"
+                      placeholder="Introduce tu contraseña"
+                      type="password"
+                      id="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
                 </div>
                 <div className="mt-8 flex justify-between items-center">
                     <div>
                         <input type="checkbox" id="remember" />
                         <label className="ml-2 font-medium text-base" htmlFor="remember">Recuerda durante 30 dias</label>
                     </div>
-                    <button className="font-medium text-base text-amber-500">Has olvidado tu contraseña</button>
+                    <button type="button" className="font-medium text-base text-amber-500">Has olvidado tu contraseña</button>
                 </div>
                 <div className="mt-8 flex flex-col gap-y-4">
-                    <button className="active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-3 rounded-xl bg-amber-500 bg-v text-white text-lg font-bold" onClick={() => navigate('/')}>Iniciar Sesion</button>
-                    <button className="active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all flex rounded-xl py-3 border-2 border-gray-100 items-center justify-center gap-2"><svg width="24" height="24" viewBox="-3 0 262 262" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M255.878 133.451c0-10.734-.871-18.567-2.756-26.69H130.55v48.448h71.947c-1.45 12.04-9.283 30.172-26.69 42.356l-.244 1.622 38.755 30.023 2.685.268c24.659-22.774 38.875-56.282 38.875-96.027" fill="#4285F4"></path><path d="M130.55 261.1c35.248 0 64.839-11.605 86.453-31.622l-41.196-31.913c-11.024 7.688-25.82 13.055-45.257 13.055-34.523 0-63.824-22.773-74.269-54.25l-1.531.13-40.298 31.187-.527 1.465C35.393 231.798 79.49 261.1 130.55 261.1" fill="#34A853"></path><path d="M56.281 156.37c-2.756-8.123-4.351-16.827-4.351-25.82 0-8.994 1.595-17.697 4.206-25.82l-.073-1.73L15.26 71.312l-1.335.635C5.077 89.644 0 109.517 0 130.55s5.077 40.905 13.925 58.602l42.356-32.782" fill="#FBBC05"></path><path d="M130.55 50.479c24.514 0 41.05 10.589 50.479 19.438l36.844-35.974C195.245 12.91 165.798 0 130.55 0 79.49 0 35.393 29.301 13.925 71.947l42.211 32.783c10.59-31.477 39.891-54.251 74.414-54.251" fill="#EB4335"></path></g></svg>Inicia sesión con Google</button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-3 rounded-xl bg-amber-500 bg-v text-white text-lg font-bold disabled:opacity-50"
+                    >
+                      {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                    </button>
+                    <button type="button" className="active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all flex rounded-xl py-3 border-2 border-gray-100 items-center justify-center gap-2"><svg width="24" height="24" viewBox="-3 0 262 262" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M255.878 133.451c0-10.734-.871-18.567-2.756-26.69H130.55v48.448h71.947c-1.45 12.04-9.283 30.172-26.69 42.356l-.244 1.622 38.755 30.023 2.685.268c24.659-22.774 38.875-56.282 38.875-96.027" fill="#4285F4"></path><path d="M130.55 261.1c35.248 0 64.839-11.605 86.453-31.622l-41.196-31.913c-11.024 7.688-25.82 13.055-45.257 13.055-34.523 0-63.824-22.773-74.269-54.25l-1.531.13-40.298 31.187-.527 1.465C35.393 231.798 79.49 261.1 130.55 261.1" fill="#34A853"></path><path d="M56.281 156.37c-2.756-8.123-4.351-16.827-4.351-25.82 0-8.994 1.595-17.697 4.206-25.82l-.073-1.73L15.26 71.312l-1.335.635C5.077 89.644 0 109.517 0 130.55s5.077 40.905 13.925 58.602l42.356-32.782" fill="#FBBC05"></path><path d="M130.55 50.479c24.514 0 41.05 10.589 50.479 19.438l36.844-35.974C195.245 12.91 165.798 0 130.55 0 79.49 0 35.393 29.301 13.925 71.947l42.211 32.783c10.59-31.477 39.891-54.251 74.414-54.251" fill="#EB4335"></path></g></svg>Inicia sesión con Google</button>
                 </div>
                 <div className="mt-8 flex justify-center items-center">
                     <p className="font-medium text-base">¿No tienes una cuenta?</p>
-                    <button className="text-amber-500 text-base font-medium ml-2" onClick={() => navigate('/register')}>Crear cuenta</button>
+                    <button type="button" className="text-amber-500 text-base font-medium ml-2" onClick={() => navigate('/register')}>Crear cuenta</button>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
     {/* ocupa lado derecho */}
     <div className='hidden relative lg:flex h-full w-1/2 items-center justify-center'>  {/*  bg-gray-200*/}
         <div className='w-60 h-60 bg-amber-500 rounded-full'/>
-        
+
         </div>
     </div>
 
