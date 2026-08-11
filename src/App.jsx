@@ -6,20 +6,26 @@ import Home from './pages/Home.jsx'
 import Layout from './layouts/Layout.jsx'
 import Login from './pages/Login.jsx'
 import Registro from './pages/Registro.jsx'
+import ForgotPassword from './pages/ForgotPassword.jsx'
 import PageCatalogo from './pages/PageCatalogo.jsx'
+import ScrollToTop from './components/ScrollToTop.jsx'
 
 function App() {
   return (
-    <Routes>
-      <Route element={<Layout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/explorar" element={<PageCatalogo />} />
-        <Route path="/detalle/:id" element={<DetalleProducto />} />
-        <Route path="/reservation/:id" element={<Reservation />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Registro />} />
-      </Route>
-    </Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/explorar" element={<PageCatalogo />} />
+          <Route path="/detalle/:id" element={<DetalleProducto />} />
+          <Route path="/reservation/:id" element={<Reservation />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Registro />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+        </Route>
+      </Routes>
+    </>
   )
 }
 
