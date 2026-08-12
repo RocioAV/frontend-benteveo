@@ -55,6 +55,7 @@ function ForgotPassword() {
                 placeholder="Introduce tu correo electrónico"
                 type="email"
                 id="email"
+                autoComplete="email"
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value)
@@ -74,14 +75,14 @@ function ForgotPassword() {
               <button
                 type="submit"
                 disabled={loading}
-                className="active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-3 rounded-xl bg-amber-500 text-white text-lg font-bold disabled:opacity-50"
+                className="active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-3 rounded-xl bg-[var(--color-primary)] text-[var(--color-dark)] text-lg font-bold disabled:opacity-50"
               >
                 {loading ? 'Enviando...' : 'Enviar enlace de recuperación'}
               </button>
               <button
                 type="button"
                 onClick={() => navigate('/login')}
-                className="font-medium text-base text-amber-500"
+                className="font-medium text-base text-[var(--color-primary)]"
               >
                 Volver al inicio de sesión
               </button>

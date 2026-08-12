@@ -73,7 +73,7 @@
 
 .bv-footer__social-link:hover {
   background: var(--color-primary, #F2B705);
-  color: #423224;
+  color: var(--color-brown);
   transform: translateY(-2px);
 }
 
@@ -89,7 +89,7 @@
   font-family: var(--font-title);
   font-size: 1rem;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--color-surface);
   margin: 0 0 0.35rem;
   letter-spacing: 0.02em;
 }

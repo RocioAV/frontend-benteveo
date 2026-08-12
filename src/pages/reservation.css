@@ -7,7 +7,7 @@
   padding: 28px;
   border: 1px solid #e5e7eb;
   border-radius: 20px;
-  background-color: #ffffff;
+  background-color: var(--color-surface);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   position: sticky;
   top: 2rem;
@@ -40,7 +40,7 @@
 
 .reservation-form input:focus {
   outline: none;
-  border-color: #f59e0b;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
 }
 
@@ -72,8 +72,8 @@
   padding: 14px;
   border: none;
   border-radius: 14px;
-  background-color: #f59e0b;
-  color: #ffffff;
+  background-color: var(--color-primary);
+  color: var(--color-dark);
   font-weight: 700;
   font-size: 16px;
   cursor: pointer;
@@ -92,5 +92,12 @@
   color: #c62828;
   font-size: 14px;
   font-weight: 500;
+  margin: 0;
+}
+
+.reservation-success {
+  color: var(--color-dark);
+  font-size: 14px;
+  font-weight: 600;
   margin: 0;
 }

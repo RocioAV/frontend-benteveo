@@ -1,9 +1,28 @@
 import { useState } from 'react'
+import { motion, MotionConfig } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { useAuth } from '../context/useAuth'
 import logo from '../assets/BenteveoLogo.png'
 import './Registro.css'
+
+function EyeIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  )
+}
+
+function EyeOffIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+      <line x1="1" y1="1" x2="23" y2="23" />
+    </svg>
+  )
+}
 
 function Registro() {
   const navigate = useNavigate()
@@ -22,6 +41,7 @@ function Registro() {
   const [passwordStrengthError, setPasswordStrengthError] = useState('')
   const [emailError, setEmailError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const checkPasswordStrength = (password) => {
     if (!password) return ''
@@ -110,11 +130,18 @@ function Registro() {
   }
 
   return (
-    <div className="registro-page">
-      <form id="registroForm" onSubmit={handleSubmit}>
+    <MotionConfig reducedMotion="user">
+      <motion.div
+        className="registro-page"
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 26 }}
+      >
+        <form id="registroForm" onSubmit={handleSubmit}>
         <div className="registro-logo-badge">
           <img src={logo} alt="Logo Benteveo" />
         </div>
+        <h1 className="sr-only">Registro de usuario</h1>
         <h2>Bienvenido</h2>
         <h3>¡Sé parte de nuestra comunidad!</h3>
 
@@ -166,6 +193,7 @@ function Registro() {
               maxLength={8}
               pattern="[0-9]{7,8}"
               title="Ingresá entre 7 y 8 números, sin puntos"
+              autoComplete="off"
               value={formData.dni}
               onChange={handleChange}
             />
@@ -188,20 +216,30 @@ function Registro() {
 
         <div className="registro-field">
           <label htmlFor="password">Contraseña</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            required
-            placeholder="Contraseña"
-            minLength={8}
-            autoComplete="new-password"
-            value={formData.password}
-            onChange={handleChange}
-            className={passwordStrengthError ? 'input-error' : ''}
-            aria-invalid={passwordStrengthError ? 'true' : 'false'}
-            aria-describedby={passwordStrengthError ? 'password-strength-error' : undefined}
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              id="password"
+              name="password"
+              required
+              placeholder="Contraseña"
+              minLength={8}
+              autoComplete="new-password"
+              value={formData.password}
+              onChange={handleChange}
+              className={passwordStrengthError ? 'input-error' : ''}
+              aria-invalid={passwordStrengthError ? 'true' : 'false'}
+              aria-describedby={passwordStrengthError ? 'password-strength-error' : undefined}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            >
+              {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+            </button>
+          </div>
           {passwordStrengthError ? (
             <span id="password-strength-error" className="registro-error-message" role="alert">
               {passwordStrengthError}
@@ -239,8 +277,9 @@ function Registro() {
         <button type="submit" className="registro-submit-btn" disabled={loading}>
           {loading ? 'Registrando...' : 'Registrarse'}
         </button>
-      </form>
-    </div>
+        </form>
+      </motion.div>
+    </MotionConfig>
   )
 }
 

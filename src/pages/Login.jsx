@@ -1,9 +1,14 @@
 import { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { motion, MotionConfig } from 'motion/react'
 import { toast } from 'react-toastify'
 import { useAuth } from '../context/useAuth'
+import './Login.css'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+const springReveal = { type: 'spring', stiffness: 260, damping: 26 }
+const springLatch = { type: 'spring', stiffness: 400, damping: 28 }
 
 function validateEmail(email) {
   if (!email) return 'Ingresá tu correo electrónico'
@@ -37,7 +42,7 @@ function EyeOffIcon() {
 function Login() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { login } = useAuth()
+  const { login, token } = useAuth()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -74,104 +79,127 @@ function Login() {
     }
   }
 
+  if (token) {
+    const from = location.state?.from?.pathname || '/'
+    return <Navigate to={from} replace />
+  }
+
   return (
-    <div className="flex w-full flex-1">
-      {/*ocupa lado izquierdo */}
-      <div className="w-full flex items-center justify-center lg:w-1/2">
-        <div className="bg-white px-10 py-8 rounded-3xl border-2 border-gray-100">
-          <h1 className="text-3xl font-semibold">Bienvenido de nuevo</h1>
-          <p className="font-medium text-gray-500 mt-2">¡Bienvenido de nuevo! Por favor, introduzca sus datos.</p>
-          <form onSubmit={handleSubmit} className="mt-5">
-            <div>
-              <label className="text-base font-medium" htmlFor="email">Correo electrónico</label>
-              <input
-                className={`w-full border-2 rounded-xl p-3 mt-1 bg-transparent ${emailError ? 'border-red-400' : 'border-gray-100'}`}
-                placeholder="Introduce tu correo electronico"
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value)
-                  setEmailError(validateEmail(e.target.value))
-                  setFormError('')
-                }}
-                required
-                aria-invalid={emailError ? 'true' : 'false'}
-                aria-describedby={emailError ? 'email-error' : undefined}
-              />
-              {emailError && (
-                <p id="email-error" className="text-sm text-red-500 mt-1" role="alert">
-                  {emailError}
-                </p>
-              )}
-            </div>
-            <div>
-              <label className="text-base font-medium" htmlFor="password">Contraseña</label>
-              <div className="relative">
+    <MotionConfig reducedMotion="user">
+      <div className="login-page">
+        <motion.div
+          className="login-form-side"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={springReveal}
+        >
+          <div className="login-card">
+            <h1 className="login-title">Bienvenido de nuevo</h1>
+            <p className="login-sub">Ingresá tus datos para alquilar.</p>
+            <form onSubmit={handleSubmit}>
+              <div className="login-field">
+                <label className="login-label" htmlFor="email">Correo electrónico</label>
                 <input
-                  className={`w-full border-2 rounded-xl p-3 mt-1 bg-transparent pr-12 ${passwordError ? 'border-red-400' : 'border-gray-100'}`}
-                  placeholder="Introduce tu contraseña"
-                  type={showPassword ? 'text' : 'password'}
-                  id="password"
-                  value={password}
+                  className={`login-input ${emailError ? 'login-input--error' : ''}`}
+                  placeholder="Tu correo electrónico"
+                  type="email"
+                  id="email"
+                  autoComplete="email"
+                  value={email}
                   onChange={(e) => {
-                    setPassword(e.target.value)
-                    setPasswordError(validatePassword(e.target.value))
+                    setEmail(e.target.value)
+                    setEmailError(validateEmail(e.target.value))
                     setFormError('')
                   }}
                   required
-                  aria-invalid={passwordError ? 'true' : 'false'}
-                  aria-describedby={passwordError ? 'password-error' : undefined}
+                  aria-invalid={emailError ? 'true' : 'false'}
+                  aria-describedby={emailError ? 'email-error' : undefined}
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                >
-                  {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                {emailError && (
+                  <p id="email-error" className="login-error" role="alert">
+                    {emailError}
+                  </p>
+                )}
+              </div>
+              <div className="login-field">
+                <label className="login-label" htmlFor="password">Contraseña</label>
+                <div className="login-password">
+                  <input
+                    className={`login-input ${passwordError ? 'login-input--error' : ''}`}
+                    placeholder="Tu contraseña"
+                    type={showPassword ? 'text' : 'password'}
+                    id="password"
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value)
+                      setPasswordError(validatePassword(e.target.value))
+                      setFormError('')
+                    }}
+                    required
+                    aria-invalid={passwordError ? 'true' : 'false'}
+                    aria-describedby={passwordError ? 'password-error' : undefined}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="login-eye"
+                    aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  >
+                    {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                  </button>
+                </div>
+                {passwordError && (
+                  <p id="password-error" className="login-error" role="alert">
+                    {passwordError}
+                  </p>
+                )}
+              </div>
+              <div className="login-forgot">
+                <button type="button" className="login-link" onClick={() => navigate('/forgot-password')}>
+                  ¿Olvidaste tu contraseña?
                 </button>
               </div>
-              {passwordError && (
-                <p id="password-error" className="text-sm text-red-500 mt-1" role="alert">
-                  {passwordError}
-                </p>
+              {formError && (
+                <div className="login-form-error" role="alert">
+                  {formError}
+                </div>
               )}
-            </div>
-            <div className="mt-5 flex justify-between items-center">
-              <div>
-                <input type="checkbox" id="remember" />
-                <label className="ml-2 font-medium text-base" htmlFor="remember">Recuerda durante 30 dias</label>
-              </div>
-              <button type="button" className="font-medium text-base text-amber-500" onClick={() => navigate('/forgot-password')}>Has olvidado tu contraseña</button>
-            </div>
-            {formError && (
-              <div className="mt-5 rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-600" role="alert">
-                {formError}
-              </div>
-            )}
-            <div className="mt-6 flex flex-col gap-y-3">
-              <button
+              <motion.button
                 type="submit"
                 disabled={loading}
-                className="active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all py-3 rounded-xl bg-amber-500 text-white text-lg font-bold disabled:opacity-50"
+                className="login-cta"
+                whileTap={{ scale: 0.96 }}
+                transition={springLatch}
               >
-                {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-              </button>
-              <button type="button" className="active:scale-[.98] active:duration-75 hover:scale-[1.01] ease-in-out transition-all flex rounded-xl py-3 border-2 border-gray-100 items-center justify-center gap-2"><svg width="24" height="24" viewBox="-3 0 262 262" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid" fill="#000000"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M255.878 133.451c0-10.734-.871-18.567-2.756-26.69H130.55v48.448h71.947c-1.45 12.04-9.283 30.172-26.69 42.356l-.244 1.622 38.755 30.023 2.685.268c24.659-22.774 38.875-56.282 38.875-96.027" fill="#4285F4"></path><path d="M130.55 261.1c35.248 0 64.839-11.605 86.453-31.622l-41.196-31.913c-11.024 7.688-25.82 13.055-45.257 13.055-34.523 0-63.824-22.773-74.269-54.25l-1.531.13-40.298 31.187-.527 1.465C35.393 231.798 79.49 261.1 130.55 261.1" fill="#34A853"></path><path d="M56.281 156.37c-2.756-8.123-4.351-16.827-4.351-25.82 0-8.994 1.595-17.697 4.206-25.82l-.073-1.73L15.26 71.312l-1.335.635C5.077 89.644 0 109.517 0 130.55s5.077 40.905 13.925 58.602l42.356-32.782" fill="#FBBC05"></path><path d="M130.55 50.479c24.514 0 41.05 10.589 50.479 19.438l36.844-35.974C195.245 12.91 165.798 0 130.55 0 79.49 0 35.393 29.301 13.925 71.947l42.211 32.783c10.59-31.477 39.891-54.251 74.414-54.251" fill="#EB4335"></path></g></svg>Inicia sesión con Google</button>
-            </div>
-            <div className="mt-3 flex justify-center items-center">
-              <p className="font-medium text-base">¿No tienes una cuenta?</p>
-              <button type="button" className="text-amber-500 text-base font-medium ml-2" onClick={() => navigate('/register')}>Crear cuenta</button>
-            </div>
-          </form>
-        </div>
+                {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
+              </motion.button>
+              <div className="login-register">
+                <span>¿No tenés cuenta?</span>
+                <button type="button" className="login-link" onClick={() => navigate('/register')}>
+                  Crear cuenta
+                </button>
+              </div>
+            </form>
+          </div>
+        </motion.div>
+
+        <motion.aside
+          className="login-brand"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.15 }}
+        >
+          <div className="login-brand-inner">
+            <p className="login-brand-name">Benteveo</p>
+            <p className="login-brand-slogan">Te hace la gauchada</p>
+            <p className="login-brand-tagline">
+              Alquilá herramientas y cosas del barrio, entre vecinos. Sin comprar, sin que estorbe.
+            </p>
+          </div>
+        </motion.aside>
       </div>
-      {/* ocupa lado derecho */}
-      <div className="hidden relative lg:flex h-full w-1/2 items-center justify-center">
-        <div className="w-60 h-60 bg-amber-500 rounded-full" />
-      </div>
-    </div>
+    </MotionConfig>
   )
 }
 

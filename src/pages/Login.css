@@ -1,0 +1,221 @@
+.login-page {
+  display: flex;
+  width: 100%;
+  flex: 1;
+  min-height: calc(100vh - 160px);
+}
+
+.login-form-side {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 26rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  padding: 2.5rem 2rem;
+}
+
+.login-title {
+  font-family: var(--font-title);
+  font-weight: 800;
+  font-size: 1.75rem;
+  letter-spacing: -0.01em;
+  color: var(--color-dark);
+  margin: 0 0 0.5rem;
+}
+
+.login-sub {
+  font-size: 0.95rem;
+  color: var(--color-concrete);
+  margin: 0 0 1.75rem;
+}
+
+.login-field {
+  margin-bottom: 1.25rem;
+}
+
+.login-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-dark);
+  margin-bottom: 0.5rem;
+}
+
+.login-input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  color: var(--color-dark);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  transition: border-color var(--duration-fast) var(--ease-out-quint),
+    box-shadow var(--duration-fast) var(--ease-out-quint);
+}
+
+.login-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(242, 183, 5, 0.25);
+}
+
+.login-input--error {
+  border-color: var(--color-error);
+}
+
+.login-input--error:focus {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+}
+
+.login-password {
+  position: relative;
+}
+
+.login-password .login-input {
+  padding-right: 3rem;
+}
+
+.login-eye {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  color: var(--color-concrete);
+  cursor: pointer;
+}
+
+.login-eye:hover {
+  color: var(--color-dark);
+}
+
+.login-error {
+  font-size: 0.8rem;
+  color: var(--color-error);
+  margin: 0.4rem 0 0;
+}
+
+.login-forgot {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.25rem;
+}
+
+.login-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-dark);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.login-link:hover {
+  color: var(--color-primary);
+}
+
+.login-form-error {
+  background: var(--color-bg);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  font-size: 0.85rem;
+  color: var(--color-error);
+  margin-bottom: 1.25rem;
+}
+
+.login-cta {
+  width: 100%;
+  padding: 0.9rem;
+  background: var(--color-primary);
+  color: var(--color-dark);
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: background var(--duration-fast) var(--ease-out-quint);
+}
+
+.login-cta:hover {
+  background: var(--color-primary-hover);
+}
+
+.login-cta:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.login-register {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  font-size: 0.9rem;
+  color: var(--color-concrete);
+}
+
+/* Panel de marca */
+.login-brand {
+  flex: 1;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-dark);
+  padding: 3rem 2.5rem;
+}
+
+.login-brand-inner {
+  max-width: 22rem;
+  text-align: left;
+}
+
+.login-brand-name {
+  font-family: var(--font-title);
+  font-weight: 800;
+  font-size: 3.5rem;
+  letter-spacing: -0.02em;
+  color: var(--color-primary);
+  margin: 0 0 1rem;
+}
+
+.login-brand-slogan {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--color-surface);
+  margin: 0 0 1.5rem;
+}
+
+.login-brand-tagline {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+@media (min-width: 1024px) {
+  .login-brand {
+    display: flex;
+  }
+}

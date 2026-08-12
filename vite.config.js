@@ -7,4 +7,12 @@ export default defineConfig({
   plugins: [react(),
     tailwindcss()
   ],
+  css: {
+    modules: {
+      // Genera alias camelCase además de las claves originales (kebab/BEM).
+      // Los componentes acceden styles.bvHeader / styles.productCardButton,
+      // pero el CSS source usa .bv-header / .product-card__button.
+      localsConvention: 'camelCase',
+    },
+  },
 })

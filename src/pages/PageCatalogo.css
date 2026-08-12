@@ -1,5 +1,5 @@
 .catalogo {
-  --catalogo-primary: var(--color-amber-500);
+  --catalogo-primary: var(--color-primary, #F2B705);
   width: min(100% - 2rem, 68.75rem);
   margin: 0 auto;
   padding: 2.5rem 0 4rem;
@@ -49,7 +49,7 @@
   outline-offset: 0;
 }
 .category-filter--active {
-  color:white;
+  color: var(--color-dark);
   background-color: var(--catalogo-primary);
   border-color: var(--catalogo-primary);
 }

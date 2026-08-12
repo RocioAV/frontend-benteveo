@@ -1,0 +1,48 @@
+.notFound {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-height: calc(100vh - 160px);
+  padding: 4rem 1.5rem;
+  text-align: center;
+}
+
+.bird {
+  width: 140px;
+  height: 120px;
+  margin-bottom: 0.5rem;
+}
+
+.title {
+  margin: 0;
+  color: var(--color-dark);
+  font-family: var(--font-title);
+  font-weight: 800;
+  font-size: 2rem;
+  letter-spacing: -0.01em;
+}
+
+.description {
+  margin: 0;
+  color: var(--color-concrete);
+  font-family: var(--font-body);
+}
+
+.link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.7rem 1.5rem;
+  font-weight: 700;
+  color: var(--color-dark);
+  background-color: var(--color-primary);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+  transition: background var(--duration-fast) var(--ease-out-quint);
+}
+
+.link:hover {
+  background-color: var(--color-primary-hover);
+}

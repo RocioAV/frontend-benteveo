@@ -1,17 +1,22 @@
-@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Montserrat:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 :root {
   --color-primary: #F2B705;       /* Amarillo Benteveo (Botones, links, acentos) */
   --color-primary-hover: #D9A004; /* Amarillo oscurecido para estados hover */
+  --color-amber-400: #fbbf24;     /* Ámbar degradado (estrellas DetalleProducto) */
+  --color-amber-600: #d97706;     /* Ámbar degradado (hovers + gradient stop) */
   --color-dark: #1A1A1A;          /* Negro Antracita (Texto principal) */
   --color-brown: #423224;         /* Marrón Pluma (Detalles secundarios) */
   --color-bg: #FAF8F5;            /* Blanco Crudo (Fondo general de la app) */
   --color-surface: #FFFFFF;       /* Blanco Puro (Tarjetas, modales, inputs) */
   --color-border: #E5E5E5;        /* Gris claro para bordes sutiles */
+  --color-concrete: #6F6E69;      /* Hormigón — texto secundario, metadata */
+  --color-concrete-surface: #EDECE8; /* Superficie de taller — paneles, cards */
+  --color-error: #DC2626;        /* Error — validación de formularios */
 
-  --font-title: 'Fredoka', system-ui, sans-serif;
-  --font-body: 'Montserrat', system-ui, sans-serif;
+  --font-title: 'Archivo', system-ui, sans-serif;
+  --font-body: 'Archivo', system-ui, sans-serif;
 
   --radius-sm: 8px;               /* Checkboxes, badges, etiquetas */
   --radius-md: 12px;              /* Botones, inputs, dropdowns (Estándar) */
@@ -25,6 +30,10 @@
   --shadow-lg: 0 16px 40px rgba(26, 26, 26, 0.12);
 
   --transition-fast: all 0.2s ease-in-out;
+  --duration-fast: 150ms;
+  --duration-base: 240ms;
+  --duration-slow: 400ms;
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 
@@ -39,7 +48,7 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-title);
-  font-weight: 600;
+  font-weight: 700;
   margin-top: 0;
 }
 

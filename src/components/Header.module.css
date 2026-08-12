@@ -1,6 +1,6 @@
 /* Header Beenteveo */
 .bv-header {
-  background-color: #f59e0b;
+  background-color: var(--color-primary);
   padding: 0px 10px;
   display: flex;
   align-items: center;
@@ -275,5 +275,12 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Preferencias de movimiento reducido: anular animaciones */
+@media (prefers-reduced-motion: reduce) {
+  .bv-navbar.bv-open {
+    animation: none;
   }
 }
