@@ -1,0 +1,329 @@
+.pago-container {
+  min-height: calc(100vh - 140px);
+  background: #FAF8F5;
+  padding: 40px 20px;
+}
+
+.pago-layout {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 32px;
+  align-items: start;
+}
+
+.pago-formulario {
+  background: #fff;
+  border-radius: 20px;
+  padding: 36px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.pago-formulario h1 {
+  font-family: var(--font-title);
+  font-size: 28px;
+  margin-bottom: 4px;
+}
+
+.pago-subtitle {
+  color: #78716c;
+  margin-bottom: 28px;
+  font-size: 14px;
+}
+
+.campo-grupo {
+  margin-bottom: 18px;
+}
+
+.campo-grupo label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #1a1a1a;
+}
+
+.campo-grupo input,
+.campo-grupo select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e5e5e5;
+  border-radius: 12px;
+  font-size: 15px;
+  font-family: var(--font-body);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #fff;
+}
+
+.campo-grupo input:focus,
+.campo-grupo select:focus {
+  outline: none;
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+}
+
+.campo-grupo input.error {
+  border-color: #ef4444;
+}
+
+.error-text {
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+}
+
+.campo-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.tarjetas-iconos {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.tarjeta-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+}
+
+.tarjeta-badge.visa {
+  background: #1a1f71;
+  color: #fff;
+}
+
+.tarjeta-badge.mc {
+  background: #eb001b;
+  color: #fff;
+}
+
+.tarjeta-badge.amex {
+  background: #006fcf;
+  color: #fff;
+}
+
+.btn-pagar {
+  width: 100%;
+  padding: 16px;
+  background: #009ee3;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.btn-pagar:hover {
+  background: #007eb5;
+  transform: translateY(-1px);
+}
+
+.btn-pagar:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.procesando {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.pago-seguro {
+  text-align: center;
+  color: #78716c;
+  font-size: 12px;
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.lock-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.pago-resumen {
+  background: #fff;
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: 100px;
+}
+
+.pago-resumen h3 {
+  font-family: var(--font-title);
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+.resumen-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #e5e5e5;
+  font-size: 14px;
+}
+
+.resumen-item span:first-child {
+  color: #78716c;
+}
+
+.resumen-total {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 0;
+  font-size: 18px;
+}
+
+.resumen-total strong {
+  color: #f59e0b;
+  font-size: 22px;
+}
+
+.resumen-mp {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e5e5;
+}
+
+.resumen-mp span {
+  font-size: 12px;
+  color: #78716c;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.mp-logo {
+  background: #009ee3;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* ── Pago exitoso ── */
+.pago-exitoso {
+  max-width: 460px;
+  margin: 0 auto;
+  text-align: center;
+  background: #fff;
+  border-radius: 24px;
+  padding: 48px 36px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.check-circle {
+  width: 80px;
+  height: 80px;
+  background: #22c55e;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+  animation: popIn 0.4s ease;
+}
+
+.check-circle svg {
+  width: 40px;
+  height: 40px;
+  color: #fff;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0); }
+  70% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.pago-exitoso h1 {
+  font-family: var(--font-title);
+  font-size: 28px;
+  margin-bottom: 8px;
+  color: #22c55e;
+}
+
+.pago-exitoso p {
+  color: #78716c;
+  font-size: 15px;
+}
+
+.pago-monto {
+  font-size: 36px;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin: 20px 0;
+  font-family: var(--font-title);
+}
+
+.pago-detalle {
+  font-size: 13px;
+  margin-bottom: 28px;
+}
+
+.btn-volver {
+  padding: 14px 32px;
+  background: #f59e0b;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-volver:hover {
+  background: #d97706;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .pago-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .pago-formulario {
+    padding: 24px;
+  }
+
+  .pago-resumen {
+    position: static;
+  }
+
+  .campo-row {
+    grid-template-columns: 1fr;
+  }
+}
