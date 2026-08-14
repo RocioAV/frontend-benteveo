@@ -1,6 +1,6 @@
 import Reservation from './pages/Reservation.jsx'
 import DetalleProducto from './pages/DetalleProducto.jsx'
-import NotFound from './pages/NotFound.jsx'
+import NotFound from './pages/NotFound.jsx';
 import { Routes, Route } from 'react-router-dom'
 import Home from './pages/Home.jsx'
 import Layout from './layouts/Layout.jsx'
