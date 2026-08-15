@@ -17,6 +17,7 @@ function Home() {
   const [activeStep, setActiveStep] = useState(0)
   const trackRef = useRef(null)
   const [offset, setOffset] = useState(0)
+  const pausedRef = useRef(false)
 
   useEffect(() => {
     const reduce =
@@ -24,7 +25,9 @@ function Home() {
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (reduce) return // paso estático bajo reduce
     const timer = setInterval(() => {
-      setActiveStep(prev => (prev + 1) % 3)
+      if (!pausedRef.current) {
+        setActiveStep(prev => (prev + 1) % 3)
+      }
     }, 2000)
     return () => clearInterval(timer)
   }, [])
@@ -117,7 +120,11 @@ function Home() {
       </MotionConfig>
 
       {/* STEPS — Publicá en 3 simples pasos */}
-      <section className="relative overflow-hidden py-16 px-6 bg-[var(--color-bg)] text-center">
+      <section
+        className="relative overflow-hidden py-16 px-6 bg-[var(--color-bg)] text-center"
+        onMouseEnter={() => { pausedRef.current = true }}
+        onMouseLeave={() => { pausedRef.current = false }}
+      >
         {/* Decor izquierda */}
         <div className="absolute left-0 top-0 bottom-0 w-24 pointer-events-none z-0">
           <svg viewBox="0 0 120 400" className="w-full h-full" aria-hidden="true">
