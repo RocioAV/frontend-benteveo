@@ -1,5 +1,10 @@
 const BASE_URL = import.meta.env.VITE_API_URL
 
+// NOTA DE SEGURIDAD (Fase 5): el JWT vive en localStorage, expuesto a XSS
+// (cualquier script inyectado puede leerlo). Recomendado: migrar a cookie httpOnly
+// (el backend la setea con HttpOnly + Secure + SameSite; el frontend manda
+// `credentials: 'include'` y NO puede leerla desde JS). Mitigación actual:
+// CSP en index.html + escaping de React por defecto. Ver PLAN-MEJORAS-UX-UI.md §5.
 function getToken() {
   return localStorage.getItem('token')
 }

@@ -404,3 +404,35 @@ Ante duda de cuál corresponde, consultar al dueño. Persistido en engram como
 
 *Regla práctica: cualquier mejora UI debe ejecutarse SIN variar el aspecto dictado por el root.
 Si no se puede cumplir sin tocar color/fuente, se consulta y se decide por separado.*
+
+---
+
+## 12. Actualización — Dirección "El Corralón v2" (2026-08-14)
+
+Aplicando las skills globales de diseño (frontend-design, impeccable,
+design-taste-frontend, review-animations) en las superficies principales, quedaron fijados
+estos patrones que constituyen el estilo a mantener de aquí en adelante:
+
+- **Card unificada** (`ProductCard`): foto + corazón de favorito (toggle) + título +
+  proximidad ("A 4 cuadras de tu casa" / "A X km") + precio/día + puntaje (★ 0–5).
+  SIN tag de categoría, SIN descripción, SIN "Seña".
+- **Categorías circulares** con íconos Font Awesome (Jardinería → brote, Herramientas →
+  caja, etc.) + contador contextual de resultados.
+- **Buscador con lupa** en fila propia (header de dos filas); búsqueda insensible a acentos
+  (título + categoría + ciudad).
+- **Filtro de distancia**: los productos a más de 10 km no se muestran (a futuro saldrá de
+  la geolocalización / dirección de registro).
+- **Detalle de producto**: breadcrumb (INICIO > categoría > título), título bajo la foto,
+  precio/día en el lateral derecho, calendario de reserva con fechas bloqueadas (mín. 1 día),
+  método de entrega (domicilio con costo / retiro gratis), resumen (días + entrega + total),
+  botón "Alquilar ahora" + nota "Pago seguro", y **condiciones de alquiler** (Depósito de
+  Garantía) siempre visibles al pie.
+
+### Regla de trabajo (dueño, 2026-08-14)
+Usar SIEMPRE las skills globales de diseño para el mejor resultado — no limitarse al guard
+`benteveo-design-guard` (que son restricciones, no calidad). La mejora debe ser de
+jerarquía/layout/UX, no un "re-estilo" de tokens + motion.
+
+### Pendiente crítico — bug de datos
+`src/data/products.json`: 12 productos (ids 5-10 duplicados) sin `distance` ni `rating`, y 6
+productos duplicados. Requiere decisión del dueño: deduplicar y completar distance/rating.

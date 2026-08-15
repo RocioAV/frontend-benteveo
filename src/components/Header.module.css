@@ -1,12 +1,19 @@
-/* Header Beenteveo */
+/* Header Benteveo — dos filas: superior (logo + nav) / inferior (buscador) */
 .bv-header {
   background-color: var(--color-primary);
-  padding: 0px 10px;
+  padding: 10px 16px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.bv-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  
+  gap: 4px;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
 }
 
 /* Logo */
@@ -14,39 +21,17 @@
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  height: 90px;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: 4px 10px;
+  box-shadow: var(--shadow-sm);
 }
 
 .bv-logo {
-  height: 80px;
+  height: 56px;
   width: auto;
   border: none;
   object-fit: contain;
-}
-
-/* Barra de búsqueda */
-.bv-search-bar {
-  flex: 1;
-  max-width: auto;
-  margin: 0 32px;
-  padding: 10px 24px;
-  border: none;
-  border-radius: 40px;
-  background: var(--color-surface);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-  outline: none;
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
-}
-
-.bv-search-bar::placeholder {
-  color: #999;
-}
-
-.bv-search-bar:focus {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  transform: scale(1.02);
 }
 
 /* ── Navbar ── */
@@ -133,7 +118,7 @@
 
 /* Botón logout */
 .bv-nav-btn-logout {
-  color: #c0392b;
+  color: var(--color-dark);
 }
 
 .bv-nav-btn-logout:hover {
@@ -142,7 +127,18 @@
 }
 
 .bv-nav-btn-logout::after {
-  background: #c0392b;
+  background: var(--color-error);
+}
+
+/* Botón login (ghost) */
+.bv-nav-btn-login {
+  border-color: var(--color-dark);
+}
+
+.bv-nav-btn-login:hover {
+  background: var(--color-dark);
+  border-color: var(--color-dark);
+  color: var(--color-surface);
 }
 
 /* ── Hamburger ── */
@@ -163,59 +159,54 @@
   transform: scale(1.1);
 }
 
-/* ── Responsive ── */
-
-/* Tablet */
-@media (max-width: 1024px) {
-  .bv-header {
-    padding: 12px 20px;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
-  .bv-search-bar {
-    max-width: 100%;
-    margin: 0;
-    order: 3;
-    width: 100%;
-  }
-
-  .bv-logo-link {
-    order: 1;
-  }
-
-  .bv-hamburger {
-    order: 2;
-    display: none;
-  }
-
-  .bv-navbar {
-    order: 4;
-    width: 100%;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
+/* ── Buscador (fila propia) ── */
+.bv-search-row {
+  position: relative;
+  width: 100%;
+  max-width: 72rem;
+  margin: 10px auto 4px;
 }
 
-/* Móvil */
-@media (max-width: 601px) {
-  .bv-header {
-    padding: 10px 16px;
-    flex-wrap: wrap;
-  }
+.bv-search-row i {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-concrete);
+  font-size: 0.9rem;
+  pointer-events: none;
+}
 
+.bv-search-bar {
+  width: 100%;
+  padding: 12px 20px 12px 46px;
+  border: none;
+  border-radius: 40px;
+  background: var(--color-surface);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  outline: none;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.bv-search-bar::placeholder {
+  color: var(--color-concrete);
+}
+
+.bv-search-bar:focus {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transform: scale(1.01);
+}
+
+/* ── Responsive ── */
+@media (max-width: 601px) {
   .bv-logo {
-    height: 70px;
+    height: 48px;
   }
 
   .bv-hamburger {
     display: block;
-  }
-
-  .bv-search-bar {
-    width: 100%;
-    margin: 8px 0 0;
-    order: 3;
   }
 
   .bv-navbar {
@@ -227,7 +218,6 @@
     padding: 12px 0 4px;
     border-top: 1px solid rgba(0, 0, 0, 0.1);
     margin-top: 8px;
-    order: 4;
   }
 
   .bv-navbar.bv-open {

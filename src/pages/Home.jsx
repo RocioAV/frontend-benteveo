@@ -2,9 +2,12 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, MotionConfig } from 'motion/react'
 import products from '../data/products.json'
+import { isWithinRange } from '../utils/products.js'
+import ProductCard from '../components/ProductCard/ProductCard.jsx'
 import './Home.css'
 
-const duplicated = [...products, ...products, ...products]
+const nearbyProducts = products.filter((product) => isWithinRange(product.distance))
+const duplicated = [...nearbyProducts, ...nearbyProducts, ...nearbyProducts]
 
 // Springs (DESIGN.md §3 — gramática mecánico-líquida)
 const springReveal = { type: 'spring', stiffness: 260, damping: 26 }
@@ -30,7 +33,7 @@ function Home() {
     const calcOffset = () => {
       if (!trackRef.current) return
       const cards = trackRef.current.children
-      const totalCards = products.length
+      const totalCards = nearbyProducts.length
       let width = 0
       for (let i = 0; i < 5; i++) {
         const card = cards[i]
@@ -59,7 +62,7 @@ function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={springReveal}
             >
-              Te hace la gauchada
+              Te hacemos la gauchada
             </motion.p>
             <motion.h1
               className="hero-title"
@@ -96,6 +99,8 @@ function Home() {
                     className="carousel-card-img"
                     src={product.imageUrl}
                     alt={product.title}
+                    loading="lazy"
+                    decoding="async"
                   />
                   <div className="carousel-card-body">
                     <p className="carousel-card-title">{product.title}</p>
@@ -201,43 +206,8 @@ function Home() {
           <h2 className="section-title">Productos destacados</h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.slice(0, 8).map((product, i) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 40, scale: 0.96 }}
-                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                viewport={{ once: true, amount: 0.15 }}
-                transition={{ type: 'spring', stiffness: 260, damping: 26, delay: (i % 4) * 0.06 }}
-                whileHover={{ y: -8, transition: { type: 'spring', stiffness: 400, damping: 20 } }}
-              >
-                <Link to={`/detalle/${product.id}`} className="featured-card">
-                  <div className="featured-card-media">
-                    <img src={product.imageUrl} alt={product.title} loading="lazy" />
-                    <span className="featured-card-tag">{product.category}</span>
-                  </div>
-                  <div className="featured-card-body">
-                    <h3 className="featured-card-title">{product.title}</h3>
-                    <p className="featured-card-desc">{product.description}</p>
-                    <div className="featured-card-meta">
-                      <svg className="featured-card-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                        <circle cx="12" cy="10" r="3"/>
-                      </svg>
-                      <span>{product.city}, {product.region}</span>
-                    </div>
-                    <div className="featured-card-footer">
-                      <div>
-                        <span className="featured-card-price">${product.pricePerDay.toLocaleString('es-AR')}</span>
-                        <span className="featured-card-per">/día</span>
-                      </div>
-                      <div className="featured-card-deposit">
-                        <span>Seña</span>
-                        <strong>${product.deposit.toLocaleString('es-AR')}</strong>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
+            {nearbyProducts.slice(0, 8).map((product, i) => (
+              <ProductCard key={product.id} product={product} index={i} />
             ))}
           </div>
 

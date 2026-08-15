@@ -1,103 +1,290 @@
 .reservation-page {
-  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: calc(100vh - 160px);
+  padding: 3rem 1.5rem;
+  background-color: var(--color-bg);
 }
 
 .reservation-card {
   width: 100%;
-  padding: 28px;
-  border: 1px solid #e5e7eb;
-  border-radius: 20px;
+  max-width: 32rem;
+  padding: 2rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
   background-color: var(--color-surface);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  position: sticky;
-  top: 2rem;
-}
-
-.reservation-card h1 {
-  margin-bottom: 24px;
-  font-size: 28px;
-}
-
-.reservation-form {
+  box-shadow: var(--shadow-md);
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 1.5rem;
 }
 
-.reservation-form label {
+/* Precio por día */
+.reservation-price {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.reservation-price__value {
+  font-family: var(--font-title);
+  font-weight: 800;
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--color-dark);
+}
+
+.reservation-price__label {
+  font-size: 0.9rem;
+  color: var(--color-concrete);
+}
+
+/* ── Calendario ── */
+.calendar {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+}
+
+.calendar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.calendar__header button {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-dark);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out-quint);
+}
+
+.calendar__header button:hover {
+  background-color: var(--color-concrete-surface);
+}
+
+.calendar__title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-dark);
+}
+
+.calendar__weekdays,
+.calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.calendar__weekdays {
+  margin-bottom: 0.25rem;
+}
+
+.calendar__weekdays span {
+  text-align: center;
+  font-size: 0.7rem;
   font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-concrete);
+  padding: 0.25rem 0;
 }
 
-.reservation-form input {
-  padding: 12px 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
-  font-size: 15px;
+.calendar__day {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--color-dark);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out-quint);
 }
 
-.reservation-form input:focus {
-  outline: none;
+.calendar__day:hover:not(:disabled) {
+  background-color: var(--color-concrete-surface);
+}
+
+.calendar__day--blank {
+  pointer-events: none;
+}
+
+.calendar__day--disabled {
+  color: var(--color-border);
+  background: transparent;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+
+.calendar__day--start,
+.calendar__day--end {
+  background-color: var(--color-primary);
+  color: var(--color-dark);
+  font-weight: 700;
+}
+
+.calendar__day--range {
+  background-color: var(--color-concrete-surface);
+}
+
+/* Rango seleccionado */
+.reservation-range {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--color-concrete);
+}
+
+/* ── Método de entrega ── */
+.delivery {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.delivery legend {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-dark);
+  margin-bottom: 0.75rem;
+  padding: 0;
+}
+
+.delivery__option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-out-quint),
+    background-color var(--duration-fast) var(--ease-out-quint);
+}
+
+.delivery__option + .delivery__option {
+  margin-top: 0.5rem;
+}
+
+.delivery__option:hover {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
 }
 
+.delivery__option--active {
+  border-color: var(--color-primary);
+  background-color: var(--color-concrete-surface);
+}
+
+.delivery__option input {
+  accent-color: var(--color-primary);
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.delivery__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.delivery__body strong {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-dark);
+}
+
+.delivery__body small {
+  font-size: 0.78rem;
+  color: var(--color-concrete);
+}
+
+/* ── Resumen ── */
 .reservation-summary {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 18px;
-  border-radius: 16px;
-  background-color: #fff7ed;
-  border: 1px solid #fed7aa;
+  gap: 0.625rem;
+  padding: 1rem 1.125rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-concrete-surface);
 }
 
 .reservation-summary p {
   display: flex;
   justify-content: space-between;
   margin: 0;
+  font-size: 0.9rem;
 }
 
-.reservation-summary p:last-child {
-  margin-top: 8px;
-  padding-top: 12px;
-  border-top: 1px solid #fed7aa;
-  font-size: 18px;
+.reservation-summary p span {
+  font-weight: 500;
+  color: var(--color-concrete);
+}
+
+.reservation-summary p strong {
   font-weight: 700;
+  color: var(--color-dark);
 }
 
-.reservation-form button {
-  padding: 14px;
+.reservation-summary__total {
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+  font-size: 1.05rem;
+}
+
+/* ── Botón ── */
+.reservation-submit {
+  padding: 0.95rem;
   border: none;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   background-color: var(--color-primary);
   color: var(--color-dark);
+  font-family: var(--font-body);
   font-weight: 700;
-  font-size: 16px;
+  font-size: 1.05rem;
   cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: background-color var(--duration-fast) var(--ease-out-quint);
 }
 
-.reservation-form button:hover:not(:disabled) {
-  background-color: #d97706;
+.reservation-submit:hover {
+  background-color: var(--color-primary-hover);
 }
 
-.reservation-form button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.reservation-secure {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--color-concrete);
+  margin: -0.75rem 0 0;
+}
+
+.reservation-secure i {
+  margin-right: 0.3rem;
+  color: var(--color-brown);
 }
 
 .reservation-error {
-  color: #c62828;
-  font-size: 14px;
+  color: var(--color-error);
+  font-size: 0.85rem;
   font-weight: 500;
   margin: 0;
 }
 
 .reservation-success {
   color: var(--color-dark);
-  font-size: 14px;
+  font-size: 0.85rem;
   font-weight: 600;
   margin: 0;
 }
