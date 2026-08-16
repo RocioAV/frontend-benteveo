@@ -14,7 +14,7 @@
 - **THESIS:** Benteveo es el corralón del barrio donde tu vecino te presta la
   herramienta. La interfaz muestra la herramienta y la confianza, no una "promesa
   premium". Rechaza el arreglo por defecto: hero con degradado + texto blanco + 3 cards.
-- **OWN-WORLD:** ámbar benteveo `#F2B705` como ÚNICO acento quirúrgico sobre
+- **OWN-WORLD:** amarillo soleado `#FFD166` como ÚNICO acento quirúrgico sobre
   hormigón/papel; Archivo bold (señalética de taller) para display, Archivo regular
   para cuerpo; componentes "de taller" (etiquetas colgadas, tablero, remaches).
 - **STORY:** el visitante entiende en segundos que alquila herramientas entre vecinos,
@@ -30,14 +30,14 @@
 
 ## 1. Paleta (tokens de color)
 
-Estrategia: **Restrained** — neutros de taller + un solo acento. El ámbar `#F2B705`
+Estrategia: **Restrained** — neutros de taller + un solo acento. El amarillo `#FFD166`
 es el amarillo del benteveo y el único color saturado; todo lo demás es hormigón,
 papel y tinta.
 
 | Variable | Valor | Uso canónico |
 |---|---|---|
-| `--color-primary` | `#F2B705` | Ámbar benteveo — CTA, links, activo (ÚNICO acento) |
-| `--color-primary-hover` | `#D9A004` | Hover del acento |
+| `--color-primary` | `#FFD166` | Amarillo soleado — CTA, links, activo (ÚNICO acento) |
+| `--color-primary-hover` | `#F5C04D` | Hover del acento |
 | `--color-dark` | `#1A1A1A` | Tinta — texto principal, títulos |
 | `--color-brown` | `#423224` | Pluma/madera — detalles cálidos secundarios |
 | `--color-concrete` | `#6F6E69` | Hormigón — texto secundario, metadata, etiquetas de taller |

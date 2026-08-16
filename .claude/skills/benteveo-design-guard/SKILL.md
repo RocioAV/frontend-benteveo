@@ -11,7 +11,7 @@ description: >
 license: Apache-2.0
 metadata:
   author: gentleman-programming
-  version: "2.0"
+  version: "2.1"
 ---
 
 ## When to Use
@@ -24,7 +24,7 @@ metadata:
 ## Dirección estética (Fase 8 — 2026-08-12)
 
 - **"El Corralón"** (`docs/DESIGN.md`): cultura de herramientas honesta, marketplace de barrio.
-- Ámbar benteveo `#F2B705` = **ÚNICO acento quirúrgico**; neutros de taller (hormigón / papel / tinta).
+- Amarillo soleado `#FFD166` = **ÚNICO acento quirúrgico**; neutros de taller (hormigón / papel / tinta).
 - **Tipografía**: Archivo (variable) — reemplazó a Fredoka/Montserrat.
 - **MOTION-FIRST** (regla de oro del dueño): springs en entradas, hovers y micro-feedback.
   Una card o sección estática es inaceptable.
@@ -44,7 +44,7 @@ metadata:
 ### 2. Color y fuente
 
 - Usar SOLO tokens del root (originales + Fase 8). Cero hex literales en componentes.
-- Ámbar como acento quirúrgico; grises `--color-concrete` para texto secundario/metadata;
+- Amarillo como acento quirúrgico; grises `--color-concrete` para texto secundario/metadata;
   `--color-concrete-surface` para paneles/superficies de taller.
 - **Contraste AA (WCAG)**: texto sobre ámbar SIEMPRE oscuro (nunca blanco, falla ~2:1).
   Errores de validación → `var(--color-error)`.

@@ -74,7 +74,7 @@ Un sistema de alquiler **peer-to-peer con confianza de barrio**:
 ## 7. Dirección estética
 
 - **Espacio amplio**: tarjetas de 1 nivel, nunca card-in-card.
-- **Paleta**: blanco crudo `#FAF8F5` como base, **ámbar `#F2B705` como acento
+- **Paleta**: blanco crudo `#FAF8F5` como base, **amarillo `#FFD166` como acento
   quirúrgico** (botones, links, llamados a la acción), verde oliva en secundarios
   (a definir en fases posteriores), texto siempre con contraste AA.
 - **Tipografías con personalidad**: Fredoka para títulos, Montserrat para cuerpo

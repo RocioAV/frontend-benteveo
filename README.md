@@ -62,7 +62,7 @@ Para mantener la identidad visual, todos los desarrolladores deben respetar los 
 
 | Elemento | Código Hex | Uso Sugerido |
 | :--- | :--- | :--- |
-| **Amarillo Benteveo** | `#F2B705` | Botones, enlaces, isotipos y acentos. |
+| **Amarillo Benteveo** | `#FFD166` | Botones, enlaces, isotipos y acentos. |
 | **Negro Antracita** | `#1A1A1A` | Texto principal, fondos oscuros, isotipo de la casa. |
 | **Marrón Pluma** | `#423224` | Detalles secundarios, sombras o textos sutiles. |
 | **Blanco Crudo** | `#FAF8F5` | Fondo general de la web (evita el blanco puro chillón). |
