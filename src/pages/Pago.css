@@ -66,7 +66,7 @@
 .campo-grupo select:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(242, 183, 5, 0.25);
+  box-shadow: 0 0 0 3px rgba(255, 209, 102, 0.25);
 }
 
 .campo-grupo input.error {

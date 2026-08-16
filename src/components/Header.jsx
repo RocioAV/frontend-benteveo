@@ -56,19 +56,19 @@ const Header = ({ query = '', onSearch }) => {
           </Link>
 
           {!user && (
-            <button className={`${styles.bvNavLink} ${styles.bvNavBtnLogin}`} onClick={() => { navigate('/login'); setMenuOpen(false) }}>
+            <button className={styles.bvNavLink} onClick={() => { navigate('/login'); setMenuOpen(false) }}>
               <i className="fas fa-sign-in-alt" aria-hidden="true"></i> Iniciar sesión
             </button>
           )}
 
           {!user && (
-            <button className={styles.bvNavBtnRegister} onClick={() => { navigate('/register'); setMenuOpen(false) }}>
+            <button className={styles.bvNavLink} onClick={() => { navigate('/register'); setMenuOpen(false) }}>
               <i className="fas fa-user-plus" aria-hidden="true"></i> Registrarte
             </button>
           )}
 
           {user && (
-            <button className={styles.bvNavBtnLogout} onClick={handleLogout}>
+            <button className={styles.bvNavLink} onClick={handleLogout}>
               <i className="fas fa-sign-out-alt" aria-hidden="true"></i> Salir
             </button>
           )}

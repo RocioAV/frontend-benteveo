@@ -8,8 +8,8 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary: #F2B705;       /* Amarillo Benteveo (Botones, links, acentos) */
-  --color-primary-hover: #D9A004; /* Amarillo oscurecido para estados hover */
+  --color-primary: #FFD166;       /* Amarillo soleado (Botones, links, acentos) — elegido por el dueño */
+  --color-primary-hover: #F5C04D; /* Amarillo oscurecido para estados hover */
   --color-amber-400: #fbbf24;     /* Ámbar degradado (estrellas DetalleProducto) */
   --color-amber-600: #d97706;     /* Ámbar degradado (hovers + gradient stop) */
   --color-dark: #1A1A1A;          /* Negro Antracita (Texto principal) */

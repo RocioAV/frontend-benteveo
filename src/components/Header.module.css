@@ -52,7 +52,7 @@
   color: var(--color-dark);
   text-decoration: none;
   background: transparent;
-  border: 2px solid transparent;
+  border: none;
   border-radius: var(--radius-md);
   cursor: pointer;
   white-space: nowrap;
@@ -75,7 +75,6 @@
 
 .bv-nav-link:hover {
   background: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.5);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
@@ -96,49 +95,6 @@
 
 .bv-nav-link:hover i {
   transform: scale(1.15);
-}
-
-/* Botón register (destacado) */
-.bv-nav-btn-register {
-  background: var(--color-dark);
-  color: var(--color-surface);
-  border: 2px solid var(--color-dark);
-}
-
-.bv-nav-btn-register:hover {
-  background: #000;
-  border-color: #000;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.bv-nav-btn-register::after {
-  background: var(--color-surface);
-}
-
-/* Botón logout */
-.bv-nav-btn-logout {
-  color: var(--color-dark);
-}
-
-.bv-nav-btn-logout:hover {
-  background: rgba(192, 57, 43, 0.15);
-  border-color: rgba(192, 57, 43, 0.3);
-}
-
-.bv-nav-btn-logout::after {
-  background: var(--color-error);
-}
-
-/* Botón login (ghost) */
-.bv-nav-btn-login {
-  border-color: var(--color-dark);
-}
-
-.bv-nav-btn-login:hover {
-  background: var(--color-dark);
-  border-color: var(--color-dark);
-  color: var(--color-surface);
 }
 
 /* ── Hamburger ── */
@@ -231,29 +187,16 @@
     padding: 14px 16px;
     border-radius: var(--radius-md);
     background: rgba(255, 255, 255, 0.15);
-    border: 1px solid transparent;
+    border: none;
   }
 
   .bv-nav-link:hover {
     background: rgba(255, 255, 255, 0.35);
-    border-color: rgba(255, 255, 255, 0.5);
     transform: translateX(4px);
   }
 
   .bv-nav-link::after {
     display: none;
-  }
-
-  .bv-nav-btn-register {
-    text-align: center;
-    justify-content: center;
-    background: var(--color-dark);
-    color: var(--color-surface);
-  }
-
-  .bv-nav-btn-register:hover {
-    background: #000;
-    transform: translateX(4px);
   }
 }
 

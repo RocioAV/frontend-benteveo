@@ -1,6 +1,6 @@
 import './reservation.css'
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { motion, MotionConfig } from 'motion/react'
 import products from '../data/products.json'
 
@@ -31,6 +31,7 @@ function isUnavailable(date, productId) {
 
 function Reservation({ product: productProp }) {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [viewMonth, setViewMonth] = useState(() => {
     const d = new Date()
     return new Date(d.getFullYear(), d.getMonth(), 1)
@@ -39,6 +40,7 @@ function Reservation({ product: productProp }) {
   const [endDate, setEndDate] = useState(null)
   const [delivery, setDelivery] = useState('retiro')
   const [submission, setSubmission] = useState(null)
+  const [rangeWarning, setRangeWarning] = useState('')
 
   const product = productProp ?? products.find((p) => p.id === Number(id))
   if (!product) {
@@ -67,17 +69,38 @@ function Reservation({ product: productProp }) {
     calendarCells.push(new Date(viewMonth.getFullYear(), viewMonth.getMonth(), d))
   }
 
+  // Días no disponibles dentro de un rango [start, end].
+  const unavailableDaysInRange = (start, end, productId) => {
+    const blocked = []
+    for (let d = new Date(start); d <= end; d = new Date(d.getTime() + MS_PER_DAY)) {
+      if (isUnavailable(startOfDay(d), productId)) blocked.push(new Date(d))
+    }
+    return blocked
+  }
+
   const handleSelectDate = (date) => {
     const norm = startOfDay(date)
     if (norm < today || isUnavailable(norm, product.id)) return
     if (!startDate || (startDate && endDate)) {
       setStartDate(norm)
       setEndDate(null)
+      setRangeWarning('')
     } else if (norm >= startDate) {
+      const blocked = unavailableDaysInRange(startDate, norm, product.id)
+      if (blocked.length > 0) {
+        setRangeWarning(
+          blocked.length === 1
+            ? 'Hay un día ocupado dentro de ese rango. Acortá el período o elegí otras fechas.'
+            : `Hay ${blocked.length} días ocupados dentro de ese rango. Acortá el período o elegí otras fechas.`
+        )
+        return
+      }
+      setRangeWarning('')
       setEndDate(norm)
     } else {
       setStartDate(norm)
       setEndDate(null)
+      setRangeWarning('')
     }
   }
 
@@ -92,16 +115,12 @@ function Reservation({ product: productProp }) {
       setSubmission('error')
       return
     }
-    localStorage.setItem(
-      'bv:reservation',
-      JSON.stringify({
-        productId: product.id,
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
-        delivery,
-      })
-    )
-    setSubmission('success')
+    const params = new URLSearchParams({
+      titulo: product.title,
+      precio: String(product.pricePerDay),
+      dias: String(daysOfRent),
+    })
+    navigate(`/pago?${params.toString()}`)
   }
 
   return (
@@ -178,6 +197,18 @@ function Reservation({ product: productProp }) {
             </div>
           )}
 
+          {rangeWarning && (
+            <motion.p
+              className="reservation-warning"
+              role="alert"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={springReveal}
+            >
+              {rangeWarning}
+            </motion.p>
+          )}
+
           {/* Método de entrega */}
           <fieldset className="delivery">
             <legend>Método de entrega</legend>
@@ -233,7 +264,7 @@ function Reservation({ product: productProp }) {
 
           {/* Botón */}
           <motion.button type="submit" className="reservation-submit" whileTap={{ scale: 0.96 }} transition={springLatch}>
-            Alquilar ahora
+            Continuar al pago
           </motion.button>
           <p className="reservation-secure">
             <i className="fas fa-lock" aria-hidden="true" /> Pago seguro · Sin costo de cancelación
@@ -242,11 +273,6 @@ function Reservation({ product: productProp }) {
           {submission === 'error' && (
             <motion.p className="reservation-error" role="alert" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={springReveal}>
               Seleccioná las fechas de tu alquiler para continuar.
-            </motion.p>
-          )}
-          {submission === 'success' && (
-            <motion.p className="reservation-success" role="status" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={springReveal}>
-              ¡Reserva confirmada! Del {formatLong(startDate)} al {formatLong(endDate)}.
             </motion.p>
           )}
         </motion.form>

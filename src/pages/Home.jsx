@@ -8,10 +8,31 @@ import './Home.css'
 
 const nearbyProducts = products.filter((product) => isWithinRange(product.distance))
 const duplicated = [...nearbyProducts, ...nearbyProducts, ...nearbyProducts]
+const topRated = [...products]
+  .sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0))
+  .slice(0, 4)
 
 // Springs (DESIGN.md §3 — gramática mecánico-líquida)
 const springReveal = { type: 'spring', stiffness: 260, damping: 26 }
 const springLatch = { type: 'spring', stiffness: 400, damping: 28 }
+
+const METHOD_STEPS = [
+  {
+    icon: 'fa-location-dot',
+    title: 'Encontrá cerca',
+    text: 'Todo lo que ves está a menos de 10 km. Retiralo en el día o pedilo a domicilio.',
+  },
+  {
+    icon: 'fa-shield-halved',
+    title: 'Pagá protegido',
+    text: 'Tu pago queda en resguardo y se libera recién cuando recibís el producto. MercadoPago respalda la operación.',
+  },
+  {
+    icon: 'fa-handshake',
+    title: 'Devolvé tranquilo',
+    text: 'Un depósito de garantía reembolsable cuida al dueño, y el soporte de Benteveo resuelve cualquier imprevisto.',
+  },
+]
 
 function Home() {
   const [activeStep, setActiveStep] = useState(0)
@@ -75,10 +96,19 @@ function Home() {
             >
               Alquilá lo que usás una vez
             </motion.h1>
+            <motion.p
+              className="hero-subtitle"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...springReveal, delay: 0.14 }}
+            >
+              Herramientas, electrodomésticos y equipamiento de tu barrio, entre vecinos.
+              Sin comprar, sin que te estorbe en casa.
+            </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ ...springReveal, delay: 0.16 }}
+              transition={{ ...springReveal, delay: 0.2 }}
             >
               <motion.div
                 className="hero-cta-wrap"
@@ -107,10 +137,17 @@ function Home() {
                   />
                   <div className="carousel-card-body">
                     <p className="carousel-card-title">{product.title}</p>
-                    <p className="carousel-card-price">
-                      ${product.pricePerDay.toLocaleString('es-AR')}
-                      <span>/día</span>
-                    </p>
+                    <div className="carousel-card-meta">
+                      <span className="carousel-card-price">
+                        ${product.pricePerDay.toLocaleString('es-AR')}
+                        <span>/día</span>
+                      </span>
+                      {product.rating != null && (
+                        <span className="carousel-card-rating">
+                          <i className="fa-solid fa-star" aria-hidden="true" /> {Number(product.rating).toFixed(1)}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -207,6 +244,20 @@ function Home() {
         </div>
       </section>
 
+      {/* FAVORITOS DE LOS CLIENTES */}
+      <section className="featured-section favorites-section">
+        <div className="featured-container">
+          <h2 className="section-title">Los favoritos de los clientes</h2>
+          <p className="section-sub">Lo más alquilado y mejor calificado de tu barrio.</p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {topRated.map((product, i) => (
+              <ProductCard key={product.id} product={product} index={i} />
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* PRODUCTOS DESTACADOS */}
       <section className="featured-section">
         <div className="featured-container">
@@ -223,6 +274,52 @@ function Home() {
           </div>
         </div>
       </section>
+
+      {/* METODOLOGÍA DE TRABAJO */}
+      <MotionConfig reducedMotion="user">
+        <section className="method-section">
+          <div className="method-container">
+            <motion.h2
+              className="section-title"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.4 }}
+              transition={springReveal}
+            >
+              Alquilar entre vecinos, sin vueltas
+            </motion.h2>
+            <motion.p
+              className="section-sub"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.4 }}
+              transition={{ ...springReveal, delay: 0.05 }}
+            >
+              Nada de letra chica ni sorpresas. Así protegemos cada alquiler, de punta a punta.
+            </motion.p>
+
+            <div className="method-grid">
+              {METHOD_STEPS.map((step, i) => (
+                <motion.div
+                  key={step.title}
+                  className="method-card"
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.3 }}
+                  transition={{ ...springReveal, delay: i * 0.08 }}
+                >
+                  <span className="method-icon">
+                    <i className={`fas ${step.icon}`} aria-hidden="true" />
+                  </span>
+                  <span className="method-line" aria-hidden="true" />
+                  <h3>{step.title}</h3>
+                  <p>{step.text}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </MotionConfig>
     </div>
   )
 }

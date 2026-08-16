@@ -55,6 +55,26 @@ function DetalleProducto() {
     ))
   }
 
+  // Demo: algunas reseñas incluyen fotos (determinístico por id de reseña).
+  const renderReviewPhotos = (review) => {
+    const count = review.id % 3
+    if (count === 0) return null
+    return (
+      <div className="flex gap-2 mt-3">
+        {Array.from({ length: count }, (_, i) => (
+          <img
+            key={i}
+            src={`https://picsum.photos/seed/resena-${product.id}-${review.id}-${i}/120/120`}
+            alt={`Foto ${i + 1} de la reseña de ${review.author}`}
+            loading="lazy"
+            decoding="async"
+            className="w-16 h-16 rounded-lg object-cover border border-[var(--color-border)]"
+          />
+        ))}
+      </div>
+    )
+  }
+
   return (
     <MotionConfig reducedMotion="user">
       <div className="max-w-6xl mx-auto px-4 py-8">
@@ -304,6 +324,7 @@ function DetalleProducto() {
                       </div>
                     </div>
                     <p className="text-sm text-[var(--color-concrete)] leading-relaxed">{review.comment}</p>
+                    {renderReviewPhotos(review)}
                   </motion.div>
                 ))}
               </div>
@@ -346,15 +367,82 @@ function DetalleProducto() {
         </div>
 
         {/* ===================== CONDICIONES DE ALQUILER ===================== */}
-        <section className="mt-12 border-t border-[var(--color-border)] pt-8">
-          <h2 className="text-xl font-bold text-[var(--color-dark)] mb-4" style={{ fontFamily: 'var(--font-title)' }}>
+        <section className="mt-12">
+          <motion.h2
+            className="text-xl font-bold text-[var(--color-dark)] mb-5"
+            style={{ fontFamily: 'var(--font-title)' }}
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={springReveal}
+          >
             Condiciones de alquiler
-          </h2>
-          <div className="bg-[var(--color-concrete-surface)] rounded-2xl p-6 border border-[var(--color-border)]">
-            <h3 className="font-bold text-[var(--color-dark)] mb-2">Depósito de Garantía</h3>
-            <p className="text-sm text-[var(--color-concrete)] leading-relaxed m-0">
-              Se retendrá temporalmente ${product.deposit.toLocaleString('es-AR')} en tu tarjeta que se liberarán al devolver el producto en buen estado.
-            </p>
+          </motion.h2>
+          <div className="bg-[var(--color-surface)] rounded-2xl p-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <motion.div
+              className="flex flex-col items-center text-center"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={springReveal}
+            >
+              <span className="w-16 h-16 rounded-full bg-[var(--color-primary)] text-[var(--color-dark)] flex items-center justify-center text-2xl mb-4">
+                <i className="fas fa-piggy-bank" aria-hidden="true" />
+              </span>
+              <span className="w-0.5 h-8 bg-[var(--color-border)] mb-4" aria-hidden="true" />
+              <h3 className="font-bold text-[var(--color-dark)] mb-2">Depósito de garantía</h3>
+              <p className="text-sm text-[var(--color-concrete)] leading-relaxed m-0 max-w-xs">
+                Se retienen ${product.deposit.toLocaleString('es-AR')} que se liberan al devolver el producto en buen estado.
+              </p>
+            </motion.div>
+            <motion.div
+              className="flex flex-col items-center text-center"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ ...springReveal, delay: 0.05 }}
+            >
+              <span className="w-16 h-16 rounded-full bg-[var(--color-primary)] text-[var(--color-dark)] flex items-center justify-center text-2xl mb-4">
+                <i className="fas fa-calendar-xmark" aria-hidden="true" />
+              </span>
+              <span className="w-0.5 h-8 bg-[var(--color-border)] mb-4" aria-hidden="true" />
+              <h3 className="font-bold text-[var(--color-dark)] mb-2">Cancelación flexible</h3>
+              <p className="text-sm text-[var(--color-concrete)] leading-relaxed m-0 max-w-xs">
+                Cancelá gratis hasta 24 horas antes del retiro, sin penalización.
+              </p>
+            </motion.div>
+            <motion.div
+              className="flex flex-col items-center text-center"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ ...springReveal, delay: 0.1 }}
+            >
+              <span className="w-16 h-16 rounded-full bg-[var(--color-primary)] text-[var(--color-dark)] flex items-center justify-center text-2xl mb-4">
+                <i className="fas fa-rotate-left" aria-hidden="true" />
+              </span>
+              <span className="w-0.5 h-8 bg-[var(--color-border)] mb-4" aria-hidden="true" />
+              <h3 className="font-bold text-[var(--color-dark)] mb-2">Devolución</h3>
+              <p className="text-sm text-[var(--color-concrete)] leading-relaxed m-0 max-w-xs">
+                Devolvé el producto limpio y en las mismas condiciones en que lo recibiste.
+              </p>
+            </motion.div>
+            <motion.div
+              className="flex flex-col items-center text-center"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ ...springReveal, delay: 0.15 }}
+            >
+              <span className="w-16 h-16 rounded-full bg-[var(--color-primary)] text-[var(--color-dark)] flex items-center justify-center text-2xl mb-4">
+                <i className="fas fa-clock" aria-hidden="true" />
+              </span>
+              <span className="w-0.5 h-8 bg-[var(--color-border)] mb-4" aria-hidden="true" />
+              <h3 className="font-bold text-[var(--color-dark)] mb-2">Alquiler mínimo</h3>
+              <p className="text-sm text-[var(--color-concrete)] leading-relaxed m-0 max-w-xs">
+                Se alquila por día, con un mínimo de 1 día de alquiler.
+              </p>
+            </motion.div>
           </div>
         </section>
 

@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { motion } from 'motion/react'
 import { Link } from 'react-router-dom'
-import { formatProximity } from '../../utils/products.js'
+import { formatProximity, getAvailabilityDays } from '../../utils/products.js'
 import styles from './ProductCard.module.css'
 
 function ProductCard({ product, index = 0 }) {
   const [isFav, setIsFav] = useState(false)
   const proximity = formatProximity(product.distance)
   const location = proximity || `${product.city}, ${product.region}`
+  const availableDays = getAvailabilityDays(product)
 
   return (
     <motion.div
@@ -15,12 +16,13 @@ function ProductCard({ product, index = 0 }) {
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true, amount: 0.15 }}
       transition={{ type: 'spring', stiffness: 260, damping: 26, delay: (index % 4) * 0.06 }}
-      whileHover={{ y: -8, transition: { type: 'spring', stiffness: 400, damping: 20 } }}
+      whileHover={{ y: -6, transition: { type: 'spring', stiffness: 400, damping: 20 } }}
       className={styles.cardWrap}
     >
       <Link to={`/detalle/${product.id}`} className={styles.card}>
         <div className={styles.media}>
           <img src={product.imageUrl} alt={product.title} loading="lazy" decoding="async" />
+          <span className={styles.availability}>{availableDays} días disponibles</span>
         </div>
         <div className={styles.body}>
           <h3 className={styles.title}>{product.title}</h3>

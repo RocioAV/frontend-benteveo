@@ -87,6 +87,9 @@ function Login() {
   return (
     <MotionConfig reducedMotion="user">
       <div className="login-page">
+        <button type="button" className="auth-back" onClick={() => navigate('/')}>
+          <i className="fas fa-arrow-left" aria-hidden="true" /> Volver al inicio
+        </button>
         <motion.div
           className="login-form-side"
           initial={{ opacity: 0, y: 24 }}

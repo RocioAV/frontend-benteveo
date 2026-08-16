@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { useAuth } from '../context/useAuth'
 import logo from '../assets/BenteveoLogo.png'
+import BenteveoBird from '../components/BenteveoBird.jsx'
 import './Registro.css'
 
 function EyeIcon() {
@@ -131,13 +132,18 @@ function Registro() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <motion.div
-        className="registro-page"
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 260, damping: 26 }}
-      >
-        <form id="registroForm" onSubmit={handleSubmit}>
+      <div className="registro-layout">
+        <button type="button" className="auth-back" onClick={() => navigate('/')}>
+          <i className="fas fa-arrow-left" aria-hidden="true" /> Volver al inicio
+        </button>
+
+        <motion.div
+          className="registro-form-side"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 260, damping: 26 }}
+        >
+          <form id="registroForm" onSubmit={handleSubmit}>
         <div className="registro-logo-badge">
           <img src={logo} alt="Logo Benteveo" />
         </div>
@@ -278,7 +284,29 @@ function Registro() {
           {loading ? 'Registrando...' : 'Registrarse'}
         </button>
         </form>
-      </motion.div>
+        </motion.div>
+
+        <motion.aside
+          className="registro-brand"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.15 }}
+        >
+          <div className="registro-brand-inner">
+            <BenteveoBird className="registro-brand-bird" />
+            <h2>Sumate a la movida del barrio</h2>
+            <p>
+              Publicá lo que no usás o alquilá lo que necesitás. En Benteveo, tu vecino te hace la
+              gauchada.
+            </p>
+            <ul className="registro-brand-list">
+              <li><i className="fas fa-circle-check" aria-hidden="true" /> Alquilá herramientas y equipos cerca</li>
+              <li><i className="fas fa-circle-check" aria-hidden="true" /> Ganá dinero con lo que tenés guardado</li>
+              <li><i className="fas fa-circle-check" aria-hidden="true" /> Pagos protegidos con MercadoPago</li>
+            </ul>
+          </div>
+        </motion.aside>
+      </div>
     </MotionConfig>
   )
 }

@@ -45,7 +45,14 @@ function ForgotPassword() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="flex w-full flex-1 min-h-[calc(100vh-160px)]">
+      <div className="flex w-full flex-1 min-h-screen relative">
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="absolute top-6 left-6 inline-flex items-center gap-2 px-3 py-2 rounded-[var(--radius-md)] font-semibold text-[0.9rem] text-[var(--color-dark)] hover:bg-[var(--color-concrete-surface)] transition-colors"
+        >
+          <i className="fas fa-arrow-left" aria-hidden="true" /> Volver al inicio
+        </button>
         <motion.div
           className="flex flex-1 items-center justify-center px-6 py-8"
           initial={{ opacity: 0, y: 24 }}

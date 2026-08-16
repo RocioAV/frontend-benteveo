@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { MotionConfig } from 'motion/react'
 import ProductCard from '../components/ProductCard/ProductCard.jsx'
@@ -23,6 +23,7 @@ function PageCatalogo() {
   const { query = '', onSearch = () => {} } = useOutletContext() || {}
   const [selectedCategory, setSelectedCategory] = useState('Todos')
   const [currentPage, setCurrentPage] = useState(1)
+  const trackRef = useRef(null)
 
   const nearbyProducts = products.filter((product) => isWithinRange(product.distance))
   const categories = ['Todos', ...new Set(nearbyProducts.map((product) => product.category))]
@@ -47,6 +48,12 @@ function PageCatalogo() {
     setSelectedCategory('Todos')
   }
 
+  const scrollCategories = (dir) => {
+    const track = trackRef.current
+    if (!track) return
+    track.scrollBy({ left: dir * 260, behavior: 'smooth' })
+  }
+
   const resultsLabel =
     query.trim() !== ''
       ? `${filteredProducts.length} ${
@@ -64,36 +71,57 @@ function PageCatalogo() {
             Explorá productos
           </h1>
           <p className="catalogo__descripcion">Encontrá lo que necesitás cerca tuyo.</p>
-          <p className="catalogo__resultado" aria-live="polite">
-            {resultsLabel}
-          </p>
         </header>
 
-        <nav className="category-filters" aria-label="Filtros por categoría">
-          {categories.map((category) => (
-            <button
-              key={category}
-              type="button"
-              className={
-                selectedCategory === category
-                  ? 'category-filter category-filter--active'
-                  : 'category-filter'
-              }
-              aria-pressed={selectedCategory === category}
-              onClick={() => setSelectedCategory(category)}
-            >
-              <span className="category-filter__icon">
-                <i
-                  className={`fas ${
-                    category === 'Todos' ? 'fa-th' : `fa-${CATEGORY_ICONS[category] || 'tag'}`
-                  }`}
-                  aria-hidden="true"
-                />
-              </span>
-              <span className="category-filter__label">{category}</span>
-            </button>
-          ))}
-        </nav>
+        {/* Slider de categorías */}
+        <div className="category-slider">
+          <button
+            type="button"
+            className="category-arrow"
+            onClick={() => scrollCategories(-1)}
+            aria-label="Categorías anteriores"
+          >
+            <i className="fas fa-chevron-left" aria-hidden="true" />
+          </button>
+          <nav className="category-filters" ref={trackRef} aria-label="Filtros por categoría">
+            {categories.map((category) => (
+              <button
+                key={category}
+                type="button"
+                className={
+                  selectedCategory === category
+                    ? 'category-filter category-filter--active'
+                    : 'category-filter'
+                }
+                aria-pressed={selectedCategory === category}
+                onClick={() => setSelectedCategory(category)}
+              >
+                <span className="category-filter__icon">
+                  <i
+                    className={`fas ${
+                      category === 'Todos' ? 'fa-th' : `fa-${CATEGORY_ICONS[category] || 'tag'}`
+                    }`}
+                    aria-hidden="true"
+                  />
+                </span>
+                <span className="category-filter__label">{category}</span>
+              </button>
+            ))}
+          </nav>
+          <button
+            type="button"
+            className="category-arrow"
+            onClick={() => scrollCategories(1)}
+            aria-label="Categorías siguientes"
+          >
+            <i className="fas fa-chevron-right" aria-hidden="true" />
+          </button>
+        </div>
+
+        {/* Contador debajo de las categorías */}
+        <p className="catalogo__resultado" aria-live="polite">
+          {resultsLabel}
+        </p>
 
         {filteredProducts.length === 0 ? (
           <EmptyState
@@ -143,6 +171,43 @@ function PageCatalogo() {
                 </button>
               </nav>
             )}
+
+            {/* Info útil: pagos, entregas, seguridad */}
+            <section className="catalogo-info" aria-label="Información útil">
+              <div className="catalogo-info__item">
+                <span className="catalogo-info__icon">
+                  <i className="fas fa-credit-card" aria-hidden="true" />
+                </span>
+                <span className="catalogo-info__line" aria-hidden="true" />
+                <h3>¿Cómo pago?</h3>
+                <p>
+                  Abonás con MercadoPago: tarjeta de crédito, débito o efectivo. El pago se
+                  libera recién cuando recibís el producto.
+                </p>
+              </div>
+              <div className="catalogo-info__item">
+                <span className="catalogo-info__icon">
+                  <i className="fas fa-truck" aria-hidden="true" />
+                </span>
+                <span className="catalogo-info__line" aria-hidden="true" />
+                <h3>Tipos de entrega</h3>
+                <p>
+                  Retiro en el domicilio del propietario (sin costo) o entrega a domicilio con
+                  costo según la distancia.
+                </p>
+              </div>
+              <div className="catalogo-info__item">
+                <span className="catalogo-info__icon">
+                  <i className="fas fa-shield-alt" aria-hidden="true" />
+                </span>
+                <span className="catalogo-info__line" aria-hidden="true" />
+                <h3>Seguridad y garantía</h3>
+                <p>
+                  Depósito de garantía reembolsable y soporte de Benteveo si algo sale mal.
+                  Protegemos tu alquiler de punta a punta.
+                </p>
+              </div>
+            </section>
           </>
         )}
       </section>

@@ -38,3 +38,10 @@ export function matchesQuery(product, query) {
   const haystack = normalizeText(`${product.title} ${product.category} ${product.city}`)
   return haystack.includes(nq)
 }
+
+// Días disponibles para alquiler (simulado hasta que exista data real de calendario).
+// Determinístico por producto: 3 a 7 días según el id.
+export function getAvailabilityDays(product) {
+  const id = Number(product?.id) || 0
+  return 3 + (id % 5)
+}

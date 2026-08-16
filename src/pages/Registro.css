@@ -1,13 +1,40 @@
-/* Registro Page */
+/* Registro — layout de dos columnas (formulario + panel de marca) */
 
-.registro-page {
+.registro-layout {
   display: flex;
-  flex-direction: column;
+  width: 100%;
+  min-height: 100vh;
+  position: relative;
+}
+
+.auth-back {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-dark);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: background var(--duration-fast) var(--ease-out-quint);
+}
+
+.auth-back:hover {
+  background: var(--color-concrete-surface);
+}
+
+.registro-form-side {
+  flex: 1;
+  display: flex;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 160px);
-  padding: 1rem 1rem;
-  width: 100%;
+  padding: 5rem 1.5rem 2rem;
 }
 
 #registroForm {
@@ -16,7 +43,7 @@
   padding: 2rem;
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
-  width: 90%;
+  width: 100%;
   max-width: 520px;
 }
 
@@ -91,7 +118,7 @@
 .registro-field input:focus {
   border-color: var(--color-primary);
   outline: none;
-  box-shadow: 0 0 0 3px rgba(242, 183, 5, 0.25);
+  box-shadow: 0 0 0 3px rgba(255, 209, 102, 0.25);
 }
 
 .registro-field input.input-error {
@@ -140,6 +167,73 @@
 
 #registroForm .registro-submit-btn:active {
   transform: scale(0.97);
+}
+
+/* Panel de marca (lateral) */
+.registro-brand {
+  flex: 1;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-concrete-surface);
+  padding: 3rem 2.5rem;
+}
+
+.registro-brand-inner {
+  max-width: 24rem;
+  text-align: left;
+}
+
+.registro-brand-bird {
+  width: 140px;
+  height: auto;
+  margin-bottom: 1.5rem;
+}
+
+.registro-brand-inner h2 {
+  font-family: var(--font-title);
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  color: var(--color-dark);
+  margin: 0 0 0.75rem;
+}
+
+.registro-brand-inner > p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-concrete);
+  margin: 0 0 1.5rem;
+}
+
+.registro-brand-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.registro-brand-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-dark);
+}
+
+.registro-brand-list i {
+  color: var(--color-primary);
+  font-size: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .registro-brand {
+    display: flex;
+  }
 }
 
 @media (max-width: 480px) {
