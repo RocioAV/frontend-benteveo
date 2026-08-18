@@ -13,7 +13,9 @@
 
 .bird {
   width: 120px;
-  height: 103px;
+  height: auto;
+  object-fit: contain;
+  display: block;
 }
 
 .message {

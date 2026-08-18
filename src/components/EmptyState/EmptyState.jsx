@@ -1,5 +1,5 @@
 import { motion } from 'motion/react'
-import BenteveoBird from '../BenteveoBird'
+import soloLogo from '../../assets/solo-logo-app.webp'
 import styles from './EmptyState.module.css'
 
 function EmptyState({ message, actionLabel, onAction }) {
@@ -11,7 +11,7 @@ function EmptyState({ message, actionLabel, onAction }) {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: 'spring', stiffness: 260, damping: 26 }}
     >
-      <BenteveoBird className={styles.bird} />
+      <img src={soloLogo} className={styles.bird} alt="" />
       <p className={styles.message}>{message}</p>
       {actionLabel && onAction && (
         <motion.button

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion, AnimatePresence, MotionConfig } from 'motion/react'
 import products from '../../data/products.json'
 import { normalizeText } from '../../utils/products.js'
-import BenteveoBird from '../BenteveoBird.jsx'
+import soloLogo from '../../assets/solo-logo-app.webp'
 import styles from './Benti.module.css'
 
 const springReveal = { type: 'spring', stiffness: 260, damping: 26 }
@@ -90,7 +90,7 @@ function Benti() {
             >
               <div className={styles.header}>
                 <span className={styles.headerBird}>
-                  <BenteveoBird className={styles.bird} />
+                  <img src={soloLogo} className={styles.bird} alt="" />
                 </span>
                 <div className={styles.headerText}>
                   <strong>Benti</strong>
@@ -156,7 +156,7 @@ function Benti() {
           {open ? (
             <i className="fas fa-xmark" aria-hidden="true" />
           ) : (
-            <BenteveoBird className={styles.fabBird} />
+            <img src={soloLogo} className={styles.fabBird} alt="" />
           )}
         </motion.button>
       </div>

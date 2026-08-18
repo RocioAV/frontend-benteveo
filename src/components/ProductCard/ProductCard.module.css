@@ -40,13 +40,13 @@
   outline-offset: 2px;
 }
 
-/* Card de producto: fondo blanco, sin borde ni sombra */
+/* Card de producto: fondo blanco, borde sutil */
 .card {
   display: flex;
   flex-direction: column;
   height: 100%;
   background: var(--color-surface);
-  border: none;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: none;
@@ -77,7 +77,7 @@
   z-index: 1;
   padding: 0.3rem 0.65rem;
   border-radius: var(--radius-full);
-  background: var(--color-surface);
+  background: var(--color-primary);
   color: var(--color-dark);
   font-size: 0.72rem;
   font-weight: 700;

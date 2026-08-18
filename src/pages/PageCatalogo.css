@@ -1,5 +1,5 @@
 .catalogo {
-  --catalogo-primary: var(--color-primary, #FFD166);
+  --catalogo-primary: var(--color-primary, #F2B705);
   width: min(100% - 2rem, 68.75rem);
   margin: 0 auto;
   padding: 3rem 2rem 5rem;

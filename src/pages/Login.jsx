@@ -3,6 +3,7 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { motion, MotionConfig } from 'motion/react'
 import { toast } from 'react-toastify'
 import { useAuth } from '../context/useAuth'
+import GoogleAuthButton from '../components/GoogleAuthButton'
 import './Login.css'
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -177,6 +178,8 @@ function Login() {
               >
                 {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
               </motion.button>
+              <div className="login-divider" aria-hidden="true"><span>o</span></div>
+              <GoogleAuthButton label="Iniciar sesión con Google" />
               <div className="login-register">
                 <span>¿No tenés cuenta?</span>
                 <button type="button" className="login-link" onClick={() => navigate('/register')}>

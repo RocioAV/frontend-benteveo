@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'motion/react'
-import BenteveoBird from '../components/BenteveoBird'
+import soloLogo from '../assets/solo-logo-app.webp'
 import styles from './NotFound.module.css'
 
 function NotFound() {
@@ -12,7 +12,7 @@ function NotFound() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 260, damping: 26 }}
     >
-      <BenteveoBird className={styles.bird} />
+      <img src={soloLogo} className={styles.bird} alt="" />
       <h1 id="not-found-titulo" className={styles.title}>
         Página no encontrada
       </h1>

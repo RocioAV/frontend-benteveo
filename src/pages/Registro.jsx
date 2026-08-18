@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { useAuth } from '../context/useAuth'
 import logo from '../assets/BenteveoLogo.png'
-import BenteveoBird from '../components/BenteveoBird.jsx'
+import soloLogo from '../assets/solo-logo-app.webp'
+import GoogleAuthButton from '../components/GoogleAuthButton'
 import './Registro.css'
 
 function EyeIcon() {
@@ -283,6 +284,8 @@ function Registro() {
         <button type="submit" className="registro-submit-btn" disabled={loading}>
           {loading ? 'Registrando...' : 'Registrarse'}
         </button>
+        <div className="registro-divider" aria-hidden="true"><span>o</span></div>
+        <GoogleAuthButton label="Registrarse con Google" />
         </form>
         </motion.div>
 
@@ -293,7 +296,7 @@ function Registro() {
           transition={{ duration: 0.5, delay: 0.15 }}
         >
           <div className="registro-brand-inner">
-            <BenteveoBird className="registro-brand-bird" />
+            <img src={soloLogo} alt="Benteveo" className="registro-brand-bird" />
             <h2>Sumate a la movida del barrio</h2>
             <p>
               Publicá lo que no usás o alquilá lo que necesitás. En Benteveo, tu vecino te hace la

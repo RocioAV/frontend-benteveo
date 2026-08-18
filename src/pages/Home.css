@@ -218,7 +218,7 @@
 .step.active .step-number {
   background-color: var(--color-primary);
   color: var(--color-dark);
-  box-shadow: 0 0 0 6px rgba(255, 209, 102, 0.2), 0 4px 12px rgba(255, 209, 102, 0.4);
+  box-shadow: 0 0 0 6px rgba(242, 183, 5, 0.2), 0 4px 12px rgba(242, 183, 5, 0.4);
   transform: scale(1.2);
 }
 

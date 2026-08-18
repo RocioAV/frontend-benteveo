@@ -26,6 +26,8 @@
 .fabBird {
   width: 2.5rem;
   height: auto;
+  object-fit: contain;
+  display: block;
 }
 
 .panel {
@@ -62,6 +64,8 @@
 .bird {
   width: 1.6rem;
   height: auto;
+  object-fit: contain;
+  display: block;
 }
 
 .headerText {
