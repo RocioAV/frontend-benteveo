@@ -9,6 +9,7 @@ import Login from './pages/Login.jsx'
 import Registro from './pages/Registro.jsx'
 import ForgotPassword from './pages/ForgotPassword.jsx'
 import PageCatalogo from './pages/PageCatalogo.jsx'
+import DemoModales from './pages/DemoModales.jsx'
 import ScrollToTop from './components/ScrollToTop.jsx'
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Registro />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/demo-modales" element={<DemoModales />} />
         </Route>
       </Routes>
     </>
