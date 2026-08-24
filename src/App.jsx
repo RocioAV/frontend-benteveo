@@ -15,6 +15,7 @@ const Login = lazy(() => import('./pages/Login.jsx'))
 const Registro = lazy(() => import('./pages/Registro.jsx'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword.jsx'))
 const NotFound = lazy(() => import('./pages/NotFound.jsx'))
+const DemoModales = lazy(() => import('./pages/DemoModales.jsx'))
 
 function PageFallback() {
   return (
@@ -37,6 +38,7 @@ function App() {
             <Route path="/detalle/:id" element={<DetalleProducto />} />
             <Route path="/reservation/:id" element={<RequireAuth><Reservation /></RequireAuth>} />
             <Route path="/pago" element={<RequireAuth><Pago /></RequireAuth>} />
+            <Route path="/demo-modales" element={<DemoModales />} />
             <Route path="*" element={<NotFound />} />
           </Route>
           {/* Autenticación: sin header/footer, solo botón de volver */}
