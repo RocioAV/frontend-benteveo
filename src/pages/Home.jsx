@@ -1,14 +1,22 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import products from '../data/products.json'
+import { getProducts } from '../services/product.service.js'
 import './Home.css'
-
-const duplicated = [...products, ...products, ...products]
 
 function Home() {
   const [activeStep, setActiveStep] = useState(0)
   const trackRef = useRef(null)
   const [offset, setOffset] = useState(0)
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    getProducts()
+      .then(setProducts)
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false))
+  }, [])
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -36,7 +44,26 @@ function Home() {
     calcOffset()
     window.addEventListener('resize', calcOffset)
     return () => window.removeEventListener('resize', calcOffset)
-  }, [])
+  }, [products])
+
+  const duplicated = [...products, ...products, ...products]
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-32">
+        <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Error al cargar productos</h2>
+        <p className="text-gray-500">{error}</p>
+      </div>
+    )
+  }
 
   return (
     <div className="w-full">

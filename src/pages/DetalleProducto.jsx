@@ -1,19 +1,52 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import products from '../data/products.json'
+import { getProductById } from '../services/product.service.js'
+import { getUserById } from '../services/user.service.js'
 import Reservation from './Reservation.jsx'
 
 function DetalleProducto() {
   const { id } = useParams()
-  const product = products.find(p => p.id === Number(id))
+  const [product, setProduct] = useState(null)
+  const [owner, setOwner] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   const [activeTab, setActiveTab] = useState('descripcion')
   const [showAllReviews, setShowAllReviews] = useState(false)
 
-  if (!product) {
+  useEffect(() => {
+    let cancelled = false
+    getProductById(id)
+      .then((data) => {
+        if (cancelled) return
+        setProduct(data)
+        return getUserById(data.ownerId)
+      })
+      .then((ownerData) => {
+        if (cancelled) return
+        setOwner(ownerData)
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err.message)
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [id])
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center py-32">
+        <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    )
+  }
+
+  if (error || !product) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Producto no encontrado</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">{error || 'Producto no encontrado'}</h2>
         <Link to="/explorar" className="text-amber-500 hover:text-amber-600 font-semibold">
           Volver al catálogo
         </Link>
@@ -130,30 +163,32 @@ function DetalleProducto() {
           </div>
 
           {/* 5. TARJETA DEL DUEÑO */}
-          <div className="flex items-center justify-between bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-emerald-800 flex items-center justify-center text-white font-bold text-sm">
-                {product.owner.initials}
-              </div>
-              <div>
-                <p className="font-bold text-gray-900 text-sm">{product.owner.name}</p>
-                <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                  <svg className="w-3.5 h-3.5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
-                  </svg>
-                  <span>Identidad verificada</span>
-                  <span>·</span>
-                  <span>Miembro desde {product.owner.memberSince}</span>
+          {owner && (
+            <div className="flex items-center justify-between bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-emerald-800 flex items-center justify-center text-white font-bold text-sm">
+                  {owner.initials}
+                </div>
+                <div>
+                  <p className="font-bold text-gray-900 text-sm">{owner.name}</p>
+                  <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                    <svg className="w-3.5 h-3.5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
+                    </svg>
+                    <span>Identidad verificada</span>
+                    <span>·</span>
+                    <span>Miembro desde {owner.memberSince}</span>
+                  </div>
                 </div>
               </div>
+              <button className="flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-gray-200 text-sm font-semibold text-gray-700 hover:border-gray-400 hover:bg-gray-50 transition-all">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 20.105V4.875A1.875 1.875 0 015.625 3h12.75A1.875 1.875 0 0120.25 4.875v10.5A1.875 1.875 0 0118.375 17.25H7.5l-3.75 2.855z" />
+                </svg>
+                Contactar
+              </button>
             </div>
-            <button className="flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-gray-200 text-sm font-semibold text-gray-700 hover:border-gray-400 hover:bg-gray-50 transition-all">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 20.105V4.875A1.875 1.875 0 015.625 3h12.75A1.875 1.875 0 0120.25 4.875v10.5A1.875 1.875 0 0118.375 17.25H7.5l-3.75 2.855z" />
-              </svg>
-              Contactar
-            </button>
-          </div>
+          )}
 
           {/* 6. TABS */}
           <div className="mb-6">
