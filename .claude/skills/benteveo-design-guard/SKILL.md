@@ -25,6 +25,10 @@ metadata:
 
 - **"El Corralón"** (`docs/DESIGN.md`): cultura de herramientas honesta, marketplace de barrio.
 - Amarillo soleado `#FFD166` = **ÚNICO acento quirúrgico**; neutros de taller (hormigón / papel / tinta).
+<<<<<<< HEAD
+=======
+  *(Cambiado por el dueño el 2026-08-16 — antes ámbar `#F2B705`.)*
+>>>>>>> dev
 - **Tipografía**: Archivo (variable) — reemplazó a Fredoka/Montserrat.
 - **MOTION-FIRST** (regla de oro del dueño): springs en entradas, hovers y micro-feedback.
   Una card o sección estática es inaceptable.
