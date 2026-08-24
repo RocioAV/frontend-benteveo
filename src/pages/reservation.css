@@ -263,6 +263,11 @@
   background-color: var(--color-primary-hover);
 }
 
+.reservation-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .reservation-secure {
   text-align: center;
   font-size: 0.78rem;

@@ -21,7 +21,13 @@ function ProductCard({ product, index = 0 }) {
     >
       <Link to={`/detalle/${product.id}`} className={styles.card}>
         <div className={styles.media}>
-          <img src={product.imageUrl} alt={product.title} loading="lazy" decoding="async" />
+          {product.imageUrl ? (
+            <img src={product.imageUrl} alt={product.title} loading="lazy" decoding="async" />
+          ) : (
+            <div className={styles.mediaPlaceholder}>
+              <i className="fa-solid fa-toolbox" aria-hidden="true" />
+            </div>
+          )}
           <span className={styles.availability}>{availableDays} días disponibles</span>
         </div>
         <div className={styles.body}>
@@ -38,13 +44,11 @@ function ProductCard({ product, index = 0 }) {
               <span className={styles.price}>${product.pricePerDay.toLocaleString('es-AR')}</span>
               <span className={styles.per}>/día</span>
             </div>
-            {product.rating != null ? (
+            {product.rating != null && (
               <div className={styles.rating}>
                 <i className="fa-solid fa-star" aria-hidden="true" />
                 <span>{Number(product.rating).toFixed(1)}</span>
               </div>
-            ) : (
-              <div className={styles.ratingEmpty}>Sin reseñas</div>
             )}
           </div>
         </div>

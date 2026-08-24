@@ -1,8 +1,12 @@
 import './reservation.css'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, MotionConfig } from 'motion/react'
-import products from '../data/products.json'
+import { toast } from 'react-toastify'
+import Skeleton from '../components/Skeleton/Skeleton.jsx'
+import EmptyState from '../components/EmptyState/EmptyState.jsx'
+import { fetchProduct } from '../services/products.service.js'
+import { createReservation } from '../services/reservations.service.js'
 
 const springReveal = { type: 'spring', stiffness: 260, damping: 26 }
 const springLatch = { type: 'spring', stiffness: 400, damping: 28 }
@@ -23,15 +27,13 @@ function startOfDay(d) {
   return x
 }
 
-// Fechas no disponibles (simuladas) hasta que exista data real de reservas ocupadas.
-function isUnavailable(date, productId) {
-  const n = date.getDate() + date.getMonth() + productId
-  return n % 7 === 0 || n % 11 === 0
-}
-
 function Reservation({ product: productProp }) {
   const { id } = useParams()
   const navigate = useNavigate()
+
+  const [product, setProduct] = useState(productProp ?? null)
+  const [status, setStatus] = useState(productProp ? 'ready' : 'loading')
+
   const [viewMonth, setViewMonth] = useState(() => {
     const d = new Date()
     return new Date(d.getFullYear(), d.getMonth(), 1)
@@ -40,11 +42,52 @@ function Reservation({ product: productProp }) {
   const [endDate, setEndDate] = useState(null)
   const [delivery, setDelivery] = useState('retiro')
   const [submission, setSubmission] = useState(null)
-  const [rangeWarning, setRangeWarning] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
-  const product = productProp ?? products.find((p) => p.id === Number(id))
-  if (!product) {
-    return <h1>Producto no encontrado</h1>
+  // Si llega como prop (desde DetalleProducto), no se fetchea: el estado inicial
+  // ya viene listo. Si se monta por la ruta /reservation/:id, se busca el producto
+  // por su UUID.
+  useEffect(() => {
+    if (productProp) return undefined
+
+    let cancelled = false
+    fetchProduct(id)
+      .then((data) => {
+        if (cancelled) return
+        setProduct(data)
+        setStatus('ready')
+      })
+      .catch(() => {
+        if (cancelled) return
+        setStatus('error')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [id, productProp])
+
+  if (status === 'loading') {
+    return (
+      <section className="reservation-page" aria-label="Cargando reserva">
+        <div className="reservation-card">
+          <Skeleton rows={5} />
+        </div>
+      </section>
+    )
+  }
+
+  if (status === 'error' || !product) {
+    return (
+      <MotionConfig reducedMotion="user">
+        <section className="reservation-page" aria-label="Error al cargar producto">
+          <EmptyState
+            message="No pudimos cargar el producto para reservar."
+            actionLabel="Volver al catálogo"
+            onAction={() => navigate('/explorar')}
+          />
+        </section>
+      </MotionConfig>
+    )
   }
 
   const today = startOfDay(new Date())
@@ -69,38 +112,17 @@ function Reservation({ product: productProp }) {
     calendarCells.push(new Date(viewMonth.getFullYear(), viewMonth.getMonth(), d))
   }
 
-  // Días no disponibles dentro de un rango [start, end].
-  const unavailableDaysInRange = (start, end, productId) => {
-    const blocked = []
-    for (let d = new Date(start); d <= end; d = new Date(d.getTime() + MS_PER_DAY)) {
-      if (isUnavailable(startOfDay(d), productId)) blocked.push(new Date(d))
-    }
-    return blocked
-  }
-
   const handleSelectDate = (date) => {
     const norm = startOfDay(date)
-    if (norm < today || isUnavailable(norm, product.id)) return
+    if (norm < today) return
     if (!startDate || (startDate && endDate)) {
       setStartDate(norm)
       setEndDate(null)
-      setRangeWarning('')
     } else if (norm >= startDate) {
-      const blocked = unavailableDaysInRange(startDate, norm, product.id)
-      if (blocked.length > 0) {
-        setRangeWarning(
-          blocked.length === 1
-            ? 'Hay un día ocupado dentro de ese rango. Acortá el período o elegí otras fechas.'
-            : `Hay ${blocked.length} días ocupados dentro de ese rango. Acortá el período o elegí otras fechas.`
-        )
-        return
-      }
-      setRangeWarning('')
       setEndDate(norm)
     } else {
       setStartDate(norm)
       setEndDate(null)
-      setRangeWarning('')
     }
   }
 
@@ -109,18 +131,37 @@ function Reservation({ product: productProp }) {
   const formatLong = (d) =>
     d.toLocaleDateString('es-AR', { day: 'numeric', month: 'long' })
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!startDate || !endDate) {
       setSubmission('error')
       return
     }
-    const params = new URLSearchParams({
-      titulo: product.title,
-      precio: String(product.pricePerDay),
-      dias: String(daysOfRent),
-    })
-    navigate(`/pago?${params.toString()}`)
+
+    setSubmitting(true)
+    try {
+      const reservation = await createReservation({
+        productId: product.id,
+        dateInit: startDate.toISOString(),
+        dateEnd: endDate.toISOString(),
+      })
+
+      const params = new URLSearchParams({
+        titulo: product.title,
+        precio: String(product.pricePerDay),
+        dias: String(daysOfRent),
+        reserva: reservation?.id ?? reservation?._id ?? '',
+      })
+      navigate(`/pago?${params.toString()}`)
+    } catch (err) {
+      if (err.status === 401) {
+        toast.error('Iniciá sesión para reservar')
+      } else {
+        toast.error(err.message || 'No pudimos procesar tu reserva')
+      }
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -163,7 +204,7 @@ function Reservation({ product: productProp }) {
               {calendarCells.map((date, i) => {
                 if (!date) return <span key={`b-${i}`} className="calendar__day calendar__day--blank" />
                 const norm = startOfDay(date)
-                const disabled = norm < today || isUnavailable(norm, product.id)
+                const disabled = norm < today
                 const isStart = startDate && norm.getTime() === startDate.getTime()
                 const isEnd = endDate && norm.getTime() === endDate.getTime()
                 return (
@@ -195,18 +236,6 @@ function Reservation({ product: productProp }) {
               </span>
               <span>{endDate ? `Hasta el ${formatLong(endDate)}` : '—'}</span>
             </div>
-          )}
-
-          {rangeWarning && (
-            <motion.p
-              className="reservation-warning"
-              role="alert"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={springReveal}
-            >
-              {rangeWarning}
-            </motion.p>
           )}
 
           {/* Método de entrega */}
@@ -263,8 +292,14 @@ function Reservation({ product: productProp }) {
           </div>
 
           {/* Botón */}
-          <motion.button type="submit" className="reservation-submit" whileTap={{ scale: 0.96 }} transition={springLatch}>
-            Continuar al pago
+          <motion.button
+            type="submit"
+            className="reservation-submit"
+            whileTap={{ scale: 0.96 }}
+            transition={springLatch}
+            disabled={submitting}
+          >
+            {submitting ? 'Reservando…' : 'Continuar al pago'}
           </motion.button>
           <p className="reservation-secure">
             <i className="fas fa-lock" aria-hidden="true" /> Pago seguro · Sin costo de cancelación

@@ -70,6 +70,16 @@
   transition: transform var(--duration-slow) var(--ease-out-quint);
 }
 
+.mediaPlaceholder {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  display: grid;
+  place-items: center;
+  background-color: var(--color-concrete-surface);
+  color: var(--color-concrete);
+  font-size: 2.5rem;
+}
+
 .availability {
   position: absolute;
   top: 0.75rem;
@@ -146,10 +156,4 @@
 .rating i {
   color: var(--color-primary);
   font-size: 0.8rem;
-}
-
-.ratingEmpty {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--color-concrete);
 }

@@ -1,11 +1,12 @@
-import { useState, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { MotionConfig } from 'motion/react'
 import ProductCard from '../components/ProductCard/ProductCard.jsx'
 import EmptyState from '../components/EmptyState/EmptyState.jsx'
+import Skeleton from '../components/Skeleton/Skeleton.jsx'
 import { isWithinRange, matchesQuery } from '../utils/products.js'
+import { fetchProducts } from '../services/products.service.js'
 import './PageCatalogo.css'
-import products from '../data/products.json'
 
 const PRODUCTS_PER_PAGE = 12
 
@@ -24,6 +25,69 @@ function PageCatalogo() {
   const [selectedCategory, setSelectedCategory] = useState('Todos')
   const [currentPage, setCurrentPage] = useState(1)
   const trackRef = useRef(null)
+
+  const [products, setProducts] = useState(null) // null = cargando
+  const [error, setError] = useState(false)
+  const [reloadToken, setReloadToken] = useState(0)
+
+  useEffect(() => {
+    let cancelled = false
+    fetchProducts()
+      .then((data) => {
+        if (cancelled) return
+        setProducts(data)
+      })
+      .catch(() => {
+        if (cancelled) return
+        setError(true)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [reloadToken])
+
+  const handleRetry = () => {
+    setProducts(null)
+    setError(false)
+    setReloadToken((token) => token + 1)
+  }
+
+  if (error) {
+    return (
+      <MotionConfig reducedMotion="user">
+        <section className="catalogo" aria-label="Error al cargar productos">
+          <EmptyState
+            message="No pudimos cargar los productos. Probá de nuevo en unos segundos."
+            actionLabel="Reintentar"
+            onAction={handleRetry}
+          />
+        </section>
+      </MotionConfig>
+    )
+  }
+
+  if (products === null) {
+    return (
+      <section className="catalogo" aria-label="Cargando catálogo">
+        <Skeleton rows={6} />
+      </section>
+    )
+  }
+
+  if (products.length === 0) {
+    return (
+      <MotionConfig reducedMotion="user">
+        <section className="catalogo" aria-labelledby="catalogo-titulo">
+          <header className="catalogo__encabezado">
+            <h1 id="catalogo-titulo" className="catalogo__titulo">
+              Explorá productos
+            </h1>
+          </header>
+          <EmptyState message="Todavía no hay productos publicados. Volvé más tarde." />
+        </section>
+      </MotionConfig>
+    )
+  }
 
   const nearbyProducts = products.filter((product) => isWithinRange(product.distance))
   const categories = ['Todos', ...new Set(nearbyProducts.map((product) => product.category))]
