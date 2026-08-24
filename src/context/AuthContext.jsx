@@ -1,8 +1,21 @@
-import { createContext, useEffect, useState } from 'react'
+import { createContext, useEffect, useMemo, useState } from 'react'
 import * as authService from '../services/auth.service'
 
 const TOKEN_KEY = 'token'
 const USER_KEY = 'user'
+
+// Decodifica el payload (base64url) de un JWT sin dependencias externas.
+// El claim `sub` (segundo segmento) contiene el id del usuario autenticado.
+function decodeJwtPayload(token) {
+  try {
+    const segment = token.split('.')[1]
+    const base64 = segment.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4)
+    return JSON.parse(atob(padded))
+  } catch {
+    return null
+  }
+}
 
 function readStoredUser() {
   try {
@@ -31,6 +44,12 @@ const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY))
   const [user, setUser] = useState(null)
+
+  // Id del usuario autenticado: del claim `sub` del JWT, con fallback a `user.id`.
+  const userId = useMemo(() => {
+    const payload = token ? decodeJwtPayload(token) : null
+    return payload?.sub ?? user?.id ?? null
+  }, [token, user])
 
   useEffect(() => {
     purgeMockTokens()
@@ -93,7 +112,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ token, user, login, register, logout, forgotPassword }}>
+    <AuthContext.Provider value={{ token, user, userId, login, register, logout, forgotPassword }}>
       {children}
     </AuthContext.Provider>
   )
