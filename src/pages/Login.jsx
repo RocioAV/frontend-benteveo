@@ -69,7 +69,7 @@ function Login() {
 
     try {
       await login({ email, password })
-      const from = location.state?.from?.pathname || '/'
+      const from = location.state?.from?.pathname || '/dashboard'
       navigate(from, { replace: true })
     } catch (err) {
       const message = err.message || 'Correo o contraseña incorrectos'
@@ -81,7 +81,7 @@ function Login() {
   }
 
   if (token) {
-    const from = location.state?.from?.pathname || '/'
+    const from = location.state?.from?.pathname || '/dashboard'
     return <Navigate to={from} replace />
   }
 

@@ -48,3 +48,8 @@ export async function fetchProduct(id) {
 export async function fetchPublicProfile(userId) {
   return apiClient(`/user/${userId}`)
 }
+
+// Elimina un producto del usuario autenticado (DELETE /products/:id).
+export async function deleteProduct(id) {
+  return apiClient(`/products/${id}`, { method: 'DELETE' })
+}

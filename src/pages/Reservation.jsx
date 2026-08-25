@@ -7,6 +7,8 @@ import Skeleton from '../components/Skeleton/Skeleton.jsx'
 import EmptyState from '../components/EmptyState/EmptyState.jsx'
 import { fetchProduct } from '../services/products.service.js'
 import { createReservation } from '../services/reservations.service.js'
+import { useAuth } from '../context/useAuth'
+import VerificationModal from '../components/VerificationModal/VerificationModal.jsx'
 
 const springReveal = { type: 'spring', stiffness: 260, damping: 26 }
 const springLatch = { type: 'spring', stiffness: 400, damping: 28 }
@@ -30,6 +32,7 @@ function startOfDay(d) {
 function Reservation({ product: productProp }) {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { user, token } = useAuth()
 
   const [product, setProduct] = useState(productProp ?? null)
   const [status, setStatus] = useState(productProp ? 'ready' : 'loading')
@@ -43,6 +46,7 @@ function Reservation({ product: productProp }) {
   const [delivery, setDelivery] = useState('retiro')
   const [submission, setSubmission] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [verificationOpen, setVerificationOpen] = useState(false)
 
   // Si llega como prop (desde DetalleProducto), no se fetchea: el estado inicial
   // ya viene listo. Si se monta por la ruta /reservation/:id, se busca el producto
@@ -91,6 +95,10 @@ function Reservation({ product: productProp }) {
   }
 
   const today = startOfDay(new Date())
+
+  const isLoggedIn = !!token
+  const isVerified = user?.isIdentityVerified === true
+  const blockedByVerification = isLoggedIn && !isVerified
 
   const daysOfRent =
     startDate && endDate && endDate >= startDate
@@ -292,12 +300,20 @@ function Reservation({ product: productProp }) {
           </div>
 
           {/* Botón */}
+          {blockedByVerification && (
+            <div className="reservation-notice" role="status">
+              <i className="fas fa-shield-halved" aria-hidden="true" /> Verificá tu identidad (DNI) para poder reservar.
+              <button type="button" className="reservation-verify-btn" onClick={() => setVerificationOpen(true)}>
+                Verificar identidad
+              </button>
+            </div>
+          )}
           <motion.button
             type="submit"
             className="reservation-submit"
             whileTap={{ scale: 0.96 }}
             transition={springLatch}
-            disabled={submitting}
+            disabled={submitting || blockedByVerification}
           >
             {submitting ? 'Reservando…' : 'Continuar al pago'}
           </motion.button>
@@ -312,6 +328,8 @@ function Reservation({ product: productProp }) {
           )}
         </motion.form>
       </section>
+
+      <VerificationModal open={verificationOpen} onClose={() => setVerificationOpen(false)} />
     </MotionConfig>
   )
 }

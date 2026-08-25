@@ -56,7 +56,7 @@ function upsertMessage(messages, message) {
   return [...messages, message]
 }
 
-function ChatWindow({ reservationId, otherName }) {
+function ChatWindow({ reservationId, otherName, readOnly = false }) {
   const { token, userId } = useAuth()
   const [messages, setMessages] = useState([])
   const [draft, setDraft] = useState('')
@@ -169,22 +169,25 @@ function ChatWindow({ reservationId, otherName }) {
           )}
         </div>
 
+        {readOnly && (
+          <p className={styles.chatHint}>Esta conversación está cerrada. Solo lectura.</p>
+        )}
         <form className={styles.chatForm} onSubmit={handleSend}>
           <input
             className={styles.chatInput}
             type="text"
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="Escribí un mensaje…"
+            placeholder={readOnly ? 'Conversación cerrada' : 'Escribí un mensaje…'}
             aria-label="Mensaje"
-            disabled={status === 'closed'}
+            disabled={status === 'closed' || readOnly}
           />
           <motion.button
             type="submit"
             className={styles.chatSend}
             whileTap={{ scale: 0.96 }}
             transition={springLatch}
-            disabled={!draft.trim() || status === 'closed'}
+            disabled={!draft.trim() || status === 'closed' || readOnly}
             aria-label="Enviar mensaje"
           >
             <i className="fas fa-paper-plane" aria-hidden="true" />

@@ -68,9 +68,17 @@ const Header = ({ query = '', onSearch }) => {
           )}
 
           {user && (
-            <button className={styles.bvNavLink} onClick={handleLogout}>
-              <i className="fas fa-sign-out-alt" aria-hidden="true"></i> Salir
-            </button>
+            <>
+              <Link to="/dashboard" className={styles.bvNavLink} onClick={() => setMenuOpen(false)}>
+                <i className="fas fa-user" aria-hidden="true"></i> Mi cuenta
+              </Link>
+              <Link to="/dashboard?tab=reservas" className={styles.bvNavLink} onClick={() => setMenuOpen(false)}>
+                <i className="fas fa-calendar-days" aria-hidden="true"></i> Mis reservas
+              </Link>
+              <button className={styles.bvNavLink} onClick={handleLogout}>
+                <i className="fas fa-sign-out-alt" aria-hidden="true"></i> Salir
+              </button>
+            </>
           )}
         </nav>
       </div>

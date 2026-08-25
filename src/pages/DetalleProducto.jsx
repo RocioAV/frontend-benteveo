@@ -340,20 +340,25 @@ function DetalleProducto() {
                 </div>
                 <div>
                   <p className="font-bold text-[var(--color-dark)] text-sm">{ownerName}</p>
-                  {(isVerified || memberSince) && (
-                    <div className="flex items-center gap-1.5 text-xs text-[var(--color-concrete)]">
-                      {isVerified && (
-                        <>
-                          <svg className="w-3.5 h-3.5 text-[var(--color-brown)]" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                            <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
-                          </svg>
-                          <span>Identidad verificada</span>
-                        </>
-                      )}
-                      {isVerified && memberSince && <span className="text-[var(--color-border)]">·</span>}
-                      {memberSince && <span>Miembro desde {memberSince}</span>}
-                    </div>
-                  )}
+                  <div className="flex items-center gap-1.5 text-xs text-[var(--color-concrete)]">
+                    {isVerified ? (
+                      <>
+                        <svg className="w-3.5 h-3.5 text-[var(--color-brown)]" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                          <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
+                        </svg>
+                        <span>Identidad verificada</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-3.5 h-3.5 text-[var(--color-error)]" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                          <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                        </svg>
+                        <span>Sin verificar</span>
+                      </>
+                    )}
+                    {memberSince && <span className="text-[var(--color-border)]">·</span>}
+                    {memberSince && <span>Miembro desde {memberSince}</span>}
+                  </div>
                 </div>
               </div>
               <motion.button

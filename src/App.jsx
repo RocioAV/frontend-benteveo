@@ -17,6 +17,8 @@ const ForgotPassword = lazy(() => import('./pages/ForgotPassword.jsx'))
 const NotFound = lazy(() => import('./pages/NotFound.jsx'))
 const DemoModales = lazy(() => import('./pages/DemoModales.jsx'))
 const MisReservas = lazy(() => import('./pages/MisReservas.jsx'))
+const Dashboard = lazy(() => import('./pages/Dashboard.jsx'))
+const ChatPage = lazy(() => import('./pages/ChatPage.jsx'))
 
 function PageFallback() {
   return (
@@ -39,6 +41,8 @@ function App() {
             <Route path="/detalle/:id" element={<DetalleProducto />} />
             <Route path="/reservation/:id" element={<RequireAuth><Reservation /></RequireAuth>} />
             <Route path="/reservas" element={<RequireAuth><MisReservas /></RequireAuth>} />
+            <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+            <Route path="/chat/:reservationId" element={<RequireAuth><ChatPage /></RequireAuth>} />
             <Route path="/pago" element={<RequireAuth><Pago /></RequireAuth>} />
             <Route path="/demo-modales" element={<DemoModales />} />
             <Route path="*" element={<NotFound />} />
