@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { motion, MotionConfig } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
@@ -45,6 +45,14 @@ function Registro() {
   const [emailError, setEmailError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
+  const [submitError, setSubmitError] = useState('')
+  const [dniError, setDniError] = useState('')
+  const [dniInvalidChar, setDniInvalidChar] = useState(false)
+  const dniWarningTimeout = useRef(null)
+  const [phoneError, setPhoneError] = useState('')
+  const [phoneInvalidChar, setPhoneInvalidChar] = useState(false)
+  const phoneWarningTimeout = useRef(null)
 
   const checkPasswordStrength = (password) => {
     if (!password) return ''
