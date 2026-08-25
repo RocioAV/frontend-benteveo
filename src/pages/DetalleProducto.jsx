@@ -62,10 +62,7 @@ function DetalleProducto() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="flex flex-col lg:flex-row gap-8">
 
-        {/* ===================== COLUMNA IZQUIERDA ===================== */}
         <div className="flex-1 min-w-0">
-
-          {/* 1. GALERÍA PRINCIPAL */}
           <div className="relative rounded-3xl overflow-hidden bg-gray-100 mb-3">
             <img
               src={product.imageUrl}
@@ -73,7 +70,6 @@ function DetalleProducto() {
               className="w-full aspect-[4/3] object-contain bg-white"
             />
 
-            {/* Botones favorito + compartir */}
             <div className="absolute bottom-4 right-4 flex gap-2">
               <button
                 onClick={toggleFavorite}
@@ -107,7 +103,6 @@ function DetalleProducto() {
             </div>
           </div>
 
-          {/* 2. BADGES */}
           <div className="flex items-center gap-3 mb-4">
             <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
               {product.category}
@@ -124,12 +119,10 @@ function DetalleProducto() {
             </div>
           </div>
 
-          {/* 3. TÍTULO */}
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4" style={{ fontFamily: 'var(--font-title)' }}>
             {product.title}
           </h1>
 
-          {/* 4. FILA DE METADATOS */}
           <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-6">
             <div className="flex items-center gap-1.5">
               <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
@@ -159,7 +152,6 @@ function DetalleProducto() {
             </div>
           </div>
 
-          {/* 5. TARJETA DEL DUEÑO */}
           <div className="flex items-center justify-between bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full bg-emerald-800 flex items-center justify-center text-white font-bold text-sm">
@@ -185,7 +177,6 @@ function DetalleProducto() {
             </button>
           </div>
 
-          {/* 6. TABS */}
           <div className="mb-6">
             <div className="flex gap-8 border-b border-gray-200">
               <button
@@ -219,7 +210,6 @@ function DetalleProducto() {
             </div>
           </div>
 
-          {/* 8. SECCIÓN DE RESEÑAS */}
           <div>
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-title)' }}>
@@ -275,9 +265,7 @@ function DetalleProducto() {
           </div>
 
         </div>
-        {/* ===================== FIN COLUMNA IZQUIERDA ===================== */}
 
-        {/* ===================== COLUMNA DERECHA (RESERVA) ===================== */}
         <div className="w-full lg:w-[380px] flex-shrink-0">
           <Reservation product={product} />
         </div>
