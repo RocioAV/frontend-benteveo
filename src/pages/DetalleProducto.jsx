@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import products from '../data/products.json'
 import Reservation from './Reservation.jsx'
@@ -9,6 +9,27 @@ function DetalleProducto() {
 
   const [activeTab, setActiveTab] = useState('descripcion')
   const [showAllReviews, setShowAllReviews] = useState(false)
+  const [isFavorite, setIsFavorite] = useState(false)
+
+  useEffect(() => {
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]')
+    setIsFavorite(favorites.includes(Number(id)))
+  }, [id])
+
+  const toggleFavorite = () => {
+    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]')
+    const productId = Number(id)
+    let updated
+
+    if (favorites.includes(productId)) {
+      updated = favorites.filter(fav => fav !== productId)
+    } else {
+      updated = [...favorites, productId]
+    }
+
+    localStorage.setItem('favorites', JSON.stringify(updated))
+    setIsFavorite(!isFavorite)
+  }
 
   if (!product) {
     return (
@@ -55,10 +76,19 @@ function DetalleProducto() {
             {/* Botones favorito + compartir */}
             <div className="absolute bottom-4 right-4 flex gap-2">
               <button
-                className="w-9 h-9 rounded-full bg-white/80 hover:bg-white flex items-center justify-center shadow transition-all"
+                onClick={toggleFavorite}
+                className={`w-9 h-9 rounded-full flex items-center justify-center shadow transition-all ${
+                  isFavorite ? 'bg-red-500 hover:bg-red-600' : 'bg-white/80 hover:bg-white'
+                }`}
                 aria-label="Favorito"
               >
-                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <svg
+                  className={`w-5 h-5 ${isFavorite ? 'text-white' : 'text-gray-600'}`}
+                  fill={isFavorite ? 'currentColor' : 'none'}
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                 </svg>
               </button>
