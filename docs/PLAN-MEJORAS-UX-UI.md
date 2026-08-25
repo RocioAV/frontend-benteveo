@@ -436,3 +436,58 @@ jerarquía/layout/UX, no un "re-estilo" de tokens + motion.
 ### Pendiente crítico — bug de datos
 `src/data/products.json`: 12 productos (ids 5-10 duplicados) sin `distance` ni `rating`, y 6
 productos duplicados. Requiere decisión del dueño: deduplicar y completar distance/rating.
+
+---
+
+## 13. Chat en vivo por reserva (contrato)
+
+Comunicación 1:1 entre inquilino y dueño, disponible una vez creada la reserva, para
+coordinar entregas y devoluciones. Una conversación = una reserva.
+
+### Modelo `Message` (backend, Prisma)
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `id` | String (UUID) | Identificador del mensaje |
+| `reservationId` | String (UUID) | Reserva a la que pertenece la conversación |
+| `senderId` | String (UUID) | Quién escribe (inquilino o dueño) |
+| `content` | String (text) | Cuerpo del mensaje |
+| `createdAt` | DateTime | Momento de envío |
+| `readAt` | DateTime? | Lectura (opcional, fase 2) |
+
+### Protocolo WebSocket (nativo)
+
+- **URL**: `ws(s)://<host>/chat`. El token JWT viaja por **subprotocolo**:
+  `new WebSocket(url, ['benteveo', token])`. El gateway valida el JWT del segundo
+  subprotocolo (no por query ni header — el WS nativo no permite headers).
+- **Sala**: `reservationId` (1 conversación = 1 reserva).
+
+| Dirección | Evento | Payload |
+|---|---|---|
+| Cliente → servidor | `join` | `{ reservationId }` |
+| Cliente → servidor | `message:send` | `{ reservationId, content }` |
+| Cliente → servidor | `leave` | `{ reservationId }` |
+| Servidor → cliente | `message:history` | `{ reservationId, messages }` |
+| Servidor → cliente | `message:new` | `{ message }` |
+| Servidor → cliente | `error` | `{ code, message }` |
+
+### Endpoints REST
+
+- `GET /reservations` — reservas del usuario como inquilino (ya existente).
+- `GET /reservations/as-owner` — reservas de los productos del usuario como dueño (ya existente).
+- `GET /reservations/:id/messages` — historial de la conversación (fallback de carga inicial).
+
+### Frontend
+
+- `src/services/chat.service.js` — adapter WebSocket (`ChatClient`) + `fetchMessages`.
+- `src/components/ChatWindow/` — UI del chat (burbujas, input, estados de conexión).
+- `src/pages/MisReservas.jsx` (ruta `/reservas`) — listado con pestañas "Como inquilino" /
+  "Como dueño" y apertura del chat en modal.
+- `src/services/reservations.service.js` — `fetchMyReservations` / `fetchReservationsAsOwner`
+  (normalizan el `product` crudo con `mapProduct`).
+
+### Pendiente (backend)
+
+- Modelo `Message` + gateway WebSocket (`/chat`) + `GET /reservations/:id/messages`.
+- `findMyReservations` no incluye el nombre del dueño del producto (solo `ownerId`);
+  evaluar incluir el `owner` para mostrar el nombre en la lista sin N+1 requests.
