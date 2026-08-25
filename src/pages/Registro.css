@@ -259,6 +259,47 @@
   }
 }
 
+.registro-strength-indicator {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-top: 0.4rem;
+}
+
+.registro-strength-debil {
+  color: #d62828;
+}
+
+.registro-strength-media {
+  color: #e08a00;
+}
+
+.registro-strength-fuerte {
+  color: #2e7d32;
+}
+
+.registro-form-success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.registro-form-error {
+  background-color: #fdecea;
+  color: #d62828;
+  border: 1px solid #f5b5b0;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
 @media (max-width: 480px) {
   .registro-grid {
     grid-template-columns: 1fr;
