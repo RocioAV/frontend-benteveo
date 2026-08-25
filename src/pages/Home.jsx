@@ -76,7 +76,7 @@ function Home() {
 
   return (
     <div className="w-full">
-      {/* HERO — Corralón */}
+      {/* HERO */}
       <MotionConfig reducedMotion="user">
         <section className="hero-section">
           <div className="hero-copy">

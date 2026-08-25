@@ -1,7 +1,7 @@
-# DESIGN — Benteveo (Dirección "El Corralón")
+# DESIGN — Benteveo
 
-> **Dirección estética:** "El Corralón" — cultura de herramientas honesta.
-> **Mundo visual reemplazado** (2026-08-12, decisión del dueño): se abandona el
+> **Dirección estética:** cultura de herramientas honesta.
+> **Mundo visual:** se abandona el
 > "beige premium + degradado ámbar + Fredoka/Montserrat" (AI-tell detectado) por una
 > ferretería/taller de barrio digitalizada, con **motion mecánico-líquido**.
 > **Fuente de verdad de tokens:** `src/index.css` (`:root`). Todo color/fuente/motion
@@ -11,7 +11,7 @@
 
 ## 0. Contrato de dirección (5 bloques)
 
-- **THESIS:** Benteveo es el corralón del barrio donde tu vecino te presta la
+- **THESIS:** Benteveo es la ferretería del barrio donde tu vecino te presta la
   herramienta. La interfaz muestra la herramienta y la confianza, no una "promesa
   premium". Rechaza el arreglo por defecto: hero con degradado + texto blanco + 3 cards.
 - **OWN-WORLD:** naranja Benteveo `#F2B705` como ÚNICO acento quirúrgico sobre
@@ -22,8 +22,7 @@
 - **FIRST VIEWPORT:** titular tipográfico grande (Archivo 800, mayúsculas, tracking
   ajustado), el CTA es el único elemento ámbar, y las categorías se presentan como
   etiquetas colgadas de un tablero de herramientas.
-- **FORM:** "El Corralón" (cultura de herramientas) — posición #1 de la lista evaluada
-  por el dueño. Motion: botones que "hacen latch" (presión + snap-back), cards que se
+- **FORM:** cultura de herramientas. Motion: botones que "hacen latch" (presión + snap-back), cards que se
   cuelgan del tablero con spring suave.
 
 ---
@@ -122,7 +121,7 @@ caen en su lugar — la interfaz hereda esa física.
 
 Se conserva la escala actual (no se tocan valores — §0). Uso por material:
 
-| Token | Uso canónico (Corralón) |
+| Token | Uso canónico |
 |---|---|
 | `--radius-sm` 8px | Etiquetas de taller, badges, checkboxes |
 | `--radius-md` 12px | Botones, inputs |
@@ -167,10 +166,10 @@ Antes de tocar UI:
   CSS puro cuando el efecto es un spring.
 - **`src/index.css`:** el root conserva sus variables existentes (§0); se AGREGARON
   `--color-concrete`, `--color-concrete-surface` y los tokens de motion, y se
-  reemplazó la fuente (Fredoka/Montserrat → Archivo) — cambio aprobado en Fase 8.
+  reemplazó la fuente (Fredoka/Montserrat → Archivo).
 - **Font Awesome CDN** sigue siendo el sistema de íconos (sin lucide por ahora).
 
 ---
 
 *Referencias: `docs/PRODUCT.md` (dirección de producto), `docs/PLAN-MEJORAS-UX-UI.md` §0
-(restricciones + enmienda Fase 8), skill `benteveo-design-guard`.*
+(restricciones), skill `benteveo-design-guard`.*
