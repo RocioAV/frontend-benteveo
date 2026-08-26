@@ -1,6 +1,29 @@
 import { useState, useRef, useEffect } from 'react'
 import './ChatBot.css'
 
+/*
+  Paso a paso para convertir este chatbot en uno real con IA:
+  1. Elegir un proveedor con plan gratuito (por ejemplo, Gemini o Groq), crear
+    una cuenta y generar una API key con los permisos mínimos necesarios.
+  2. No exponer la API key en React ni subirla al repositorio. Guardarla en
+    variables de entorno del backend o frontend para probar (por ejemplo, GEMINI_API_KEY) y agregar
+    el archivo .env al .gitignore.
+  3. Crear un endpoint en el backend, como POST /api/chat, que reciba la
+    pregunta, valide el usuario y aplique límites de uso. (Pedimelo a mi)
+  4. Obtener la información pública de la web: extraer el contenido relevante
+    de las páginas, limpiarlo y dividirlo en fragmentos. Para un proyecto
+    pequeño puede guardarse en archivos o una base de datos; para una búsqueda
+    semántica, generar embeddings y almacenarlos en una base vectorial.
+  5. En cada pregunta, buscar los fragmentos más relacionados (RAG) y enviar al
+    modelo un prompt con ese contexto, indicando que responda únicamente con
+    información de Benteveo y que admita cuando no encuentre la respuesta.
+  6. Desde handleSend, llamar al endpoint con fetch, mostrar un estado de carga,
+    agregar la respuesta del backend a mensajes y manejar errores o timeouts.
+  7. Configurar CORS, autenticación, sanitización del contenido, caché y límites
+    de tokens/costo aunque sea gratuita. Revisar también los términos de uso y permisos de las webs
+    antes de rastrearlas, y actualizar periódicamente el contenido indexado.
+*/
+
 const respuestas = {
   hola: 'Hola! Soy Benti, el asistente de Benteveo. En que te puedo ayudar?',
   alquiler: 'Para alquilar un objeto, buscalo en Explorar, elegi las fechas y confirma la reserva. El pago se realiza de forma segura por MercadoPago.',
