@@ -34,19 +34,27 @@ const respuestas = {
   chat: 'Podes comunicarte directamente con el dueño del objeto a traves de nuestro chat interno.',
   reputacion: 'Despues de cada alquiler, podes calificar al dueño y viceversa. Esto genera confianza en la comunidad.',
   precio: 'Los precios los define cada dueño por dia. Podes ver el precio en la ficha de cada producto.',
+  verificacion: 'Para verificar tu identidad, subi una foto de tu DNI o una selfie desde tu perfil. Es obligatorio para alquilar.',
+  delivery: 'La entrega a domicilio la define el dueño. Podes ver las opciones de entrega en cada producto.',
+  minimo: 'El minimo de alquiler son 2 dias. Esto esta indicado en cada ficha de producto.',
+  mision: 'Benteveo es una plataforma de alquiler hiperlocal que conecta vecinos para compartir objetos. Nuestra mision es reducir el consumo y fortalecer la comunidad.',
+  como_funciona: 'Benteveo funciona asi: 1) Busca un objeto, 2) Reserva las fechas, 3) Paga de forma segura, 4) Recibe el objeto, 5) Devuelve y califica.',
+  contacto: 'Podes contactarnos por email a soporte@benteveo.com o por WhatsApp al +54 11 1234-5678.',
+  email: 'Nuestro email de soporte es soporte@benteveo.com. Respondemos en menos de 24 horas.',
+  whatsapp: 'Nuestro WhatsApp de soporte es +54 11 1234-5678. Atendemos de lunes a viernes de 9 a 18 horas.',
   ayuda: 'Podes escribirme cualquier pregunta sobre la plataforma. Estoy aqui para ayudarte!',
-  default: 'No estoy seguro de entender tu pregunta. Podes preguntarme sobre alquileres, publicaciones, pagos, reservas o garantias.'
+  default: 'No estoy seguro de entender tu pregunta. Podes preguntarme sobre alquileres, publicaciones, pagos, reservas, garantias, o contactar nuestro soporte.'
 }
 
 function getRespuesta(mensaje) {
   const msg = mensaje.toLowerCase()
-  
+
   for (const [clave, respuesta] of Object.entries(respuestas)) {
     if (msg.includes(clave)) {
       return respuesta
     }
   }
-  
+
   return respuestas.default
 }
 
@@ -97,7 +105,7 @@ const ChatBot = () => {
 
   return (
     <div className="chatbot-container">
-      <button 
+      <button
         className={`chatbot-toggle ${isOpen ? 'open' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Chat"
@@ -126,8 +134,8 @@ const ChatBot = () => {
 
           <div className="chatbot-mensajes" ref={mensajesRef}>
             {mensajes.map((msg) => (
-              <div 
-                key={msg.id} 
+              <div
+                key={msg.id}
                 className={`mensaje ${msg.esBot ? 'bot' : 'usuario'}`}
               >
                 {msg.esBot && <div className="avatar-bot">B</div>}
@@ -136,7 +144,7 @@ const ChatBot = () => {
                 </div>
               </div>
             ))}
-            
+
             {escribiendo && (
               <div className="mensaje bot">
                 <div className="avatar-bot">B</div>
@@ -166,14 +174,17 @@ const ChatBot = () => {
           </div>
 
           <div className="chatbot-sugerencias">
-            <button onClick={() => { setInput('Como alquilo?'); }}>
-              Como alquilo?
+            <button onClick={() => setInput('Como alquilo?')}>
+              Alquilar
             </button>
-            <button onClick={() => { setInput('Como publico?'); }}>
-              Como publico?
+            <button onClick={() => setInput('Como publico?')}>
+              Publicar
             </button>
-            <button onClick={() => { setInput('Que pasa con mi dinero?'); }}>
+            <button onClick={() => setInput('Garantias')}>
               Garantias
+            </button>
+            <button onClick={() => setInput('Contacto')}>
+              Soporte
             </button>
           </div>
         </div>
