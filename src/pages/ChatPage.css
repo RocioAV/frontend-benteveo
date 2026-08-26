@@ -1,0 +1,152 @@
+/* ChatPage — conversación dedicada con contexto de la reserva.
+   Solo tokens del root (guard de diseño). */
+
+.chatpage {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px 16px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.chatpage-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  padding: 8px 14px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-dark);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.chatpage-back:hover {
+  background: var(--color-concrete-surface);
+}
+
+.chatpage-context {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.chatpage-product {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.chatpage-product-img,
+.chatpage-product-placeholder {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.chatpage-product-img {
+  object-fit: cover;
+}
+
+.chatpage-product-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-concrete-surface);
+  color: var(--color-concrete);
+}
+
+.chatpage-product-info {
+  min-width: 0;
+}
+
+.chatpage-label {
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-concrete);
+}
+
+.chatpage-title {
+  margin: 2px 0 4px;
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--color-dark);
+}
+
+.chatpage-meta {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: var(--color-concrete);
+}
+
+.chatpage-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.chatpage-badge--pending,
+.chatpage-badge--active,
+.chatpage-badge--completed {
+  background: var(--color-concrete-surface);
+  color: var(--color-dark);
+}
+
+.chatpage-badge--confirmed {
+  background: var(--color-primary);
+  color: var(--color-dark);
+}
+
+.chatpage-badge--cancelled {
+  background: var(--color-error);
+  color: var(--color-surface);
+}
+
+.chatpage-window {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chatpage-context,
+.chatpage-readonly {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-concrete-surface);
+  color: var(--color-concrete);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.chatpage-window {
+    animation: none;
+    transition: none;
+  }
+}

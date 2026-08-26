@@ -1,58 +1,148 @@
 .catalogo {
-  --catalogo-primary: var(--color-amber-500);
+  --catalogo-primary: var(--color-primary, #F2B705);
   width: min(100% - 2rem, 68.75rem);
   margin: 0 auto;
-  padding: 2.5rem 0 4rem;
+  padding: 3rem 2rem 5rem;
+  background: var(--color-surface);
 }
 
 .catalogo__encabezado {
-  max-width: 38rem;
-  margin-bottom: 2.5rem;
+  max-width: 40rem;
+  margin-bottom: 1.5rem;
 }
 
 .catalogo__titulo {
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.65rem;
+  font-family: var(--font-title);
+  font-weight: 800;
+  font-size: clamp(1.9rem, 4vw, 2.6rem);
+  letter-spacing: -0.02em;
+  line-height: 1.05;
   color: var(--color-dark);
-  line-height: 1.1;
 }
 
 .catalogo__descripcion {
+  margin: 0;
   font-size: 1.05rem;
   line-height: 1.6;
+  color: var(--color-concrete);
 }
+
+/* Contador de resultados (debajo de las categorías) */
+.catalogo__resultado {
+  margin: 1.25rem 0 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-brown);
+}
+
+/* ── Slider de categorías ── */
+.category-slider {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.category-arrow {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-dark);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background-color var(--duration-fast) var(--ease-out-quint),
+    transform var(--duration-fast) var(--ease-out-quint);
+}
+
+.category-arrow:hover {
+  background: var(--catalogo-primary);
+  transform: scale(1.05);
+}
+
 .category-filters {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
+  gap: 1rem;
+  flex: 1;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 0.5rem 0.25rem;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
+
+.category-filters::-webkit-scrollbar {
+  display: none;
+}
+
 .category-filter {
-  padding: 0.65rem 1rem;
-  font: inherit;
-  color: var(--color-dark);
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 6.5rem;
+  padding: 0.4rem 0.25rem 0;
+  background: none;
+  border: none;
   cursor: pointer;
+  font: inherit;
+}
+
+.category-filter__icon {
+  display: grid;
+  place-items: center;
+  width: 3.75rem;
+  height: 3.75rem;
+  border-radius: 50%;
+  background-color: var(--color-concrete-surface);
+  color: var(--color-concrete);
+  font-size: 1.35rem;
   transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
+    background-color var(--duration-fast) var(--ease-out-quint),
+    color var(--duration-fast) var(--ease-out-quint),
+    transform var(--duration-fast) var(--ease-out-quint),
+    box-shadow var(--duration-fast) var(--ease-out-quint);
 }
-.category-filter:hover {
-  border-color: var(--catalogo-primary);
-  transform: translateY(-2px);
+
+.category-filter:hover .category-filter__icon {
+  transform: translateY(-3px);
+  color: var(--color-brown);
+  box-shadow: var(--shadow-sm);
 }
+
+.category-filter__label {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-concrete);
+  transition: color var(--duration-fast) var(--ease-out-quint);
+}
+
+.category-filter--active .category-filter__icon {
+  background-color: var(--catalogo-primary);
+  color: var(--color-dark);
+  box-shadow: var(--shadow-sm);
+}
+
+.category-filter--active .category-filter__label {
+  color: var(--color-dark);
+  font-weight: 700;
+}
+
 .category-filter:focus-visible {
   outline: 2px solid var(--catalogo-primary);
-  outline-offset: 0;
+  outline-offset: 3px;
+  border-radius: var(--radius-md);
 }
-.category-filter--active {
-  color:white;
-  background-color: var(--catalogo-primary);
-  border-color: var(--catalogo-primary);
-}
+
+/* ── Grilla de productos (cards separadas, sin borde ni sombra) ── */
 .catalogo__grilla {
   display: grid;
   grid-template-columns: 1fr;
@@ -77,5 +167,105 @@
   .catalogo__grilla {
     grid-template-columns: repeat(4, 1fr);
     gap: 1.5rem;
+  }
+}
+
+/* ── Paginación ── */
+.pagination {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 2.5rem;
+}
+
+.pagination__btn {
+  display: grid;
+  place-items: center;
+  min-width: 2.5rem;
+  height: 2.5rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-dark);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out-quint),
+    border-color var(--duration-fast) var(--ease-out-quint);
+}
+
+.pagination__btn:hover:not(:disabled):not(.pagination__btn--active) {
+  border-color: var(--color-primary);
+}
+
+.pagination__btn--active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-dark);
+}
+
+.pagination__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Info útil: pagos, entregas, garantía ── */
+.catalogo-info {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+  margin-top: 3rem;
+  padding: 3rem 1.5rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+}
+
+.catalogo-info__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.catalogo-info__icon {
+  display: grid;
+  place-items: center;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-dark);
+  font-size: 1.6rem;
+  margin-bottom: 1rem;
+}
+
+.catalogo-info__line {
+  width: 2px;
+  height: 2rem;
+  background: var(--color-border);
+  margin-bottom: 1rem;
+}
+
+.catalogo-info__item h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-dark);
+}
+
+.catalogo-info__item p {
+  margin: 0;
+  max-width: 20rem;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--color-concrete);
+}
+
+@media (min-width: 64rem) {
+  .catalogo-info {
+    grid-template-columns: repeat(3, 1fr);
   }
 }

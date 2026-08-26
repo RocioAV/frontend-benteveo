@@ -1,43 +1,193 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/useAuth'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { motion, MotionConfig, AnimatePresence } from 'motion/react'
 import { toast } from 'react-toastify'
+import { useAuth } from '../context/useAuth'
+import { fetchProducts, deleteProduct } from '../services/products.service.js'
+import {
+  fetchMyReservations,
+  fetchReservationsAsOwner,
+  cancelReservation,
+  confirmReservation,
+  handoffReservation,
+  returnReservation,
+} from '../services/reservations.service.js'
+import EmptyState from '../components/EmptyState/EmptyState.jsx'
+import Skeleton from '../components/Skeleton/Skeleton.jsx'
+import VerificationModal from '../components/VerificationModal/VerificationModal.jsx'
 import './Dashboard.css'
 
-const mockReservas = [
-  { id: 1, producto: 'Taladro electrico Bosch', fecha: '2025-06-20', estado: 'Completada', total: 6000 },
-  { id: 2, producto: 'Carpa de camping 4 personas', fecha: '2025-07-05', estado: 'Activa', total: 12000 },
-  { id: 3, producto: 'Proyector portatil BenQ', fecha: '2025-07-15', estado: 'Pendiente', total: 9000 },
+// Springs (DESIGN.md §3 — gramática mecánico-líquida)
+const springReveal = { type: 'spring', stiffness: 260, damping: 26 }
+const springLatch = { type: 'spring', stiffness: 400, damping: 28 }
+
+const SECTIONS = [
+  { id: 'perfil', label: 'Mi perfil', icon: 'fa-user' },
+  { id: 'reservas', label: 'Mis reservas', icon: 'fa-calendar-days' },
+  { id: 'agenda', label: 'Agenda', icon: 'fa-calendar-week' },
+  { id: 'publicaciones', label: 'Mis publicaciones', icon: 'fa-box' },
+  { id: 'conversaciones', label: 'Conversaciones', icon: 'fa-comments' },
 ]
 
-function Dashboard() {
-  const navigate = useNavigate()
-  const { user, logout } = useAuth()
-  const [activeTab, setActiveTab] = useState('perfil')
-  const [editando, setEditando] = useState(false)
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [favorites, setFavorites] = useState([])
+const VALID_SECTIONS = SECTIONS.map((s) => s.id)
 
-  const [formData, setFormData] = useState({
-    name: user?.name || 'Usuario Benteveo',
-    email: user?.email || 'usuario@email.com',
-    phone: user?.phone || '11 1234-5678',
-    dni: user?.dni || '12345678',
-    bio: user?.bio || 'Vecino de Almagro, me gusta compartir herramientas.'
-  })
+const STATUS_LABELS = {
+  PENDING: 'Pendiente',
+  CONFIRMED: 'Confirmada',
+  ACTIVE: 'En curso',
+  COMPLETED: 'Completada',
+  CANCELLED: 'Cancelada',
+}
+
+const ACTIVE_STATUSES = ['PENDING', 'CONFIRMED', 'ACTIVE']
+
+// Entrega y devolución siempre a las 12:00 (mediodía), según regla del negocio.
+const PICKUP_TIME = '12:00'
+
+const OWNER_ACTIONS = {
+  confirm: {
+    title: 'Confirmar reserva',
+    message: '¿Confirmás esta reserva? El inquilino podrá coordinar la entrega.',
+  },
+  handoff: {
+    title: 'Confirmar entrega',
+    message: '¿Confirmás que entregaste el producto al inquilino?',
+  },
+  return: {
+    title: 'Confirmar devolución',
+    message: '¿Confirmás que el inquilino devolvió el producto?',
+  },
+}
+
+const MS_PER_DAY = 1000 * 60 * 60 * 24
+const HISTORY_LIMIT = 6
+
+function getInitial(name) {
+  const trimmed = (name || '').trim()
+  return trimmed ? trimmed.charAt(0).toUpperCase() : 'B'
+}
+
+function formatDate(iso) {
+  try {
+    return new Date(iso).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })
+  } catch {
+    return '—'
+  }
+}
+
+// "12 ago · 12:00" — fecha + hora de entrega/devolución (mediodía).
+function formatDateTime(iso) {
+  try {
+    const d = new Date(iso).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })
+    return `${d} · ${PICKUP_TIME}`
+  } catch {
+    return '—'
+  }
+}
+
+function dayOf(iso) {
+  try {
+    return new Date(iso).getDate()
+  } catch {
+    return '—'
+  }
+}
+
+function monthOf(iso) {
+  try {
+    return new Date(iso).toLocaleDateString('es-AR', { month: 'short' })
+  } catch {
+    return ''
+  }
+}
+
+function rentalDays(reservation) {
+  const start = new Date(reservation.dateInit)
+  const end = new Date(reservation.dateEnd)
+  const days = Math.round((end - start) / MS_PER_DAY) + 1
+  return Number.isFinite(days) && days > 0 ? days : 1
+}
+
+// Horas restantes hasta el inicio del alquiler (regla de cancelación 48hs).
+function hoursUntil(dateInit) {
+  return (new Date(dateInit) - new Date()) / (1000 * 60 * 60)
+}
+
+// La otra parte de la conversación según el punto de vista.
+function otherParty(reservation, role) {
+  if (role === 'owner') return reservation.user?.name || 'Inquilino'
+  return 'Propietario'
+}
+
+// Acción disponible para el dueño según el estado de la reserva.
+function ownerActionFor(status, wasDelivered) {
+  switch (status) {
+    case 'PENDING':
+      return { key: 'confirm', label: 'Confirmar reserva' }
+    case 'CONFIRMED':
+      return { key: 'handoff', label: 'Confirmar entrega' }
+    case 'ACTIVE':
+      return { key: 'return', label: 'Confirmar devolución' }
+    case 'CANCELLED':
+      // Si se canceló y el producto no se entregó, el dueño resuelve la cancelación.
+      return wasDelivered ? null : { key: 'resolveCancellation', label: 'Resolver cancelación' }
+    default:
+      return null
+  }
+}
+
+function Dashboard() {
+  const { user, userId, logout } = useAuth()
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  // Sección activa derivada del URL (?tab=) — sin estado duplicado.
+  const rawTab = searchParams.get('tab')
+  const activeSection = VALID_SECTIONS.includes(rawTab) ? rawTab : 'perfil'
+
+  const [data, setData] = useState(null) // null = cargando
+  const [error, setError] = useState(false)
+  const [reloadToken, setReloadToken] = useState(0)
+
+  const [confirm, setConfirm] = useState(null) // { type, id, title, message }
+
+  const [editing, setEditing] = useState(false)
+  const [editForm, setEditForm] = useState({ name: '', phone: '', bio: '' })
+  const [avatarPreview, setAvatarPreview] = useState(null)
+  const [verificationOpen, setVerificationOpen] = useState(false)
 
   useEffect(() => {
-    const favs = JSON.parse(localStorage.getItem('favorites') || '[]')
-    setFavorites(favs)
-  }, [activeTab])
+    let cancelled = false
+    Promise.all([fetchProducts(), fetchMyReservations(), fetchReservationsAsOwner()])
+      .then(([allProducts, renter, owner]) => {
+        if (cancelled) return
+        setData({
+          myProducts: allProducts.filter((p) => p.ownerId === userId),
+          renterReservations: renter,
+          ownerReservations: owner,
+        })
+      })
+      .catch(() => {
+        if (cancelled) return
+        setError(true)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [userId, reloadToken])
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
+  const goToSection = (id) => {
+    setSearchParams(id === 'perfil' ? {} : { tab: id }, { replace: true })
   }
 
-  const handleSave = () => {
-    setEditando(false)
-    toast.success('Perfil actualizado correctamente')
+  const openChat = (reservationId) => {
+    navigate(`/chat/${reservationId}`)
+  }
+
+  const handleRetry = () => {
+    setData(null)
+    setError(false)
+    setReloadToken((t) => t + 1)
   }
 
   const handleLogout = () => {
@@ -45,255 +195,690 @@ function Dashboard() {
     navigate('/')
   }
 
-  const handleToggleConfig = (name) => {
-    toast.info(`${name} actualizado`)
+  // ── Datos derivados ──
+  const myProducts = data?.myProducts ?? []
+  const renterReservations = data?.renterReservations ?? []
+  const ownerReservations = data?.ownerReservations ?? []
+  const allReservations = [...renterReservations, ...ownerReservations]
+  const activeReservations = allReservations.filter((r) => ACTIVE_STATUSES.includes(r.status)).length
+
+  const historyReservations = [
+    ...renterReservations.map((r) => ({ ...r, role: 'renter' })),
+    ...ownerReservations.map((r) => ({ ...r, role: 'owner' })),
+  ].sort((a, b) => new Date(b.dateInit) - new Date(a.dateInit))
+
+  const stats = [
+    { label: 'Productos publicados', value: myProducts.length, icon: 'fa-box' },
+    { label: 'Reservas activas', value: activeReservations, icon: 'fa-calendar-check' },
+    { label: 'Como inquilino', value: renterReservations.length, icon: 'fa-user' },
+    { label: 'Como dueño', value: ownerReservations.length, icon: 'fa-store' },
+  ]
+
+  const name = user?.name || 'Usuario Benteveo'
+  const email = user?.email || ''
+  const phone = user?.profile?.phone
+  const dni = user?.dni
+  const bio = user?.profile?.description
+  const avatar = user?.profile?.avatar || null
+  const isVerified = user?.isIdentityVerified === true
+  const initial = getInitial(user?.name)
+  const displayAvatar = avatarPreview || avatar
+
+  // ── Acciones ──
+  const requestDeleteProduct = (product) => {
+    setConfirm({
+      type: 'deleteProduct',
+      id: product.id,
+      title: 'Eliminar producto',
+      message: `¿Seguro que querés eliminar «${product.title}»? Esta acción no se puede deshacer.`,
+    })
   }
 
-  const handleDeleteAccount = () => {
-    setShowDeleteModal(false)
-    toast.success('Cuenta eliminada')
-    logout()
-    navigate('/')
+  const requestCancelReservation = (reservation) => {
+    const withCharge = hoursUntil(reservation.dateInit) <= 48
+    setConfirm({
+      type: 'cancelReservation',
+      id: reservation.id,
+      title: 'Cancelar reserva',
+      message: withCharge
+        ? 'Faltan menos de 48 horas para el alquiler, por lo que esta cancelación tiene cargo. ¿Querés continuar?'
+        : '¿Seguro que querés cancelar esta reserva?',
+    })
   }
 
-  const getEstadoClass = (estado) => {
-    switch (estado) {
-      case 'Completada': return 'estado-completada'
-      case 'Activa': return 'estado-activa'
-      case 'Pendiente': return 'estado-pendiente'
-      case 'Cancelada': return 'estado-cancelada'
-      default: return ''
+  const requestOwnerAction = (key, reservation) => {
+    const meta = OWNER_ACTIONS[key]
+    if (!meta) {
+      // Cancelación resuelta: backend pendiente.
+      toast.info('Resolver la cancelación estará disponible próximamente (falta backend).')
+      return
+    }
+    setConfirm({ type: key, id: reservation.id, title: meta.title, message: meta.message })
+  }
+
+  const runConfirm = async () => {
+    if (!confirm) return
+    try {
+      if (confirm.type === 'deleteProduct') {
+        await deleteProduct(confirm.id)
+        toast.success('Producto eliminado.')
+      } else if (confirm.type === 'cancelReservation') {
+        await cancelReservation(confirm.id)
+        toast.success('Reserva cancelada.')
+      } else if (confirm.type === 'confirm') {
+        await confirmReservation(confirm.id)
+        toast.success('Reserva confirmada.')
+      } else if (confirm.type === 'handoff') {
+        await handoffReservation(confirm.id)
+        toast.success('Entrega confirmada.')
+      } else if (confirm.type === 'return') {
+        await returnReservation(confirm.id)
+        toast.success('Devolución confirmada.')
+      }
+      setConfirm(null)
+      handleRetry()
+    } catch (err) {
+      toast.error(err.message || 'No se pudo completar la acción.')
     }
   }
 
-  return (
-    <div className="dashboard-container">
-      <div className="dashboard-sidebar">
-        <div className="sidebar-avatar">
-          <span>{formData.name.charAt(0)}</span>
+  // ── Edición de perfil (visual — backend pendiente) ──
+  const startEditing = () => {
+    setEditForm({ name, phone: phone || '', bio: bio || '' })
+    setEditing(true)
+  }
+
+  const handleEditChange = (e) => {
+    setEditForm((f) => ({ ...f, [e.target.name]: e.target.value }))
+  }
+
+  const cancelEditing = () => setEditing(false)
+
+  const saveEditing = () => {
+    setEditing(false)
+    toast.info('Edición de perfil disponible próximamente (falta backend).')
+  }
+
+  const handleAvatarChange = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setAvatarPreview(URL.createObjectURL(file))
+    toast.info('Foto lista. La subida al servidor estará disponible próximamente.')
+  }
+
+  // ── Render por sección ──
+  const renderSection = () => {
+    if (error) {
+      return (
+        <EmptyState
+          message="No pudimos cargar tus datos. Probá de nuevo en unos segundos."
+          actionLabel="Reintentar"
+          onAction={handleRetry}
+        />
+      )
+    }
+
+    if (data === null) {
+      return <Skeleton rows={6} />
+    }
+
+    if (activeSection === 'reservas') {
+      return (
+        <ReservasList
+          renter={renterReservations}
+          owner={ownerReservations}
+          onCancel={requestCancelReservation}
+          onChat={openChat}
+          onOwnerAction={requestOwnerAction}
+        />
+      )
+    }
+
+    if (activeSection === 'agenda') {
+      return <AgendaList reservations={ownerReservations} onChat={openChat} />
+    }
+
+    if (activeSection === 'publicaciones') {
+      return (
+        <section aria-labelledby="publicaciones-titulo">
+          <header className="dashboard-header">
+            <motion.h1 id="publicaciones-titulo" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={springReveal}>
+              Mis publicaciones
+            </motion.h1>
+            <p className="dashboard-sub">Los productos que tenés publicados.</p>
+          </header>
+
+          {myProducts.length === 0 ? (
+            <EmptyState
+              message="Todavía no publicaste ningún producto."
+              actionLabel="Publicar producto"
+              onAction={() => navigate('/explorar')}
+            />
+          ) : (
+            <div className="publicaciones-list">
+              {myProducts.map((product, i) => (
+                <motion.article
+                  key={product.id}
+                  className="publicacion-card"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ ...springReveal, delay: Math.min(i * 0.04, 0.2) }}
+                >
+                  <div className="publicacion-media">
+                    {product.imageUrl ? (
+                      <img src={product.imageUrl} alt={product.title} loading="lazy" decoding="async" />
+                    ) : (
+                      <div className="publicacion-placeholder">
+                        <i className="fas fa-toolbox" aria-hidden="true" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="publicacion-body">
+                    <h2 className="publicacion-title">{product.title}</h2>
+                    <p className="publicacion-price">
+                      ${product.pricePerDay.toLocaleString('es-AR')}
+                      <span>/día</span>
+                    </p>
+                  </div>
+                  <motion.button
+                    type="button"
+                    className="publicacion-delete"
+                    whileTap={{ scale: 0.96 }}
+                    transition={springLatch}
+                    onClick={() => requestDeleteProduct(product)}
+                    aria-label={`Eliminar ${product.title}`}
+                  >
+                    <i className="fas fa-trash" aria-hidden="true" /> Borrar
+                  </motion.button>
+                </motion.article>
+              ))}
+            </div>
+          )}
+        </section>
+      )
+    }
+
+    if (activeSection === 'conversaciones') {
+      const threads = [
+        ...renterReservations.map((r) => ({ ...r, role: 'renter' })),
+        ...ownerReservations.map((r) => ({ ...r, role: 'owner' })),
+      ]
+
+      return (
+        <section aria-labelledby="conversaciones-titulo">
+          <header className="dashboard-header">
+            <motion.h1 id="conversaciones-titulo" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={springReveal}>
+              Conversaciones
+            </motion.h1>
+            <p className="dashboard-sub">Habla con la otra parte de cada alquiler.</p>
+          </header>
+
+          {threads.length === 0 ? (
+            <EmptyState message="Todavía no tenés conversaciones." />
+          ) : (
+            <div className="conversaciones-list">
+              {threads.map((thread, i) => (
+                <motion.button
+                  key={`${thread.role}-${thread.id}`}
+                  type="button"
+                  className="conversacion-card"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ ...springReveal, delay: Math.min(i * 0.04, 0.2) }}
+                  onClick={() => openChat(thread.id)}
+                >
+                  <span className="conversacion-avatar" aria-hidden="true">
+                    {getInitial(otherParty(thread, thread.role))}
+                  </span>
+                  <span className="conversacion-body">
+                    <span className="conversacion-name">{otherParty(thread, thread.role)}</span>
+                    <span className="conversacion-sub">{thread.product?.title || 'Producto'}</span>
+                  </span>
+                  <i className="fas fa-chevron-right conversacion-arrow" aria-hidden="true" />
+                </motion.button>
+              ))}
+            </div>
+          )}
+        </section>
+      )
+    }
+
+    // ── Perfil (default): info + estadísticas + historial ──
+    return (
+      <section aria-labelledby="perfil-titulo">
+        <header className="dashboard-header">
+          <motion.h1 id="perfil-titulo" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={springReveal}>
+            Mi perfil
+          </motion.h1>
+          <p className="dashboard-sub">Tu información personal en Benteveo.</p>
+        </header>
+
+        <motion.div className="perfil-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={springReveal}>
+          <div className="perfil-top">
+            <div className="perfil-avatar">
+              {displayAvatar ? (
+                <img src={displayAvatar} alt={`Foto de ${name}`} />
+              ) : (
+                <span aria-hidden="true">{initial}</span>
+              )}
+            </div>
+            <div className="perfil-top-actions">
+              <label htmlFor="avatar-input" className="perfil-photo-btn">
+                <i className="fas fa-camera" aria-hidden="true" /> Cambiar foto
+              </label>
+              <input
+                id="avatar-input"
+                type="file"
+                accept="image/*"
+                className="perfil-file-input"
+                onChange={handleAvatarChange}
+                hidden
+              />
+              <button type="button" className="perfil-edit-btn" onClick={startEditing}>
+                <i className="fas fa-pen" aria-hidden="true" /> Editar información
+              </button>
+            </div>
+          </div>
+
+          {isVerified ? (
+            <span className="perfil-verified">
+              <i className="fas fa-circle-check" aria-hidden="true" /> Identidad verificada
+            </span>
+          ) : (
+            <div className="perfil-verify">
+              <span className="perfil-unverified">
+                <i className="fas fa-circle-exclamation" aria-hidden="true" /> Identidad sin verificar
+              </span>
+              <button type="button" className="perfil-verify-btn" onClick={() => setVerificationOpen(true)}>
+                <i className="fas fa-shield-halved" aria-hidden="true" /> Verificar identidad
+              </button>
+            </div>
+          )}
+
+          {editing ? (
+            <div className="perfil-form">
+              <div className="perfil-field">
+                <label className="perfil-label" htmlFor="edit-name">Nombre completo</label>
+                <input id="edit-name" name="name" className="perfil-input" value={editForm.name} onChange={handleEditChange} />
+              </div>
+              <div className="perfil-field">
+                <label className="perfil-label" htmlFor="edit-phone">Teléfono</label>
+                <input id="edit-phone" name="phone" className="perfil-input" value={editForm.phone} onChange={handleEditChange} />
+              </div>
+              <div className="perfil-field perfil-field--full">
+                <label className="perfil-label" htmlFor="edit-bio">Sobre mí</label>
+                <textarea id="edit-bio" name="bio" className="perfil-input" rows={3} value={editForm.bio} onChange={handleEditChange} />
+              </div>
+              <div className="perfil-form-actions">
+                <button type="button" className="perfil-btn perfil-btn--ghost" onClick={cancelEditing}>
+                  Cancelar
+                </button>
+                <motion.button type="button" className="perfil-btn perfil-btn--primary" whileTap={{ scale: 0.96 }} transition={springLatch} onClick={saveEditing}>
+                  Guardar cambios
+                </motion.button>
+              </div>
+            </div>
+          ) : (
+            <div className="perfil-fields">
+              <div className="perfil-field">
+                <span className="perfil-label">Nombre completo</span>
+                <p className="perfil-value">{name}</p>
+              </div>
+              <div className="perfil-field">
+                <span className="perfil-label">Correo electrónico</span>
+                <p className="perfil-value">{email || '—'}</p>
+              </div>
+              <div className="perfil-field">
+                <span className="perfil-label">Teléfono</span>
+                <p className="perfil-value">{phone || '—'}</p>
+              </div>
+              <div className="perfil-field">
+                <span className="perfil-label">DNI</span>
+                <p className="perfil-value">{dni || '—'}</p>
+              </div>
+              <div className="perfil-field perfil-field--full">
+                <span className="perfil-label">Sobre mí</span>
+                <p className="perfil-value">{bio || 'Todavía no escribiste tu presentación.'}</p>
+              </div>
+            </div>
+          )}
+        </motion.div>
+
+        {/* Estadísticas del perfil */}
+        <div className="stats-grid perfil-stats" aria-label="Estadísticas del perfil">
+          {stats.map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              className="stat-card"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...springReveal, delay: i * 0.05 }}
+            >
+              <span className="stat-icon">
+                <i className={`fas ${stat.icon}`} aria-hidden="true" />
+              </span>
+              <span className="stat-value">{stat.value}</span>
+              <span className="stat-label">{stat.label}</span>
+            </motion.div>
+          ))}
         </div>
-        <h3>{formData.name}</h3>
-        <p className="sidebar-email">{formData.email}</p>
 
-        <nav className="sidebar-nav">
-          <button className={activeTab === 'perfil' ? 'active' : ''} onClick={() => setActiveTab('perfil')}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-            Mi Perfil
-          </button>
-          <button className={activeTab === 'reservas' ? 'active' : ''} onClick={() => setActiveTab('reservas')}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
-            Mis Reservas
-          </button>
-          <button className={activeTab === 'favoritos' ? 'active' : ''} onClick={() => setActiveTab('favoritos')}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-            Favoritos
-            {favorites.length > 0 && <span className="badge">{favorites.length}</span>}
-          </button>
-          <button className={activeTab === 'config' ? 'active' : ''} onClick={() => setActiveTab('config')}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="3" />
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-            </svg>
-            Configuracion
-          </button>
-        </nav>
+        {/* Historial de reservas / usos */}
+        <div className="perfil-historial">
+          <h2 className="perfil-historial-title">Historial de reservas</h2>
+          {historyReservations.length === 0 ? (
+            <p className="perfil-historial-empty">Todavía no tenés reservas.</p>
+          ) : (
+            <>
+              <ul className="historial-list">
+                {historyReservations.slice(0, HISTORY_LIMIT).map((reservation) => {
+                  const product = reservation.product
+                  const status = reservation.status
+                  return (
+                    <li key={`${reservation.role}-${reservation.id}`} className="historial-item">
+                      <span className="historial-title">{product?.title || 'Producto'}</span>
+                      <span className="historial-meta">
+                        {formatDate(reservation.dateInit)} → {formatDate(reservation.dateEnd)} ·{' '}
+                        {otherParty(reservation, reservation.role)}
+                      </span>
+                      <span className={`reserva-badge reserva-badge--${status.toLowerCase()}`}>
+                        {STATUS_LABELS[status] || status}
+                      </span>
+                    </li>
+                  )
+                })}
+              </ul>
+              <button type="button" className="perfil-link" onClick={() => goToSection('reservas')}>
+                Ver todas mis reservas
+              </button>
+            </>
+          )}
+        </div>
+      </section>
+    )
+  }
 
-        <button className="sidebar-logout" onClick={handleLogout}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-          </svg>
-          Cerrar sesion
+  return (
+    <MotionConfig reducedMotion="user">
+      <div className="dashboard">
+        <main className="dashboard-main">{renderSection()}</main>
+
+        <motion.aside
+          className="dashboard-nav"
+          initial={{ opacity: 0, x: 16 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={springReveal}
+        >
+          <div className="dashboard-nav-user">
+            {displayAvatar ? (
+              <img className="dashboard-nav-avatar" src={displayAvatar} alt="" />
+            ) : (
+              <span className="dashboard-nav-avatar dashboard-nav-avatar--initial" aria-hidden="true">
+                {initial}
+              </span>
+            )}
+            <div className="dashboard-nav-meta">
+              <p className="dashboard-nav-name">{name}</p>
+              <p className="dashboard-nav-email">{email}</p>
+            </div>
+          </div>
+
+          <nav className="dashboard-nav-list" aria-label="Menú de tu cuenta">
+            {SECTIONS.map((section) => (
+              <button
+                key={section.id}
+                type="button"
+                className={
+                  activeSection === section.id
+                    ? 'dashboard-nav-item dashboard-nav-item--active'
+                    : 'dashboard-nav-item'
+                }
+                aria-current={activeSection === section.id ? 'page' : undefined}
+                onClick={() => goToSection(section.id)}
+              >
+                <i className={`fas ${section.icon}`} aria-hidden="true" />
+                <span>{section.label}</span>
+              </button>
+            ))}
+          </nav>
+
+          <motion.button
+            type="button"
+            className="dashboard-nav-logout"
+            onClick={handleLogout}
+            whileTap={{ scale: 0.96 }}
+            transition={springLatch}
+          >
+            <i className="fas fa-sign-out-alt" aria-hidden="true" />
+            <span>Cerrar sesión</span>
+          </motion.button>
+        </motion.aside>
+      </div>
+
+      {/* Modal de confirmación */}
+      <AnimatePresence>
+        {confirm ? (
+          <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label={confirm.title}>
+            <motion.div
+              className="dashboard-modal-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setConfirm(null)}
+            />
+            <motion.div
+              className="dashboard-modal-panel"
+              initial={{ opacity: 0, y: 24, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 24, scale: 0.97 }}
+              transition={springReveal}
+            >
+              <h2 className="dashboard-modal-title">{confirm.title}</h2>
+              <p className="dashboard-modal-message">{confirm.message}</p>
+              <div className="dashboard-modal-actions">
+                <button type="button" className="perfil-btn perfil-btn--ghost" onClick={() => setConfirm(null)}>
+                  Cancelar
+                </button>
+                <motion.button type="button" className="perfil-btn perfil-btn--danger" whileTap={{ scale: 0.96 }} transition={springLatch} onClick={runConfirm}>
+                  Confirmar
+                </motion.button>
+              </div>
+            </motion.div>
+          </div>
+        ) : null}
+      </AnimatePresence>
+
+      <VerificationModal open={verificationOpen} onClose={() => setVerificationOpen(false)} />
+    </MotionConfig>
+  )
+}
+
+// Agenda: personas que reservaron tus productos, en cronograma ordenado por fecha,
+// con hora de entrega y devolución (12:00 mediodía).
+function AgendaList({ reservations, onChat }) {
+  const sorted = [...reservations].sort((a, b) => new Date(a.dateInit) - new Date(b.dateInit))
+
+  return (
+    <section aria-labelledby="agenda-titulo">
+      <header className="dashboard-header">
+        <motion.h1 id="agenda-titulo" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={springReveal}>
+          Agenda
+        </motion.h1>
+        <p className="dashboard-sub">
+          Las reservas de tus productos, ordenadas por fecha. Entrega y devolución a las {PICKUP_TIME}.
+        </p>
+      </header>
+
+      {sorted.length === 0 ? (
+        <EmptyState message="Todavía nadie reservó tus productos." />
+      ) : (
+        <ol className="agenda-list">
+          {sorted.map((reservation, i) => {
+            const renterName = otherParty(reservation, 'owner')
+            const product = reservation.product
+            return (
+              <motion.li
+                key={reservation.id}
+                className="agenda-item"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ ...springReveal, delay: Math.min(i * 0.04, 0.2) }}
+              >
+                <div className="agenda-date">
+                  <span className="agenda-day">{dayOf(reservation.dateInit)}</span>
+                  <span className="agenda-month">{monthOf(reservation.dateInit)}</span>
+                </div>
+                <div className="agenda-body">
+                  <p className="agenda-name">{renterName}</p>
+                  <p className="agenda-meta">
+                    <strong>{product?.title || 'Producto'}</strong>
+                  </p>
+                  <p className="agenda-times">
+                    <span>
+                      <i className="fas fa-box-open" aria-hidden="true" /> Entrega: {formatDateTime(reservation.dateInit)}
+                    </span>
+                    <span>
+                      <i className="fas fa-box-archive" aria-hidden="true" /> Devolución: {formatDateTime(reservation.dateEnd)}
+                    </span>
+                  </p>
+                </div>
+                <motion.button
+                  type="button"
+                  className="agenda-chat"
+                  whileTap={{ scale: 0.96 }}
+                  transition={springLatch}
+                  onClick={() => onChat(reservation.id)}
+                  aria-label={`Hablar con ${renterName}`}
+                >
+                  <i className="fas fa-comment" aria-hidden="true" /> Hablar
+                </motion.button>
+              </motion.li>
+            )
+          })}
+        </ol>
+      )}
+    </section>
+  )
+}
+
+// Sub-sección de reservas: tabs inquilino/dueño + acciones según estado + chatear.
+function ReservasList({ renter, owner, onCancel, onChat, onOwnerAction }) {
+  const [tab, setTab] = useState('renter')
+  const list = tab === 'renter' ? renter : owner
+
+  const handleTabChange = (id) => {
+    if (id === tab) return
+    setTab(id)
+  }
+
+  return (
+    <section aria-labelledby="reservas-titulo">
+      <header className="dashboard-header">
+        <motion.h1 id="reservas-titulo" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={springReveal}>
+          Mis reservas
+        </motion.h1>
+        <p className="dashboard-sub">Coordiná entregas y devoluciones (a las {PICKUP_TIME}) y hablá con la otra parte.</p>
+      </header>
+
+      <div className="reservas-tabs" role="tablist" aria-label="Tipo de reserva">
+        <button type="button" role="tab" aria-selected={tab === 'renter'} className={tab === 'renter' ? 'reservas-tab reservas-tab--active' : 'reservas-tab'} onClick={() => handleTabChange('renter')}>
+          Como inquilino
+        </button>
+        <button type="button" role="tab" aria-selected={tab === 'owner'} className={tab === 'owner' ? 'reservas-tab reservas-tab--active' : 'reservas-tab'} onClick={() => handleTabChange('owner')}>
+          Como dueño
         </button>
       </div>
 
-      <div className="dashboard-content">
-        {activeTab === 'perfil' && (
-          <div className="perfil-section">
-            <div className="section-header">
-              <h2>Mi Perfil</h2>
-              {!editando && (
-                <button className="btn-editar" onClick={() => setEditando(true)}>
-                  Editar perfil
-                </button>
-              )}
-            </div>
+      {list.length === 0 ? (
+        <EmptyState
+          message={
+            tab === 'renter'
+              ? 'Todavía no alquilaste nada.'
+              : 'Todavía no tenés reservas en tus productos.'
+          }
+        />
+      ) : (
+        <div className="reservas-list">
+          {list.map((reservation, i) => {
+            const product = reservation.product
+            const status = reservation.status
+            const other = otherParty(reservation, tab)
+            const days = rentalDays(reservation)
+            const isOwnerTab = tab === 'owner'
+            const wasDelivered = !!reservation.actualHandoffAt
+            const canCancel = ACTIVE_STATUSES.includes(status) && hoursUntil(reservation.dateInit) > 48
+            const needsCharge = ACTIVE_STATUSES.includes(status) && hoursUntil(reservation.dateInit) <= 48
+            const ownerAction = isOwnerTab ? ownerActionFor(status, wasDelivered) : null
 
-            <div className="perfil-card">
-              <div className="perfil-avatar-grande">
-                <span>{formData.name.charAt(0)}</span>
-              </div>
-
-              <div className="perfil-campos">
-                <div className="campo">
-                  <label>Nombre completo</label>
-                  {editando ? (
-                    <input type="text" name="name" value={formData.name} onChange={handleChange} />
+            return (
+              <motion.article
+                key={reservation.id}
+                className="reserva-card"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ ...springReveal, delay: Math.min(i * 0.04, 0.2) }}
+              >
+                <div className="reserva-media">
+                  {product?.imageUrl ? (
+                    <img src={product.imageUrl} alt={product.title} loading="lazy" decoding="async" />
                   ) : (
-                    <p>{formData.name}</p>
+                    <div className="reserva-placeholder">
+                      <i className="fas fa-toolbox" aria-hidden="true" />
+                    </div>
                   )}
                 </div>
-                <div className="campo">
-                  <label>Correo electronico</label>
-                  {editando ? (
-                    <input type="email" name="email" value={formData.email} onChange={handleChange} />
-                  ) : (
-                    <p>{formData.email}</p>
-                  )}
-                </div>
-                <div className="campo">
-                  <label>Telefono</label>
-                  {editando ? (
-                    <input type="tel" name="phone" value={formData.phone} onChange={handleChange} />
-                  ) : (
-                    <p>{formData.phone}</p>
-                  )}
-                </div>
-                <div className="campo">
-                  <label>DNI</label>
-                  <p>{formData.dni}</p>
-                </div>
-                <div className="campo campo-full">
-                  <label>Sobre mi</label>
-                  {editando ? (
-                    <textarea name="bio" value={formData.bio} onChange={handleChange} rows={3} />
-                  ) : (
-                    <p>{formData.bio}</p>
-                  )}
-                </div>
-              </div>
-
-              {editando && (
-                <div className="perfil-acciones">
-                  <button className="btn-cancelar" onClick={() => setEditando(false)}>
-                    Cancelar
-                  </button>
-                  <button className="btn-guardar" onClick={handleSave}>
-                    Guardar cambios
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'reservas' && (
-          <div className="reservas-section">
-            <h2>Mis Reservas</h2>
-            <div className="reservas-lista">
-              {mockReservas.map((reserva) => (
-                <div key={reserva.id} className="reserva-card">
-                  <div className="reserva-info">
-                    <h3>{reserva.producto}</h3>
-                    <p>Fecha: {reserva.fecha}</p>
-                    <span className={`reserva-estado ${getEstadoClass(reserva.estado)}`}>
-                      {reserva.estado}
+                <div className="reserva-body">
+                  <div className="reserva-top">
+                    <h2 className="reserva-title">{product?.title || 'Producto'}</h2>
+                    <span className={`reserva-badge reserva-badge--${status.toLowerCase()}`}>
+                      {STATUS_LABELS[status] || status}
                     </span>
                   </div>
-                  <div className="reserva-precio">
-                    ${reserva.total.toLocaleString('es-AR')}
+                  <p className="reserva-meta">
+                    {formatDate(reservation.dateInit)} → {formatDate(reservation.dateEnd)} · {days}{' '}
+                    {days === 1 ? 'día' : 'días'} · con {other}
+                  </p>
+                  <p className="reserva-times">
+                    <span>Entrega: {formatDateTime(reservation.dateInit)}</span>
+                    <span>Devolución: {formatDateTime(reservation.dateEnd)}</span>
+                  </p>
+                  <div className="reserva-footer">
+                    <span className="reserva-price">
+                      ${(product?.pricePerDay ?? 0).toLocaleString('es-AR')}
+                      <span>/día</span>
+                    </span>
+                    <div className="reserva-actions">
+                      {needsCharge ? (
+                        <span className="reserva-charge-note">
+                          <i className="fas fa-triangle-exclamation" aria-hidden="true" /> Cancelación con cargo
+                        </span>
+                      ) : null}
+                      {canCancel ? (
+                        <button type="button" className="reserva-btn reserva-btn--ghost" onClick={() => onCancel(reservation)}>
+                          <i className="fas fa-xmark" aria-hidden="true" /> Cancelar
+                        </button>
+                      ) : null}
+                      {ownerAction ? (
+                        <button
+                          type="button"
+                          className="reserva-btn reserva-btn--owner"
+                          onClick={() => onOwnerAction(ownerAction.key, reservation)}
+                        >
+                          <i className="fas fa-check" aria-hidden="true" /> {ownerAction.label}
+                        </button>
+                      ) : null}
+                      <motion.button type="button" className="reserva-btn reserva-btn--primary" whileTap={{ scale: 0.96 }} transition={springLatch} onClick={() => onChat(reservation.id)}>
+                        <i className="fas fa-comment" aria-hidden="true" /> Chatear
+                      </motion.button>
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'favoritos' && (
-          <div className="favoritos-section">
-            <h2>Mis Favoritos</h2>
-            {favorites.length === 0 ? (
-              <div className="favoritos-empty-state">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-                </svg>
-                <p>Aun no guardaste ningun producto en favoritos.</p>
-                <p className="favoritos-hint">Toca el corazon en cualquier producto para guardarlo aqui.</p>
-                <button className="btn-explorar" onClick={() => navigate('/explorar')}>
-                  Explorar productos
-                </button>
-              </div>
-            ) : (
-              <p className="favoritos-count">Tenes {favorites.length} producto{favorites.length !== 1 ? 's' : ''} guardado{favorites.length !== 1 ? 's' : ''}</p>
-            )}
-          </div>
-        )}
-
-        {activeTab === 'config' && (
-          <div className="config-section">
-            <h2>Configuracion</h2>
-            <div className="config-card">
-              <h3>Notificaciones</h3>
-              <label className="toggle-label">
-                <span>Notificaciones por email</span>
-                <input type="checkbox" defaultChecked onChange={() => handleToggleConfig('Notificaciones por email')} />
-                <span className="toggle-slider"></span>
-              </label>
-              <label className="toggle-label">
-                <span>Notificaciones push</span>
-                <input type="checkbox" onChange={() => handleToggleConfig('Notificaciones push')} />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
-            <div className="config-card">
-              <h3>Privacidad</h3>
-              <label className="toggle-label">
-                <span>Mostrar telefono en mi perfil</span>
-                <input type="checkbox" onChange={() => handleToggleConfig('Visibilidad del telefono')} />
-                <span className="toggle-slider"></span>
-              </label>
-              <label className="toggle-label">
-                <span>Mostrar email en mi perfil</span>
-                <input type="checkbox" defaultChecked onChange={() => handleToggleConfig('Visibilidad del email')} />
-                <span className="toggle-slider"></span>
-              </label>
-            </div>
-            <div className="config-card danger-zone">
-              <h3>Zona de peligro</h3>
-              <p className="danger-desc">Una vez que elimines tu cuenta no hay vuelta atras. Todos tus datos seran borrados permanentemente.</p>
-              <button className="btn-eliminar-cuenta" onClick={() => setShowDeleteModal(true)}>
-                Eliminar mi cuenta
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {showDeleteModal && (
-        <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-            </div>
-            <h3>Eliminar cuenta</h3>
-            <p>Estas seguro que queres eliminar tu cuenta? Esta accion no se puede deshacer.</p>
-            <div className="modal-actions">
-              <button className="btn-modal-cancelar" onClick={() => setShowDeleteModal(false)}>
-                Cancelar
-              </button>
-              <button className="btn-modal-confirmar" onClick={handleDeleteAccount}>
-                Si, eliminar
-              </button>
-            </div>
-          </div>
+              </motion.article>
+            )
+          })}
         </div>
       )}
-    </div>
+    </section>
   )
 }
 
