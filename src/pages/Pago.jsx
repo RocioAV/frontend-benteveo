@@ -1,15 +1,22 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import './Pago.css'
 
 const Pago = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  
+
   const titulo = searchParams.get('titulo') || 'Taladro inalambrico'
   const precio = parseInt(searchParams.get('precio')) || 2500
   const dias = parseInt(searchParams.get('dias')) || 1
-  const total = precio * dias
+  const duenio = searchParams.get('duenio') || 'Martin G.'
+  const imagen = searchParams.get('imagen') || ''
+  const fechaInicio = searchParams.get('fechaInicio') || '2025-07-20'
+  const fechaFin = searchParams.get('fechaFin') || '2025-07-22'
+  const deposito = parseInt(searchParams.get('deposito')) || 5000
+  const comision = Math.round(precio * dias * 0.1)
+  const total = precio * dias + comision
 
   const [formulario, setFormulario] = useState({
     nombre: '',
@@ -65,7 +72,13 @@ const Pago = () => {
     setTimeout(() => {
       setProcesando(false)
       setPagoExitoso(true)
+      toast.success('Pago realizado con exito')
     }, 2500)
+  }
+
+  const formatFecha = (fecha) => {
+    const [a, m, d] = fecha.split('-')
+    return `${d}/${m}/${a}`
   }
 
   if (pagoExitoso) {
@@ -79,11 +92,33 @@ const Pago = () => {
           </div>
           <h1>Pago aprobado</h1>
           <p>Tu reserva para <strong>{titulo}</strong> fue confirmada.</p>
-          <p className="pago-monto">${total.toLocaleString('es-AR')}</p>
+          <div className="pago-exitoso-detalles">
+            <div className="exito-item">
+              <span>Monto pagado</span>
+              <strong>${total.toLocaleString('es-AR')}</strong>
+            </div>
+            <div className="exito-item">
+              <span>Deposito en garantia</span>
+              <strong>${deposito.toLocaleString('es-AR')}</strong>
+            </div>
+            <div className="exito-item">
+              <span>Duenio</span>
+              <strong>{duenio}</strong>
+            </div>
+            <div className="exito-item">
+              <span>Fechas</span>
+              <strong>{formatFecha(fechaInicio)} - {formatFecha(fechaFin)}</strong>
+            </div>
+          </div>
           <p className="pago-detalle">Recibiras un email de confirmacion en <strong>{formulario.email}</strong></p>
-          <button className="btn-volver" onClick={() => navigate('/')}>
-            Volver al inicio
-          </button>
+          <div className="pago-exitoso-acciones">
+            <button className="btn-volver" onClick={() => navigate('/')}>
+              Volver al inicio
+            </button>
+            <button className="btn-explorar" onClick={() => navigate('/explorar')}>
+              Explorar mas productos
+            </button>
+          </div>
         </div>
       </div>
     )
@@ -182,7 +217,7 @@ const Pago = () => {
             <div className="campo-grupo">
               <label>Cuotas</label>
               <select name="cuotas" value={formulario.cuotas} onChange={handleChange}>
-                <option value="1">1 cuota de ${(total).toLocaleString('es-AR')}</option>
+                <option value="1">1 cuota de ${total.toLocaleString('es-AR')}</option>
                 <option value="3">3 cuotas de ${(total / 3).toLocaleString('es-AR')}</option>
                 <option value="6">6 cuotas de ${(total / 6).toLocaleString('es-AR')}</option>
                 <option value="12">12 cuotas de ${(total / 12).toLocaleString('es-AR')}</option>
@@ -211,27 +246,45 @@ const Pago = () => {
         </div>
 
         <div className="pago-resumen">
-          <h3>Resumen de compra</h3>
-          <div className="resumen-item">
-            <span>Producto</span>
-            <strong>{titulo}</strong>
+          <div className="resumen-producto">
+            {imagen && <img src={imagen} alt={titulo} className="resumen-producto-img" />}
+            <div className="resumen-producto-info">
+              <h3>{titulo}</h3>
+              <p className="resumen-duenio">Duenio: {duenio}</p>
+            </div>
           </div>
-          <div className="resumen-item">
-            <span>Precio por dia</span>
-            <span>${precio.toLocaleString('es-AR')}</span>
+
+          <div className="resumen-fechas">
+            <div className="resumen-fecha-item">
+              <span>Inicio</span>
+              <strong>{formatFecha(fechaInicio)}</strong>
+            </div>
+            <div className="resumen-fecha-item">
+              <span>Fin</span>
+              <strong>{formatFecha(fechaFin)}</strong>
+            </div>
           </div>
-          <div className="resumen-item">
-            <span>Cantidad de dias</span>
-            <span>{dias}</span>
+
+          <div className="resumen-detalles">
+            <div className="resumen-item">
+              <span>${precio.toLocaleString('es-AR')} x {dias} dia{dias > 1 ? 's' : ''}</span>
+              <span>${(precio * dias).toLocaleString('es-AR')}</span>
+            </div>
+            <div className="resumen-item">
+              <span>Comision Benteveo (10%)</span>
+              <span>${comision.toLocaleString('es-AR')}</span>
+            </div>
+            <div className="resumen-item">
+              <span>Deposito en garantia</span>
+              <span className="resumen-gratuito">Se devuelve</span>
+            </div>
           </div>
-          <div className="resumen-item">
-            <span>Deposito en garantia</span>
-            <span>Incluido</span>
-          </div>
+
           <div className="resumen-total">
-            <span>Total</span>
+            <span>Total a pagar</span>
             <strong>${total.toLocaleString('es-AR')}</strong>
           </div>
+
           <div className="resumen-mp">
             <span>Medio de pago</span>
             <div className="mp-logo">MercadoPago</div>
