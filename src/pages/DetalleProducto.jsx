@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import products from '../data/products.json'
 import Reservation from './Reservation.jsx'
 
@@ -23,8 +24,10 @@ function DetalleProducto() {
 
     if (favorites.includes(productId)) {
       updated = favorites.filter(fav => fav !== productId)
+      toast.info('Eliminado de favoritos')
     } else {
       updated = [...favorites, productId]
+      toast.success('Agregado a favoritos')
     }
 
     localStorage.setItem('favorites', JSON.stringify(updated))
