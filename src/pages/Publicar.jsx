@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import './Publicar.css'
@@ -15,7 +15,10 @@ const categorias = [
 
 function Publicar() {
   const navigate = useNavigate()
+  const fileInputRef = useRef(null)
   const [paso, setPaso] = useState(1)
+  const [isDragging, setIsDragging] = useState(false)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -35,9 +38,12 @@ function Publicar() {
     setFormData({ ...formData, [name]: value })
   }
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0]
-    if (file) {
+  const processFile = (file) => {
+    if (file && file.type.startsWith('image/')) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('La imagen debe ser menor a 5MB')
+        return
+      }
       const reader = new FileReader()
       reader.onloadend = () => {
         setPreview(reader.result)
@@ -45,6 +51,31 @@ function Publicar() {
       }
       reader.readAsDataURL(file)
     }
+  }
+
+  const handleImageChange = (e) => {
+    processFile(e.target.files[0])
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = () => {
+    setIsDragging(false)
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    setIsDragging(false)
+    processFile(e.dataTransfer.files[0])
+  }
+
+  const removeImage = () => {
+    setPreview(null)
+    setFormData({ ...formData, imageUrl: '' })
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   const validarPaso1 = () => {
@@ -87,7 +118,12 @@ function Publicar() {
     }
   }
 
-  const handlePublicar = async () => {
+  const handlePublicar = () => {
+    setShowConfirmModal(true)
+  }
+
+  const confirmarPublicacion = () => {
+    setShowConfirmModal(false)
     setLoading(true)
     setTimeout(() => {
       setLoading(false)
@@ -160,11 +196,16 @@ function Publicar() {
 
             <div className="campo-grupo">
               <label>Foto del producto</label>
-              <div className="upload-area">
+              <div
+                className={`upload-area ${isDragging ? 'dragging' : ''}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
                 {preview ? (
                   <div className="preview-container">
                     <img src={preview} alt="Preview" className="image-preview" />
-                    <button className="btn-remove" onClick={() => { setPreview(null); setFormData({ ...formData, imageUrl: '' }) }}>
+                    <button className="btn-remove" onClick={removeImage}>
                       Eliminar
                     </button>
                   </div>
@@ -175,8 +216,15 @@ function Publicar() {
                       <circle cx="8.5" cy="8.5" r="1.5" />
                       <polyline points="21 15 16 10 5 21" />
                     </svg>
-                    <span>Subir foto</span>
-                    <input type="file" accept="image/*" onChange={handleImageChange} hidden />
+                    <span>Arrastra tu foto aqui o haz click para seleccionar</span>
+                    <span className="upload-hint">JPG, PNG o WEBP. Maximo 5MB.</span>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      hidden
+                    />
                   </label>
                 )}
               </div>
@@ -310,6 +358,28 @@ function Publicar() {
           </div>
         )}
       </div>
+
+      {showConfirmModal && (
+        <div className="modal-overlay" onClick={() => setShowConfirmModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h3>Confirmar publicacion</h3>
+            <p>Vas a publicar <strong>{formData.title}</strong> por ${Number(formData.pricePerDay).toLocaleString('es-AR')}/dia. Queres continuar?</p>
+            <div className="modal-actions">
+              <button className="btn-modal-cancelar" onClick={() => setShowConfirmModal(false)}>
+                Revisar
+              </button>
+              <button className="btn-modal-confirmar" onClick={confirmarPublicacion}>
+                Publicar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
