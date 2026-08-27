@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { getGeminiResponse } from '../../services/gemini'
 import './ChatBot.css'
 
 /*
@@ -46,7 +47,7 @@ const respuestas = {
   default: 'No estoy seguro de entender tu pregunta. Podes preguntarme sobre alquileres, publicaciones, pagos, reservas, garantias, o contactar nuestro soporte.'
 }
 
-function getRespuesta(mensaje) {
+function getRespuestaLocal(mensaje) {
   const msg = mensaje.toLowerCase()
 
   for (const [clave, respuesta] of Object.entries(respuestas)) {
@@ -73,7 +74,7 @@ const ChatBot = () => {
     }
   }, [mensajes])
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return
 
     const nuevoMensaje = {
@@ -86,15 +87,24 @@ const ChatBot = () => {
     setInput('')
     setEscribiendo(true)
 
-    setTimeout(() => {
-      const respuesta = getRespuesta(input)
-      setMensajes(prev => [...prev, {
-        id: Date.now() + 1,
-        texto: respuesta,
-        esBot: true
-      }])
-      setEscribiendo(false)
-    }, 1000 + Math.random() * 1000)
+    const historial = mensajes.slice(-6)
+
+    const respuestaAPI = await getGeminiResponse(input, historial)
+
+    let respuesta
+
+    if (respuestaAPI) {
+      respuesta = respuestaAPI
+    } else {
+      respuesta = getRespuestaLocal(input)
+    }
+
+    setMensajes(prev => [...prev, {
+      id: Date.now() + 1,
+      texto: respuesta,
+      esBot: true
+    }])
+    setEscribiendo(false)
   }
 
   const handleKeyDown = (e) => {
