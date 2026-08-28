@@ -27,6 +27,7 @@ function DetalleProducto() {
 
   const [activeTab, setActiveTab] = useState('descripcion')
   const [showAllReviews, setShowAllReviews] = useState(false)
+  const [activeImage, setActiveImage] = useState(0)
 
   // Ajuste de estado durante render: al cambiar el id (navegar entre productos
   // desde "Productos similares"), se resetea para mostrar loading en vez del
@@ -39,6 +40,7 @@ function DetalleProducto() {
     setSuggestions([])
     setActiveTab('descripcion')
     setShowAllReviews(false)
+    setActiveImage(0)
   }
 
   useEffect(() => {
@@ -108,6 +110,14 @@ function DetalleProducto() {
       </MotionConfig>
     )
   }
+
+  // Galería: consume tokens var(--color-*) — derivo de product.images (mapProduct) con fallback a imageUrl.
+  const images = Array.isArray(product.images) && product.images.length > 0
+    ? product.images
+    : (product.imageUrl ? [product.imageUrl] : [])
+  const hasMany = images.length > 1
+  const goPrev = () => setActiveImage((i) => (i - 1 + images.length) % images.length)
+  const goNext = () => setActiveImage((i) => (i + 1) % images.length)
 
   const reviews = product.reviews || []
   const visibleReviews = showAllReviews ? reviews : reviews.slice(0, 3)
@@ -227,31 +237,114 @@ function DetalleProducto() {
           {/* ===================== COLUMNA IZQUIERDA ===================== */}
           <div className="flex-1 min-w-0">
 
-            {/* 1. GALERÍA PRINCIPAL */}
+            {/* 1. GALERÍA PRINCIPAL — carrusel inline sin lib, 0 deps */}
             <motion.div
               className="relative rounded-3xl overflow-hidden bg-[var(--color-concrete-surface)] mb-5"
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={springSoft}
             >
-              {product.imageUrl ? (
-                <motion.img
-                  src={product.imageUrl}
-                  alt={product.title}
-                  decoding="async"
-                  className="w-full aspect-[4/3] object-contain bg-[var(--color-surface)]"
-                  whileHover={{ scale: 1.03 }}
-                  transition={springSoft}
-                />
-              ) : (
-                <div className="w-full aspect-[4/3] flex items-center justify-center text-[var(--color-concrete)]">
-                  <i className="fas fa-toolbox text-5xl" aria-hidden="true" />
-                </div>
-              )}
+              <div
+                className="relative w-full aspect-[4/3] bg-[var(--color-surface)] overflow-hidden"
+                role="region"
+                aria-roledescription="carousel"
+                aria-label={`Galería de ${product.title}`}
+                tabIndex={hasMany ? 0 : -1}
+                onKeyDown={(e) => {
+                  if (!hasMany) return
+                  if (e.key === 'ArrowLeft') { e.preventDefault(); goPrev() }
+                  if (e.key === 'ArrowRight') { e.preventDefault(); goNext() }
+                }}
+              >
+                {images.length === 0 ? (
+                  <div className="w-full h-full flex items-center justify-center text-[var(--color-concrete)]">
+                    <i className="fas fa-toolbox text-5xl" aria-hidden="true" />
+                  </div>
+                ) : (
+                  <motion.img
+                    key={images[activeImage]}
+                    src={images[activeImage]}
+                    alt={`${product.title} — imagen ${activeImage + 1} de ${images.length}`}
+                    decoding="async"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={springSoft}
+                    className="w-full h-full object-contain"
+                    draggable={false}
+                    onTouchStart={(e) => { e.currentTarget.dataset.sx = String(e.touches[0].clientX) }}
+                    onTouchEnd={(e) => {
+                      const sx = Number(e.currentTarget.dataset.sx || 0)
+                      const dx = e.changedTouches[0].clientX - sx
+                      if (Math.abs(dx) > 50) { if (dx < 0) goNext(); else goPrev() }
+                    }}
+                  />
+                )}
 
-              {/* Botones favorito + compartir */}
+                {/* Contador — solo si hay varias */}
+                {hasMany && (
+                  <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-[var(--color-dark)]/75 text-[var(--color-surface)] text-xs font-semibold">
+                    {activeImage + 1} / {images.length}
+                  </span>
+                )}
+
+                {/* Flechas — solo si hay varias */}
+                {hasMany && (
+                  <>
+                    <motion.button
+                      type="button"
+                      onClick={goPrev}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center shadow-[var(--shadow-sm)]"
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.96 }}
+                      transition={springLatch}
+                      aria-label="Imagen anterior"
+                    >
+                      <svg className="w-5 h-5 text-[var(--color-dark)]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                      </svg>
+                    </motion.button>
+                    <motion.button
+                      type="button"
+                      onClick={goNext}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center shadow-[var(--shadow-sm)]"
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.96 }}
+                      transition={springLatch}
+                      aria-label="Imagen siguiente"
+                    >
+                      <svg className="w-5 h-5 text-[var(--color-dark)]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                      </svg>
+                    </motion.button>
+                  </>
+                )}
+
+                {/* Dots — solo si hay varias */}
+                {hasMany && (
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--color-dark)]/20 backdrop-blur-sm">
+                    {images.map((_, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setActiveImage(i)}
+                        aria-label={`Ir a imagen ${i + 1} de ${images.length}`}
+                        aria-current={i === activeImage ? 'true' : undefined}
+                        className={`rounded-full transition-all ${i === activeImage ? 'w-6 h-2 bg-[var(--color-surface)]' : 'w-2 h-2 bg-[var(--color-surface)]/60 hover:bg-[var(--color-surface)]'}`}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* SR live para lectores */}
+                <span className="sr-only" aria-live="polite" aria-atomic="true">
+                  Imagen {activeImage + 1} de {images.length}
+                </span>
+              </div>
+
+              {/* Botones favorito + compartir — siempre visibles, fuera del viewport interno para no tapar dots */}
               <div className="absolute bottom-4 right-4 flex gap-2">
                 <motion.button
+                  type="button"
                   className="w-9 h-9 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center shadow-[var(--shadow-sm)]"
                   whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.96 }}
@@ -263,6 +356,7 @@ function DetalleProducto() {
                   </svg>
                 </motion.button>
                 <motion.button
+                  type="button"
                   className="w-9 h-9 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center shadow-[var(--shadow-sm)]"
                   whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.96 }}
