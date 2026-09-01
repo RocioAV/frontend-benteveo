@@ -57,7 +57,14 @@ function upsertMessage(messages, message) {
 }
 
 function ChatWindow({ reservationId, otherName, readOnly = false }) {
-  const { token, userId } = useAuth()
+  const { userId } = useAuth()
+
+  // El token de WebSocket aún no está definido: el subprotocolo que lo
+  // transporta es una decisión de diseño pendiente (fuera de scope). Sin token
+  // no se instancia ChatClient; se renderiza un placeholder en su lugar.
+  const wsToken = null
+  const hasWsToken = Boolean(wsToken)
+
   const [messages, setMessages] = useState([])
   const [draft, setDraft] = useState('')
   const [status, setStatus] = useState('connecting')
@@ -67,6 +74,8 @@ function ChatWindow({ reservationId, otherName, readOnly = false }) {
 
   // Historial (REST, best-effort) + conexión WebSocket en tiempo real.
   useEffect(() => {
+    if (!hasWsToken) return
+
     let cancelled = false
 
     fetchMessages(reservationId).then((history) => {
@@ -76,7 +85,7 @@ function ChatWindow({ reservationId, otherName, readOnly = false }) {
     })
 
     const client = new ChatClient({
-      token,
+      token: wsToken,
       onEvent: (event) => {
         if (event.type === 'message:history') {
           setMessages(Array.isArray(event.messages) ? event.messages : [])
@@ -96,7 +105,7 @@ function ChatWindow({ reservationId, otherName, readOnly = false }) {
       client.disconnect()
       clientRef.current = null
     }
-  }, [reservationId, token])
+  }, [reservationId, hasWsToken])
 
   // Auto-scroll al último mensaje.
   useEffect(() => {
@@ -121,6 +130,14 @@ function ChatWindow({ reservationId, otherName, readOnly = false }) {
       },
     ])
     setDraft('')
+  }
+
+  if (!hasWsToken) {
+    return (
+      <div className={styles.chat}>
+        <p className={styles.chatHint}>Chat no disponible</p>
+      </div>
+    )
   }
 
   return (
