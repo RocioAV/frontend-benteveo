@@ -43,7 +43,7 @@ function EyeOffIcon() {
 function Login() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { login, token } = useAuth()
+  const { login, status } = useAuth()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -80,7 +80,17 @@ function Login() {
     }
   }
 
-  if (token) {
+  // Gate por estado de sesión (FAS-4): mientras se resuelve la sesión se muestra
+  // un spinner; con sesión activa se redirige; recién con `guest` se muestra el form.
+  if (status === 'loading') {
+    return (
+      <div className="flex items-center justify-center py-24" role="status" aria-label="Cargando">
+        <div className="h-8 w-8 rounded-full border-2 border-[var(--color-border)] border-t-[var(--color-primary)] animate-spin" />
+      </div>
+    )
+  }
+
+  if (status === 'authed') {
     const from = location.state?.from?.pathname || '/dashboard'
     return <Navigate to={from} replace />
   }
