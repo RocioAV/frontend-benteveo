@@ -1,50 +1,70 @@
+import { getCsrfToken } from './csrf.js'
+
 const BASE_URL = import.meta.env.VITE_API_URL
 
-// NOTA DE SEGURIDAD (Fase 5): el JWT vive en localStorage, expuesto a XSS
-// (cualquier script inyectado puede leerlo). Recomendado: migrar a cookie httpOnly
-// (el backend la setea con HttpOnly + Secure + SameSite; el frontend manda
-// `credentials: 'include'` y NO puede leerla desde JS). Mitigación actual:
-// CSP en index.html + escaping de React por defecto. Ver PLAN-MEJORAS-UX-UI.md §5.
-function getToken() {
-  return localStorage.getItem('token')
+const UNSAFE_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE']
+
+// Error unificado (FEM-1/FEM-2): la UI ramifica por `code`, nunca por `message`.
+export class ApiError extends Error {
+  constructor(code, status, fields = null) {
+    super(code)
+    this.name = 'ApiError'
+    this.code = code
+    this.status = status
+    this.fields = fields
+  }
 }
 
-async function apiClient(endpoint, { body, method = 'GET', headers = {} } = {}) {
+// Wrapper único de fetch: autentica por cookie HttpOnly (credentials:'include')
+// e inyecta el header x-csrf-token (desde la caché CSRF) en métodos unsafe.
+export async function api(endpoint, { body, method = 'GET', headers = {} } = {}) {
   const config = {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-      ...headers,
-    },
+    credentials: 'include',
+    headers: { ...headers },
   }
 
-  const token = getToken()
-  if (token) {
-    config.headers['Authorization'] = `Bearer ${token}`
+  if (UNSAFE_METHODS.includes(method.toUpperCase())) {
+    const csrfToken = getCsrfToken()
+    if (csrfToken) {
+      config.headers['x-csrf-token'] = csrfToken
+    }
   }
 
-  if (body) {
+  if (body instanceof FormData) {
+    // No se setea Content-Type: el navegador define el boundary multipart.
+    config.body = body
+  } else if (body !== undefined && body !== null) {
+    config.headers['Content-Type'] = 'application/json'
     config.body = JSON.stringify(body)
   }
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, config)
+  let response
+  try {
+    response = await fetch(`${BASE_URL}${endpoint}`, config)
+  } catch {
+    throw new ApiError('NETWORK_ERROR', 0, null)
+  }
 
-  const data = await response.json()
+  // 204 (login/logout): sin body, no intentar parsear JSON.
+  if (response.status === 204) {
+    return null
+  }
+
+  let data = null
+  try {
+    data = await response.json()
+  } catch {
+    data = null
+  }
 
   if (!response.ok) {
-    let message = 'Error en la solicitud'
-    if (Array.isArray(data.message)) {
-      message = data.message.join(', ')
-    } else if (data.message) {
-      message = data.message
-    }
-    const error = new Error(message)
-    error.status = response.status
-    error.data = data
-    throw error
+    const code = data && typeof data.code === 'string' ? data.code : 'GENERIC'
+    const fields = data && data.fields && typeof data.fields === 'object' ? data.fields : null
+    throw new ApiError(code, response.status, fields)
   }
 
   return data
 }
 
-export default apiClient
+export default api
