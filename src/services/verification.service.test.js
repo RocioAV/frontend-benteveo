@@ -11,7 +11,7 @@ vi.mock('./csrf.js', () => ({
 let fetchSpy
 
 beforeEach(() => {
-  fetchSpy = vi.spyOn(global, 'fetch')
+  fetchSpy = vi.spyOn(globalThis, 'fetch')
 })
 
 afterEach(() => {
