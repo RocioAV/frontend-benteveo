@@ -32,7 +32,7 @@ function startOfDay(d) {
 function Reservation({ product: productProp }) {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { user, status } = useAuth()
+  const { user, status: sessionStatus } = useAuth()
 
   const [product, setProduct] = useState(productProp ?? null)
   const [status, setStatus] = useState(productProp ? 'ready' : 'loading')
@@ -96,7 +96,7 @@ function Reservation({ product: productProp }) {
 
   const today = startOfDay(new Date())
 
-  const isLoggedIn = status === 'authed'
+  const isLoggedIn = sessionStatus === 'authed'
   const isVerified = user?.isIdentityVerified === true
   const blockedByVerification = isLoggedIn && !isVerified
 
