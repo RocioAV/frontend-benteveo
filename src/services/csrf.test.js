@@ -5,7 +5,7 @@ let fetchSpy
 
 beforeEach(() => {
   clearCsrf()
-  fetchSpy = vi.spyOn(global, 'fetch')
+  fetchSpy = vi.spyOn(globalThis, 'fetch')
 })
 
 afterEach(() => {

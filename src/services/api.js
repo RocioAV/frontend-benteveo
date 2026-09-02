@@ -51,7 +51,7 @@ export async function api(endpoint, { body, method = 'GET', headers = {} } = {})
     return null
   }
 
-  let data = null
+  let data
   try {
     data = await response.json()
   } catch {
