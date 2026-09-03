@@ -12,6 +12,7 @@ import {
   handoffReservation,
   returnReservation,
 } from '../services/reservations.service.js'
+import { uploadAvatar } from '../services/profile.service.js'
 import EmptyState from '../components/EmptyState/EmptyState.jsx'
 import Skeleton from '../components/Skeleton/Skeleton.jsx'
 import VerificationModal from '../components/VerificationModal/VerificationModal.jsx'
@@ -137,7 +138,7 @@ function ownerActionFor(status, wasDelivered) {
 }
 
 function Dashboard() {
-  const { user, userId, logout } = useAuth()
+  const { user, userId, logout, refreshUser } = useAuth()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -299,11 +300,22 @@ function Dashboard() {
     toast.info('Edición de perfil disponible próximamente (falta backend).')
   }
 
-  const handleAvatarChange = (e) => {
+  const handleAvatarChange = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
-    setAvatarPreview(URL.createObjectURL(file))
-    toast.info('Foto lista. La subida al servidor estará disponible próximamente.')
+    const previewUrl = URL.createObjectURL(file)
+    setAvatarPreview(previewUrl)
+    try {
+      await uploadAvatar(file)
+      toast.success('Foto de perfil actualizada.')
+      await refreshUser()
+    } catch (err) {
+      setAvatarPreview(null)
+      toast.error(err.message || 'No pudimos subir tu foto.')
+    } finally {
+      // Libera el object URL del preview para evitar fugas de memoria.
+      URL.revokeObjectURL(previewUrl)
+    }
   }
 
   // ── Render por sección ──

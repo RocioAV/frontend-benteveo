@@ -59,6 +59,20 @@ export function AuthProvider({ children }) {
 
   const forgotPassword = async (email) => authService.forgotPassword(email)
 
+  // Re-fetch del usuario autenticado (p. ej. tras subir el avatar) sin tocar
+  // la sesión si el refresh falla. Mantiene `user` y `status` coherentes.
+  const refreshUser = async () => {
+    try {
+      const userData = await authService.fetchUserData()
+      if (userData && userData.id != null) {
+        setUser(userData)
+        setStatus('authed')
+      }
+    } catch {
+      // No degrada la sesión por un fallo puntual del refresh.
+    }
+  }
+
   const logout = async () => {
     // Aun si el POST falla (red), el estado local se limpia: el usuario queda
     // deslogueado localmente y las cookies se invalidan en el próximo intento.
@@ -73,7 +87,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ status, user, userId, login, register, logout, forgotPassword }}
+      value={{ status, user, userId, login, register, logout, forgotPassword, refreshUser }}
     >
       {children}
     </AuthContext.Provider>
