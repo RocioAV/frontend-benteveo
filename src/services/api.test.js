@@ -173,4 +173,19 @@ describe('api', () => {
     expect(err).toBeInstanceOf(ApiError)
     expect(err).toBeInstanceOf(Error)
   })
+
+  it('lanza INVALID_RESPONSE cuando un 2xx devuelve body no-JSON', async () => {
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => {
+        throw new SyntaxError('Unexpected token < in JSON')
+      },
+    })
+
+    await expect(api('/x')).rejects.toMatchObject({
+      code: 'INVALID_RESPONSE',
+      status: 200,
+    })
+  })
 })

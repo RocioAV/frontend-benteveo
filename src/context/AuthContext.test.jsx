@@ -100,6 +100,17 @@ describe('AuthProvider', () => {
     expect(userIdEl()).toHaveTextContent('none')
   })
 
+  it('respuesta sin usuario (null) resuelve guest, nunca authed', async () => {
+    // p. ej. el HTML de un SPA fallback parseado a null cuando la API no responde JSON.
+    fetchUserDataMock.mockResolvedValue(null)
+    fetchCsrfMock.mockResolvedValue(null)
+
+    renderProvider()
+
+    await waitFor(() => expect(statusEl()).toHaveTextContent('guest'))
+    expect(userIdEl()).toHaveTextContent('none')
+  })
+
   it('login exitoso: 204 → refresh CSRF + fetchUserData → authed', async () => {
     const user = userEvent.setup()
 

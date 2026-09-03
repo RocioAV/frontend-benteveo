@@ -64,6 +64,12 @@ export async function api(endpoint, { body, method = 'GET', headers = {} } = {})
     throw new ApiError(code, response.status, fields)
   }
 
+  // 2xx con body no-JSON (p. ej. el HTML de un SPA fallback cuando la API no
+  // está configurada) NO es una respuesta de API válida: no se traga como éxito.
+  if (data === null) {
+    throw new ApiError('INVALID_RESPONSE', response.status, null)
+  }
+
   return data
 }
 

@@ -20,8 +20,15 @@ export function AuthProvider({ children }) {
     Promise.all([authService.fetchUserData(), fetchCsrf()])
       .then(([userData]) => {
         if (cancelled) return
-        setUser(userData)
-        setStatus('authed')
+        // FAS-5: la sesión solo es válida si el backend devuelve un usuario real
+        // (con id). Una respuesta vacía/no-JSON (p. ej. el HTML de un SPA fallback
+        // cuando la API no está configurada) NO debe marcar `authed`.
+        if (userData && userData.id != null) {
+          setUser(userData)
+          setStatus('authed')
+        } else {
+          setStatus('guest')
+        }
       })
       .catch(() => {
         if (cancelled) return
@@ -39,8 +46,13 @@ export function AuthProvider({ children }) {
     // caché antes de pedir el nuevo token junto con el usuario autenticado.
     clearCsrf()
     const [userData] = await Promise.all([authService.fetchUserData(), fetchCsrf()])
-    setUser(userData)
-    setStatus('authed')
+    if (userData && userData.id != null) {
+      setUser(userData)
+      setStatus('authed')
+    } else {
+      setUser(null)
+      setStatus('guest')
+    }
   }
 
   const register = async (formData) => authService.register(formData)
