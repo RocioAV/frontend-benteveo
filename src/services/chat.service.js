@@ -23,7 +23,7 @@ function buildWsUrl() {
   const explicit = import.meta.env.VITE_WS_URL
   if (explicit) return explicit
 
-  const api = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
+  const api = import.meta.env.VITE_API_URL;
   try {
     const url = new URL(api)
     const proto = url.protocol === 'https:' ? 'wss' : 'ws'
