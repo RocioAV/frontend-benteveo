@@ -98,7 +98,7 @@ function Registro() {
   }
 
   const checkPhoneFormat = (phone) => {
-    if (!phone) return ''
+    if (!phone) return 'El teléfono es obligatorio'
 
     if (phone.length === 10) {
       if (phone.startsWith('0')) {
@@ -202,12 +202,10 @@ function Registro() {
       return
     }
 
-    if (formData.phone) {
-      const phoneIssue = checkPhoneFormat(formData.phone)
-      if (phoneIssue) {
-        setPhoneError(phoneIssue)
-        return
-      }
+    const phoneIssue = checkPhoneFormat(formData.phone)
+    if (phoneIssue) {
+      setPhoneError(phoneIssue)
+      return
     }
 
     setLoading(true)
@@ -340,7 +338,7 @@ function Registro() {
           </div>
 
           <div className="registro-field">
-            <label htmlFor="phone">Teléfono (opcional)</label>
+            <label htmlFor="phone">Teléfono</label>
             <input
               type="tel"
               id="phone"
@@ -349,6 +347,7 @@ function Registro() {
               autoComplete="tel"
               inputMode="numeric"
               maxLength={13}
+              required
               value={formData.phone}
               onChange={handleChange}
               className={phoneError || phoneInvalidChar ? 'input-error' : ''}
