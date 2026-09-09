@@ -6,8 +6,8 @@ const UNSAFE_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE']
 
 // Error unificado (FEM-1/FEM-2): la UI ramifica por `code`, nunca por `message`.
 export class ApiError extends Error {
-  constructor(code, status, fields = null) {
-    super(code)
+  constructor(code, status, fields = null, message = null) {
+    super(message || code)
     this.name = 'ApiError'
     this.code = code
     this.status = status
@@ -61,7 +61,8 @@ export async function api(endpoint, { body, method = 'GET', headers = {} } = {})
   if (!response.ok) {
     const code = data && typeof data.code === 'string' ? data.code : 'GENERIC'
     const fields = data && data.fields && typeof data.fields === 'object' ? data.fields : null
-    throw new ApiError(code, response.status, fields)
+    const message = data && typeof data.message === 'string' ? data.message : null
+    throw new ApiError(code, response.status, fields, message)
   }
 
   // 2xx con body no-JSON (p. ej. el HTML de un SPA fallback cuando la API no
