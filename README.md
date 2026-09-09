@@ -56,24 +56,22 @@ El proyecto está diseñado para dos perfiles clave:
 Para mantener la identidad visual, todos los desarrolladores deben respetar los siguientes parámetros. 
 
 * **Logo:** `src/assets/logo-con-titulo.webp`
-* **Iconografía:** [Lucide Icons (React)](https://lucide.dev/guide/react/)
+* **Iconografía:** [Font Awesome](https://fontawesome.com/) (CDN)
 
 ### 1. Paleta de Colores
 
 | Elemento | Código Hex | Uso Sugerido |
 | :--- | :--- | :--- |
-| **Amarillo Benteveo** | `#F2B705` | Botones, enlaces, isotipos y acentos. |
+| **Naranja Benteveo** | `#F2B705` | Botones, enlaces, isotipos y acentos. |
 | **Negro Antracita** | `#1A1A1A` | Texto principal, fondos oscuros, isotipo de la casa. |
 | **Marrón Pluma** | `#423224` | Detalles secundarios, sombras o textos sutiles. |
 | **Blanco Crudo** | `#FAF8F5` | Fondo general de la web (evita el blanco puro chillón). |
 | **Blanco Puro** | `#FFFFFF` | Fondos de tarjetas (cards) o detalles limpios. |
 
-### 2. Tipografía (Google Fonts)
+### 2. Tipografía (self-hosted)
 
-* **Principal (Logo / Títulos):** `Fredoka` (500 o 600 - Medium/SemiBold). Aporta una vibra geométrica, cercana y amigable.
-* **Secundaria (Cuerpo de texto):** `Montserrat` (Regular/Medium). Limpia y legible.
-* **Eslogan ("TE HACE LA GAUCHADA"):** `Montserrat` (700 - Bold), en mayúsculas (`uppercase`), con tracking amplio (`letter-spacing: 0.15em`).
-* **Ultimor recurso :** `Roboto` (400 - Medium).
+* **Única familia:** `Archivo` (variable, 100-900). Títulos 700-800, cuerpo 400/500.
+* **Eslogan ("TE HACE LA GAUCHADA"):** `Archivo` (700), en mayúsculas (`uppercase`), con tracking amplio (`letter-spacing: 0.15em`).
 
 
 ### 3. Redondeado de Bordes (Border Radius)

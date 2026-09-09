@@ -1,0 +1,12 @@
+/* src/layouts/Layout.module.css
+   CSS Modules — reglas movidas verbatim desde App.css (.app-container/.main-content).
+   Valores idénticos: cero cambio visual. Layout ya no depende de App.css. */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.main-content {
+  flex: 1;
+  display: flex;
+}

@@ -1,0 +1,264 @@
+.misreservas {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 3rem;
+}
+
+.misreservas__encabezado {
+  margin-bottom: 1.5rem;
+}
+
+.misreservas__titulo {
+  font-family: var(--font-title);
+  font-weight: 800;
+  font-size: 2rem;
+  letter-spacing: -0.01em;
+  color: var(--color-dark);
+  margin: 0 0 0.35rem;
+}
+
+.misreservas__descripcion {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--color-concrete);
+}
+
+.misreservas__tabs {
+  display: inline-flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  margin-bottom: 1.5rem;
+  background: var(--color-concrete-surface);
+  border-radius: var(--radius-full);
+}
+
+.misreservas__tab {
+  border: none;
+  background: transparent;
+  padding: 0.5rem 1.1rem;
+  border-radius: var(--radius-full);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-concrete);
+  cursor: pointer;
+  transition: background-color 150ms ease-out, color 150ms ease-out;
+}
+
+.misreservas__tab--active {
+  background: var(--color-surface);
+  color: var(--color-dark);
+  box-shadow: var(--shadow-sm);
+}
+
+.misreservas__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.misreservas__card {
+  display: flex;
+  gap: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 1rem;
+}
+
+.misreservas__media {
+  width: 96px;
+  height: 96px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-concrete-surface);
+}
+
+.misreservas__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.misreservas__mediaPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-concrete);
+  font-size: 1.6rem;
+}
+
+.misreservas__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.misreservas__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.misreservas__nombre {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-dark);
+  line-height: 1.3;
+}
+
+.misreservas__badge {
+  flex-shrink: 0;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.misreservas__badge--pending {
+  background: var(--color-concrete-surface);
+  color: var(--color-dark);
+}
+
+.misreservas__badge--confirmed,
+.misreservas__badge--active {
+  background: var(--color-primary);
+  color: var(--color-dark);
+}
+
+.misreservas__badge--completed {
+  background: var(--color-concrete-surface);
+  color: var(--color-concrete);
+}
+
+.misreservas__badge--cancelled {
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
+  color: var(--color-error);
+}
+
+.misreservas__meta {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-concrete);
+}
+
+.misreservas__otro {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-dark);
+}
+
+.misreservas__footer {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.misreservas__precio {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--color-dark);
+}
+
+.misreservas__precioUnidad {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-concrete);
+  margin-left: 0.1rem;
+}
+
+.misreservas__chatBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: none;
+  padding: 0.55rem 1rem;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: var(--color-dark);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 150ms ease-out;
+}
+
+.misreservas__chatBtn:hover {
+  background: var(--color-primary-hover);
+}
+
+/* Modal de chat */
+.misreservas__modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.misreservas__backdrop {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--color-dark) 45%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+.misreservas__panel {
+  position: relative;
+  width: min(560px, 100%);
+  height: min(600px, 85vh);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+}
+
+.misreservas__cerrar {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 1;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--color-concrete-surface);
+  color: var(--color-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 150ms ease-out;
+}
+
+.misreservas__cerrar:hover {
+  background: var(--color-border);
+}
+
+@media (max-width: 640px) {
+  .misreservas__card {
+    flex-direction: column;
+  }
+
+  .misreservas__media {
+    width: 100%;
+    height: 160px;
+  }
+}

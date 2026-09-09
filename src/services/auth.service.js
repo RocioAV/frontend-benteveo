@@ -1,45 +1,33 @@
-import apiClient from './api'
+import api from './api'
 
-const MOCK_USERS = [
-  {
-    email: 'juan@test.com',
-    password: '1234',
-    name: 'Juan Perez',
-    roles: ['USER'],
-  },
-]
-
+// login/logout devuelven void: el backend responde 204 (sin body) y el wrapper
+// api() retorna null. La sesión vive en la cookie HttpOnly benteveo_session.
 export function login({ email, password }) {
-  const mockUser = MOCK_USERS.find(
-    (user) => user.email === email && user.password === password
-  )
-
-  if (mockUser) {
-    return Promise.resolve({
-      access_token: `mock-token-${email}`,
-      user: {
-        email: mockUser.email,
-        name: mockUser.name,
-        roles: mockUser.roles,
-      },
-    })
-  }
-
-  return apiClient('/auth/login', {
+  return api('/auth/login', {
     method: 'POST',
     body: { email, password },
   })
 }
 
+export function logout() {
+  return api('/auth/logout', {
+    method: 'POST',
+  })
+}
+
+export function fetchUserData() {
+  return api('/user/data-user')
+}
+
 export function register(data) {
-  return apiClient('/auth/register', {
+  return api('/auth/register', {
     method: 'POST',
     body: data,
   })
 }
 
 export function forgotPassword(email) {
-  return apiClient('/auth/forgot-password', {
+  return api('/auth/forgot-password', {
     method: 'POST',
     body: { email },
   })
