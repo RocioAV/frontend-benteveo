@@ -2,6 +2,29 @@
   max-width: 640px;
   margin: 0 auto;
   padding: 40px 20px;
+  position: relative;
+}
+
+.auth-back {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-dark);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: background var(--duration-fast) var(--ease-out-quint);
+}
+
+.auth-back:hover {
+  background: var(--color-concrete-surface);
 }
 
 .publicar-header {
