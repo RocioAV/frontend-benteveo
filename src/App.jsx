@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react'
+import Publicar from './pages/Publicar.jsx'
 import { Routes, Route } from 'react-router-dom'
 import Layout from './layouts/Layout.jsx'
 import ScrollToTop from './components/ScrollToTop.jsx'
@@ -48,6 +49,7 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Route>
           {/* Autenticación: sin header/footer, solo botón de volver */}
+          <Route path="/publicar" element={<RequireAuth><Publicar /></RequireAuth>} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Registro />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />

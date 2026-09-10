@@ -69,6 +69,9 @@ const Header = ({ query = '', onSearch }) => {
 
           {user && (
             <>
+              <Link to="/publicar" className={styles.bvNavLink} onClick={() => setMenuOpen(false)}>
+                <i className="fas fa-plus-circle" aria-hidden="true"></i> Publicar
+              </Link>
               <Link to="/dashboard" className={styles.bvNavLink} onClick={() => setMenuOpen(false)}>
                 <i className="fas fa-user" aria-hidden="true"></i> Mi cuenta
               </Link>

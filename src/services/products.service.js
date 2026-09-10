@@ -49,7 +49,21 @@ export async function fetchPublicProfile(userId) {
   return apiClient(`/user/${userId}`)
 }
 
-// Elimina un producto del usuario autenticado (DELETE /products/:id).
 export async function deleteProduct(id) {
   return apiClient(`/products/${id}`, { method: 'DELETE' })
+}
+
+export async function createProduct(data) {
+  return apiClient('/products', { method: 'POST', body: data })
+}
+
+export async function uploadProductPhotos(productId, files) {
+  const formData = new FormData()
+  for (const file of files) {
+    formData.append('photos', file)
+  }
+  return apiClient(`/products/${productId}/photos`, {
+    method: 'POST',
+    body: formData,
+  })
 }
