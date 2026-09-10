@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
+import { useAuth } from '../context/useAuth'
+import VerificationModal from '../components/VerificationModal/VerificationModal'
 import { createProduct, uploadProductPhotos } from '../services/products.service'
 import {
   provincias,
@@ -20,6 +22,9 @@ const categorias = [
 
 function Publicar() {
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const isVerified = user?.isIdentityVerified === true
+  const [verificationOpen, setVerificationOpen] = useState(false)
   const fileInputRef = useRef(null)
   const [paso, setPaso] = useState(1)
   const [isDragging, setIsDragging] = useState(false)
@@ -35,8 +40,8 @@ function Publicar() {
     state: '',
     address: '',
   })
-  const [imageFile, setImageFile] = useState(null)
-  const [preview, setPreview] = useState(null)
+  const [imageFiles, setImageFiles] = useState([])
+  const [previews, setPreviews] = useState([])
   const [loading, setLoading] = useState(false)
   const [localities, setLocalities] = useState([])
   const fetchIdRef = useRef(0)
@@ -68,22 +73,26 @@ function Publicar() {
   }
 
   const processFile = (file) => {
-    if (file && file.type.startsWith('image/')) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error('La imagen debe ser menor a 5MB')
-        return
-      }
-      setImageFile(file)
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setPreview(reader.result)
-      }
-      reader.readAsDataURL(file)
+    if (!file || !file.type.startsWith('image/')) return
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('La imagen debe ser menor a 5MB')
+      return
     }
+    if (imageFiles.length >= 5) {
+      toast.error('Máximo 5 imágenes')
+      return
+    }
+    setImageFiles((prev) => [...prev, file])
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setPreviews((prev) => [...prev, reader.result])
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleImageChange = (e) => {
-    processFile(e.target.files[0])
+    Array.from(e.target.files).forEach(processFile)
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   const handleDragOver = (e) => {
@@ -98,13 +107,12 @@ function Publicar() {
   const handleDrop = (e) => {
     e.preventDefault()
     setIsDragging(false)
-    processFile(e.dataTransfer.files[0])
+    Array.from(e.dataTransfer.files).forEach(processFile)
   }
 
-  const removeImage = () => {
-    setPreview(null)
-    setImageFile(null)
-    if (fileInputRef.current) fileInputRef.current.value = ''
+  const removeImage = (index) => {
+    setImageFiles((prev) => prev.filter((_, i) => i !== index))
+    setPreviews((prev) => prev.filter((_, i) => i !== index))
   }
 
   const validarPaso1 = () => {
@@ -118,6 +126,10 @@ function Publicar() {
     }
     if (!formData.category) {
       toast.error('Selecciona una categoria')
+      return false
+    }
+    if (imageFiles.length === 0) {
+      toast.error('Subí al menos una imagen del producto')
       return false
     }
     return true
@@ -183,8 +195,8 @@ function Publicar() {
         category: formData.category,
       }
       const product = await createProduct(payload)
-      if (imageFile) {
-        await uploadProductPhotos(product.id, [imageFile])
+      if (imageFiles.length > 0) {
+        await uploadProductPhotos(product.id, imageFiles)
       }
       toast.success('Producto publicado exitosamente')
       navigate('/explorar')
@@ -205,25 +217,46 @@ function Publicar() {
         <i className="fas fa-arrow-left" aria-hidden="true" /> Volver al
         inicio
       </button>
-      <div className="publicar-header">
-        <h1>Publicar producto</h1>
-        <p>Comparti tus objetos con tu comunidad</p>
-      </div>
+
+      {!isVerified ? (
+        <div className="publicar-blocked">
+          <div className="publicar-blocked-icon">
+            <i className="fas fa-shield-halved" aria-hidden="true" />
+          </div>
+          <h2>Verificación requerida</h2>
+          <p>
+            Para publicar productos necesitás verificar tu identidad.
+          </p>
+          <button
+            type="button"
+            className="publicar-blocked-btn"
+            onClick={() => setVerificationOpen(true)}
+          >
+            <i className="fas fa-id-card" aria-hidden="true" /> Verificar
+            identidad
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="publicar-header">
+            <h1>Publicar producto</h1>
+            <p>Comparti tus objetos con tu comunidad</p>
+          </div>
 
       <div className="publicar-steps">
-        <div className={`step ${paso >= 1 ? 'active' : ''}`}>
+        <div className={`pub-step ${paso >= 1 ? 'active' : ''}`}>
           <span>1</span> Detalles
         </div>
         <div
-          className={`step-connector ${paso >= 2 ? 'active' : ''}`}
+          className={`pub-step-connector ${paso >= 2 ? 'active' : ''}`}
         ></div>
-        <div className={`step ${paso >= 2 ? 'active' : ''}`}>
+        <div className={`pub-step ${paso >= 2 ? 'active' : ''}`}>
           <span>2</span> Precio
         </div>
         <div
-          className={`step-connector ${paso >= 3 ? 'active' : ''}`}
+          className={`pub-step-connector ${paso >= 3 ? 'active' : ''}`}
         ></div>
-        <div className={`step ${paso >= 3 ? 'active' : ''}`}>
+        <div className={`pub-step ${paso >= 3 ? 'active' : ''}`}>
           <span>3</span> Confirmar
         </div>
       </div>
@@ -280,28 +313,32 @@ function Publicar() {
             </div>
 
             <div className="campo-grupo">
-              <label>Foto del producto</label>
-              <div
-                className={`upload-area ${isDragging ? 'dragging' : ''}`}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-              >
-                {preview ? (
-                  <div className="preview-container">
-                    <img
-                      src={preview}
-                      alt="Preview"
-                      className="image-preview"
-                    />
-                    <button
-                      className="btn-remove"
-                      onClick={removeImage}
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                ) : (
+              <label>
+                Fotos del producto ({imageFiles.length}/5)
+              </label>
+              {previews.length > 0 && (
+                <div className="preview-grid">
+                  {previews.map((src, i) => (
+                    <div key={src} className="preview-item">
+                      <img src={src} alt={`Preview ${i + 1}`} />
+                      <button
+                        type="button"
+                        className="preview-remove"
+                        onClick={() => removeImage(i)}
+                      >
+                        <i className="fas fa-xmark" aria-hidden="true" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {imageFiles.length < 5 && (
+                <div
+                  className={`upload-area ${isDragging ? 'dragging' : ''}`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
                   <label className="upload-label">
                     <svg
                       viewBox="0 0 24 24"
@@ -321,21 +358,22 @@ function Publicar() {
                       <polyline points="21 15 16 10 5 21" />
                     </svg>
                     <span>
-                      Arrastra tu foto aqui o haz click para seleccionar
+                      Arrastra tus fotos aqui o haz click para seleccionar
                     </span>
                     <span className="upload-hint">
-                      JPG, PNG o WEBP. Maximo 5MB.
+                      JPG, PNG o WEBP. Maximo 5MB cada una.
                     </span>
                     <input
                       ref={fileInputRef}
                       type="file"
                       accept="image/*"
+                      multiple
                       onChange={handleImageChange}
                       hidden
                     />
                   </label>
-                )}
-              </div>
+                </div>
+              )}
             </div>
 
             <div className="btn-siguiente" onClick={handleSiguiente}>
@@ -461,9 +499,9 @@ function Publicar() {
             <h2>Confirmar publicacion</h2>
 
             <div className="resumen-publicacion">
-              {preview && (
+              {previews.length > 0 && (
                 <img
-                  src={preview}
+                  src={previews[0]}
                   alt="Producto"
                   className="resumen-img"
                 />
@@ -566,6 +604,13 @@ function Publicar() {
           </div>
         </div>
       )}
+        </>
+      )}
+
+      <VerificationModal
+        open={verificationOpen}
+        onClose={() => setVerificationOpen(false)}
+      />
     </div>
   )
 }
