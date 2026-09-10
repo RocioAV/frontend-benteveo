@@ -49,7 +49,7 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Route>
           {/* Autenticación: sin header/footer, solo botón de volver */}
-          <Route path="/publicar" element={<Publicar />} />
+          <Route path="/publicar" element={<RequireAuth><Publicar /></RequireAuth>} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Registro />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
