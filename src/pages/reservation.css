@@ -126,6 +126,14 @@
   text-decoration: line-through;
 }
 
+.calendar__day--booked {
+  color: var(--color-border);
+  background: transparent;
+  cursor: not-allowed;
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
 .calendar__day--start,
 .calendar__day--end {
   background-color: var(--color-primary);

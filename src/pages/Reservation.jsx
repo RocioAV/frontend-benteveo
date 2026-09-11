@@ -123,6 +123,7 @@ function Reservation({ product: productProp }) {
   const handleSelectDate = (date) => {
     const norm = startOfDay(date)
     if (norm < today) return
+    if (isBooked(norm)) return
     if (!startDate || (startDate && endDate)) {
       setStartDate(norm)
       setEndDate(null)
@@ -132,6 +133,15 @@ function Reservation({ product: productProp }) {
       setStartDate(norm)
       setEndDate(null)
     }
+  }
+
+  const isBooked = (date) => {
+    if (!product?.reservations) return false
+    return product.reservations.some((r) => {
+      const from = startOfDay(new Date(r.dateInit))
+      const to = startOfDay(new Date(r.dateEnd))
+      return date >= from && date <= to
+    })
   }
 
   const inRange = (d) => startDate && endDate && d > startDate && d < endDate
@@ -212,7 +222,8 @@ function Reservation({ product: productProp }) {
               {calendarCells.map((date, i) => {
                 if (!date) return <span key={`b-${i}`} className="calendar__day calendar__day--blank" />
                 const norm = startOfDay(date)
-                const disabled = norm < today
+                const booked = isBooked(norm)
+                const disabled = norm < today || booked
                 const isStart = startDate && norm.getTime() === startDate.getTime()
                 const isEnd = endDate && norm.getTime() === endDate.getTime()
                 return (
@@ -222,6 +233,7 @@ function Reservation({ product: productProp }) {
                     className={[
                       'calendar__day',
                       disabled ? 'calendar__day--disabled' : '',
+                      booked ? 'calendar__day--booked' : '',
                       isStart ? 'calendar__day--start' : '',
                       isEnd ? 'calendar__day--end' : '',
                       inRange(norm) ? 'calendar__day--range' : '',
