@@ -31,6 +31,7 @@ export function mapProduct(p) {
     reviews: p.reviews ?? [],
     policies: p.policies ?? null,
     owner: p.owner ?? null,
+    reservations: p.reservations ?? [],
   }
 }
 
