@@ -11,7 +11,6 @@ const Home = lazy(() => import('./pages/Home.jsx'))
 const PageCatalogo = lazy(() => import('./pages/PageCatalogo.jsx'))
 const DetalleProducto = lazy(() => import('./pages/DetalleProducto.jsx'))
 const Reservation = lazy(() => import('./pages/Reservation.jsx'))
-const Pago = lazy(() => import('./pages/Pago.jsx'))
 const Login = lazy(() => import('./pages/Login.jsx'))
 const Registro = lazy(() => import('./pages/Registro.jsx'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword.jsx'))
@@ -44,7 +43,6 @@ function App() {
             <Route path="/reservas" element={<RequireAuth><MisReservas /></RequireAuth>} />
             <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
             <Route path="/chat/:reservationId" element={<RequireAuth><ChatPage /></RequireAuth>} />
-            <Route path="/pago" element={<RequireAuth><Pago /></RequireAuth>} />
             <Route path="/demo-modales" element={<DemoModales />} />
             <Route path="*" element={<NotFound />} />
           </Route>
