@@ -2,13 +2,12 @@ import './reservation.css'
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, MotionConfig } from 'motion/react'
-import { toast } from 'react-toastify'
 import Skeleton from '../components/Skeleton/Skeleton.jsx'
 import EmptyState from '../components/EmptyState/EmptyState.jsx'
 import { fetchProduct } from '../services/products.service.js'
-import { createReservation } from '../services/reservations.service.js'
 import { useAuth } from '../context/useAuth'
 import VerificationModal from '../components/VerificationModal/VerificationModal.jsx'
+import PaymentModal from '../components/modals/PaymentModal.jsx'
 
 const springReveal = { type: 'spring', stiffness: 260, damping: 26 }
 const springLatch = { type: 'spring', stiffness: 400, damping: 28 }
@@ -45,8 +44,9 @@ function Reservation({ product: productProp }) {
   const [endDate, setEndDate] = useState(null)
   const [delivery, setDelivery] = useState('retiro')
   const [submission, setSubmission] = useState(null)
-  const [submitting, setSubmitting] = useState(false)
   const [verificationOpen, setVerificationOpen] = useState(false)
+  const [paymentOpen, setPaymentOpen] = useState(false)
+  const [paymentData, setPaymentData] = useState(null)
 
   // Si llega como prop (desde DetalleProducto), no se fetchea: el estado inicial
   // ya viene listo. Si se monta por la ruta /reservation/:id, se busca el producto
@@ -102,11 +102,12 @@ function Reservation({ product: productProp }) {
 
   const daysOfRent =
     startDate && endDate && endDate >= startDate
-      ? Math.round((endDate - startDate) / MS_PER_DAY) + 1
+      ? Math.round((endDate - startDate) / MS_PER_DAY)
       : 0
   const subtotal = daysOfRent * product.pricePerDay
+  const deposit = Number(product.deposit) || 0
   const deliveryCost = delivery === 'domicilio' ? DELIVERY_FEE : 0
-  const total = subtotal + deliveryCost
+  const total = subtotal + deposit + deliveryCost
 
   const prevMonth = () => setViewMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))
   const nextMonth = () => setViewMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))
@@ -156,30 +157,16 @@ function Reservation({ product: productProp }) {
       return
     }
 
-    setSubmitting(true)
-    try {
-      const reservation = await createReservation({
-        productId: product.id,
-        dateInit: startDate.toISOString(),
-        dateEnd: endDate.toISOString(),
-      })
-
-      const params = new URLSearchParams({
-        titulo: product.title,
-        precio: String(product.pricePerDay),
-        dias: String(daysOfRent),
-        reserva: reservation?.id ?? reservation?._id ?? '',
-      })
-      navigate(`/pago?${params.toString()}`)
-    } catch (err) {
-      if (err.status === 401) {
-        toast.error('Iniciá sesión para reservar')
-      } else {
-        toast.error(err.message || 'No pudimos procesar tu reserva')
-      }
-    } finally {
-      setSubmitting(false)
-    }
+    setPaymentData({
+      productId: product.id,
+      dateInit: startDate.toISOString(),
+      dateEnd: endDate.toISOString(),
+      titulo: product.title,
+      precio: product.pricePerDay,
+      deposit: Number(product.deposit) || 0,
+      dias: daysOfRent,
+    })
+    setPaymentOpen(true)
   }
 
   return (
@@ -299,6 +286,12 @@ function Reservation({ product: productProp }) {
               </span>
               <strong>${subtotal.toLocaleString('es-AR')}</strong>
             </p>
+            {deposit > 0 && (
+              <p>
+                <span>Depósito en garantía</span>
+                <strong>${deposit.toLocaleString('es-AR')}</strong>
+              </p>
+            )}
             <p>
               <span>Entrega</span>
               <strong>
@@ -325,9 +318,9 @@ function Reservation({ product: productProp }) {
             className="reservation-submit"
             whileTap={{ scale: 0.96 }}
             transition={springLatch}
-            disabled={submitting || blockedByVerification}
+            disabled={blockedByVerification}
           >
-            {submitting ? 'Reservando…' : 'Continuar al pago'}
+            Continuar al pago
           </motion.button>
           <p className="reservation-secure">
             <i className="fas fa-lock" aria-hidden="true" /> Pago seguro · Sin costo de cancelación
@@ -342,6 +335,11 @@ function Reservation({ product: productProp }) {
       </section>
 
       <VerificationModal open={verificationOpen} onClose={() => setVerificationOpen(false)} />
+      <PaymentModal
+        isOpen={paymentOpen}
+        onClose={() => setPaymentOpen(false)}
+        reservation={paymentData}
+      />
     </MotionConfig>
   )
 }
