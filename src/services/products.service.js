@@ -54,6 +54,13 @@ export async function deleteProduct(id) {
   return apiClient(`/products/${id}`, { method: 'DELETE' })
 }
 
+export async function updateProduct(id, data) {
+  return apiClient(`/products/${id}`, {
+    method: 'PATCH',
+    body: data,
+  })
+}
+
 export async function createProduct(data) {
   return apiClient('/products', { method: 'POST', body: data })
 }
