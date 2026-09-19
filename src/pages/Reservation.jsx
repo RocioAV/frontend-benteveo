@@ -12,9 +12,6 @@ import PaymentModal from '../components/modals/PaymentModal.jsx'
 const springReveal = { type: 'spring', stiffness: 260, damping: 26 }
 const springLatch = { type: 'spring', stiffness: 400, damping: 28 }
 
-// Costo de entrega a domicilio (placeholder — reemplazar por lógica real de envío).
-const DELIVERY_FEE = 1500
-
 const MONTHS = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
@@ -42,7 +39,6 @@ function Reservation({ product: productProp }) {
   })
   const [startDate, setStartDate] = useState(null)
   const [endDate, setEndDate] = useState(null)
-  const [delivery, setDelivery] = useState('retiro')
   const [submission, setSubmission] = useState(null)
   const [verificationOpen, setVerificationOpen] = useState(false)
   const [paymentOpen, setPaymentOpen] = useState(false)
@@ -106,8 +102,7 @@ function Reservation({ product: productProp }) {
       : 0
   const subtotal = daysOfRent * product.pricePerDay
   const deposit = Number(product.deposit) || 0
-  const deliveryCost = delivery === 'domicilio' ? DELIVERY_FEE : 0
-  const total = subtotal + deposit + deliveryCost
+  const total = subtotal + deposit
 
   const prevMonth = () => setViewMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))
   const nextMonth = () => setViewMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))
@@ -246,35 +241,12 @@ function Reservation({ product: productProp }) {
           )}
 
           {/* Método de entrega */}
-          <fieldset className="delivery">
-            <legend>Método de entrega</legend>
-            <label className={`delivery__option ${delivery === 'domicilio' ? 'delivery__option--active' : ''}`}>
-              <input
-                type="radio"
-                name="delivery"
-                value="domicilio"
-                checked={delivery === 'domicilio'}
-                onChange={() => setDelivery('domicilio')}
-              />
-              <span className="delivery__body">
-                <strong>Entrega a domicilio</strong>
-                <small>Costo adicional ${DELIVERY_FEE.toLocaleString('es-AR')}</small>
-              </span>
-            </label>
-            <label className={`delivery__option ${delivery === 'retiro' ? 'delivery__option--active' : ''}`}>
-              <input
-                type="radio"
-                name="delivery"
-                value="retiro"
-                checked={delivery === 'retiro'}
-                onChange={() => setDelivery('retiro')}
-              />
-              <span className="delivery__body">
-                <strong>Retiro en el domicilio del propietario</strong>
-                <small>Sin costo</small>
-              </span>
-            </label>
-          </fieldset>
+          <div className="delivery delivery--info">
+            <p className="delivery__info-text">
+              <i className="fas fa-truck" aria-hidden="true" />
+              La entrega se coordina con el propietario. El retiro es sin costo.
+            </p>
+          </div>
 
           {/* Resumen */}
           <div className="reservation-summary">
@@ -294,9 +266,7 @@ function Reservation({ product: productProp }) {
             )}
             <p>
               <span>Entrega</span>
-              <strong>
-                {deliveryCost === 0 ? 'Gratis' : `$${deliveryCost.toLocaleString('es-AR')}`}
-              </strong>
+              <strong>A coordinar</strong>
             </p>
             <p className="reservation-summary__total">
               <span>Total</span>

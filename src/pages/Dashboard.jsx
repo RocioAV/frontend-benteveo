@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, MotionConfig, AnimatePresence } from 'motion/react'
 import { toast } from 'react-toastify'
 import { useAuth } from '../context/useAuth'
-import { fetchProducts, deleteProduct } from '../services/products.service.js'
+import { fetchProducts, deleteProduct, toggleAvailability } from '../services/products.service.js'
 import {
   fetchMyReservations,
   fetchReservationsAsOwner,
@@ -235,6 +235,21 @@ function Dashboard() {
     })
   }
 
+  const handleToggleAvailability = async (product) => {
+    try {
+      await toggleAvailability(product.id, !product.isAvailable)
+      setData((prev) => ({
+        ...prev,
+        myProducts: prev.myProducts.map((p) =>
+          p.id === product.id ? { ...p, isAvailable: !p.isAvailable } : p
+        ),
+      }))
+      toast.success(product.isAvailable ? 'Publicación desactivada' : 'Publicación activada')
+    } catch {
+      toast.error('Error al cambiar disponibilidad')
+    }
+  }
+
   const requestCancelReservation = (reservation) => {
     const withCharge = hoursUntil(reservation.dateInit) <= 48
     setConfirm({
@@ -371,7 +386,7 @@ function Dashboard() {
               {myProducts.map((product, i) => (
                 <motion.article
                   key={product.id}
-                  className="publicacion-card"
+                  className={`publicacion-card ${product.isAvailable === false ? 'publicacion-card--inactive' : ''}`}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ ...springReveal, delay: Math.min(i * 0.04, 0.2) }}
@@ -384,6 +399,9 @@ function Dashboard() {
                         <i className="fas fa-toolbox" aria-hidden="true" />
                       </div>
                     )}
+                    {product.isAvailable === false && (
+                      <span className="publicacion-badge-inactive">Inactiva</span>
+                    )}
                   </div>
                   <div className="publicacion-body">
                     <h2 className="publicacion-title">{product.title}</h2>
@@ -392,16 +410,32 @@ function Dashboard() {
                       <span>/día</span>
                     </p>
                   </div>
-                  <motion.button
-                    type="button"
-                    className="publicacion-delete"
-                    whileTap={{ scale: 0.96 }}
-                    transition={springLatch}
-                    onClick={() => requestDeleteProduct(product)}
-                    aria-label={`Eliminar ${product.title}`}
-                  >
-                    <i className="fas fa-trash" aria-hidden="true" /> Borrar
-                  </motion.button>
+                  <div className="publicacion-actions">
+                    <motion.button
+                      type="button"
+                      className={`publicacion-toggle ${product.isAvailable === false ? 'publicacion-toggle--activate' : ''}`}
+                      whileTap={{ scale: 0.96 }}
+                      transition={springLatch}
+                      onClick={() => handleToggleAvailability(product)}
+                      aria-label={product.isAvailable === false ? `Activar ${product.title}` : `Desactivar ${product.title}`}
+                    >
+                      {product.isAvailable === false ? (
+                        <><i className="fas fa-eye" aria-hidden="true" /> Activar</>
+                      ) : (
+                        <><i className="fas fa-eye-slash" aria-hidden="true" /> Desactivar</>
+                      )}
+                    </motion.button>
+                    <motion.button
+                      type="button"
+                      className="publicacion-delete"
+                      whileTap={{ scale: 0.96 }}
+                      transition={springLatch}
+                      onClick={() => requestDeleteProduct(product)}
+                      aria-label={`Eliminar ${product.title}`}
+                    >
+                      <i className="fas fa-trash" aria-hidden="true" /> Borrar
+                    </motion.button>
+                  </div>
                 </motion.article>
               ))}
             </div>

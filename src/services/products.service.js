@@ -68,3 +68,10 @@ export async function uploadProductPhotos(productId, files) {
     body: formData,
   })
 }
+
+export async function toggleAvailability(productId, isAvailable) {
+  return apiClient(`/products/${productId}`, {
+    method: 'PATCH',
+    body: { isAvailable },
+  })
+}

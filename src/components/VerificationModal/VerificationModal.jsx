@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence, MotionConfig } from 'motion/react'
 import { toast } from 'react-toastify'
-import { submitVerification } from '../../services/verification.service.js'
+import { submitVerification, fetchVerificationStatus } from '../../services/verification.service.js'
 import './VerificationModal.css'
 
 const springReveal = { type: 'spring', stiffness: 260, damping: 26 }
@@ -21,6 +21,17 @@ function VerificationModal({ open, onClose }) {
   const [previews, setPreviews] = useState(EMPTY)
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
+  const [verifStatus, setVerifStatus] = useState(null)
+  const [loadingStatus, setLoadingStatus] = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+    setLoadingStatus(true)
+    fetchVerificationStatus()
+      .then((data) => setVerifStatus(data))
+      .catch(() => setVerifStatus(null))
+      .finally(() => setLoadingStatus(false))
+  }, [open])
 
   const current = STEPS[step]
   const canContinue = images[current.key] !== null
@@ -55,6 +66,7 @@ function VerificationModal({ open, onClose }) {
 
   const handleClose = () => {
     reset()
+    setVerifStatus(null)
     onClose()
   }
 
@@ -81,7 +93,50 @@ function VerificationModal({ open, onClose }) {
                 <i className="fas fa-xmark" aria-hidden="true" />
               </button>
 
-              {done ? (
+              {loadingStatus ? (
+                <div className="verification-done">
+                  <i className="fas fa-spinner fa-spin" aria-hidden="true" />
+                  <p>Cargando...</p>
+                </div>
+              ) : verifStatus?.status === 'PENDING' ? (
+                <div className="verification-done">
+                  <span className="verification-done-icon">
+                    <i className="fas fa-clock" aria-hidden="true" />
+                  </span>
+                  <h2 className="verification-title">Identificación pendiente</h2>
+                  <p className="verification-sub">
+                    Tu solicitud de verificación está en revisión. Te avisaremos cuando un administrador la apruebe.
+                  </p>
+                  <motion.button
+                    type="button"
+                    className="verification-btn"
+                    whileTap={{ scale: 0.96 }}
+                    transition={springLatch}
+                    onClick={handleClose}
+                  >
+                    Entendido
+                  </motion.button>
+                </div>
+              ) : verifStatus?.status === 'APPROVED' ? (
+                <div className="verification-done">
+                  <span className="verification-done-icon verification-done-icon--ok">
+                    <i className="fas fa-check" aria-hidden="true" />
+                  </span>
+                  <h2 className="verification-title">Identificación verificada</h2>
+                  <p className="verification-sub">
+                    Tu identidad ya fue verificada. No necesitás hacer nada más.
+                  </p>
+                  <motion.button
+                    type="button"
+                    className="verification-btn"
+                    whileTap={{ scale: 0.96 }}
+                    transition={springLatch}
+                    onClick={handleClose}
+                  >
+                    Entendido
+                  </motion.button>
+                </div>
+              ) : done ? (
                 <div className="verification-done">
                   <span className="verification-done-icon">
                     <i className="fas fa-clock" aria-hidden="true" />

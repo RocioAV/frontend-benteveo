@@ -217,6 +217,26 @@
   color: var(--color-concrete);
 }
 
+.delivery--info {
+  padding: 0.85rem 1rem;
+  background: var(--color-concrete-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.delivery__info-text {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-dark);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.delivery__info-text i {
+  color: var(--color-primary);
+}
+
 /* ── Resumen ── */
 .reservation-summary {
   display: flex;
