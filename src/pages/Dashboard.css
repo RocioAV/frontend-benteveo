@@ -816,6 +816,69 @@
   border-color: var(--color-error);
 }
 
+.publicacion-card--inactive {
+  opacity: 0.55;
+}
+
+.publicacion-card--inactive .publicacion-media img {
+  filter: grayscale(1);
+}
+
+.publicacion-badge-inactive {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  background: #fef3c7;
+  color: #92400e;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.publicacion-media {
+  position: relative;
+}
+
+.publicacion-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.publicacion-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #059669;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.publicacion-toggle:hover {
+  background: #d1fae5;
+  border-color: #6ee7b7;
+}
+
+.publicacion-toggle--activate {
+  color: #059669;
+}
+
+.publicacion-toggle--activate:hover {
+  background: #d1fae5;
+  border-color: #6ee7b7;
+}
+
 /* ── Agenda (cronograma de reservas recibidas) ── */
 .agenda-list {
   list-style: none;

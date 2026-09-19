@@ -5,7 +5,7 @@ import { toast } from 'react-toastify'
 import { useAuth } from '../context/useAuth'
 import logo from '../assets/BenteveoLogo.png'
 import soloLogo from '../assets/solo-logo-app.webp'
-import GoogleAuthButton from '../components/GoogleAuthButton'
+
 import './Registro.css'
 
 function EyeIcon() {
@@ -205,6 +205,15 @@ function Registro() {
     const phoneIssue = checkPhoneFormat(formData.phone)
     if (phoneIssue) {
       setPhoneError(phoneIssue)
+      return
+    }
+
+    if (formData.dni && (formData.dni.length < 7 || formData.dni.length > 8)) {
+      setDniError('El DNI debe tener 7 u 8 números')
+      return
+    }
+
+    if (formData.name && formData.name.length < 8) {
       return
     }
 
@@ -440,8 +449,6 @@ function Registro() {
         <button type="submit" className="registro-submit-btn" disabled={loading}>
           {loading ? 'Registrando...' : 'Registrarse'}
         </button>
-        <div className="registro-divider" aria-hidden="true"><span>o</span></div>
-        <GoogleAuthButton label="Registrarse con Google" />
         </form>
         </motion.div>
 
