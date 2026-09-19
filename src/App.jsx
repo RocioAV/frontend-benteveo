@@ -19,6 +19,7 @@ const DemoModales = lazy(() => import('./pages/DemoModales.jsx'))
 const MisReservas = lazy(() => import('./pages/MisReservas.jsx'))
 const Dashboard = lazy(() => import('./pages/Dashboard.jsx'))
 const ChatPage = lazy(() => import('./pages/ChatPage.jsx'))
+const AdminPanel = lazy(() => import('./pages/AdminPanel.jsx'))
 
 function PageFallback() {
   return (
@@ -42,6 +43,7 @@ function App() {
             <Route path="/reservation/:id" element={<RequireAuth><Reservation /></RequireAuth>} />
             <Route path="/reservas" element={<RequireAuth><MisReservas /></RequireAuth>} />
             <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+            <Route path="/admin" element={<RequireAuth><AdminPanel /></RequireAuth>} />
             <Route path="/chat/:reservationId" element={<RequireAuth><ChatPage /></RequireAuth>} />
             <Route path="/demo-modales" element={<DemoModales />} />
             <Route path="*" element={<NotFound />} />

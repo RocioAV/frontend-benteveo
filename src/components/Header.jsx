@@ -78,6 +78,11 @@ const Header = ({ query = '', onSearch }) => {
               <Link to="/dashboard?tab=reservas" className={styles.bvNavLink} onClick={() => setMenuOpen(false)}>
                 <i className="fas fa-calendar-days" aria-hidden="true"></i> Mis reservas
               </Link>
+              {user.role === 'ADMIN' && (
+                <Link to="/admin" className={styles.bvNavLink} onClick={() => setMenuOpen(false)}>
+                  <i className="fas fa-shield-halved" aria-hidden="true"></i> Admin
+                </Link>
+              )}
               <button className={styles.bvNavLink} onClick={handleLogout}>
                 <i className="fas fa-sign-out-alt" aria-hidden="true"></i> Salir
               </button>
