@@ -20,6 +20,7 @@ const MisReservas = lazy(() => import('./pages/MisReservas.jsx'))
 const Dashboard = lazy(() => import('./pages/Dashboard.jsx'))
 const ChatPage = lazy(() => import('./pages/ChatPage.jsx'))
 const AdminPanel = lazy(() => import('./pages/AdminPanel.jsx'))
+const EditarPublicacion = lazy(() => import('./pages/EditarPublicacion.jsx'))
 
 function PageFallback() {
   return (
@@ -50,6 +51,7 @@ function App() {
           </Route>
           {/* Autenticación: sin header/footer, solo botón de volver */}
           <Route path="/publicar" element={<RequireAuth><Publicar /></RequireAuth>} />
+          <Route path="/publicaciones/:id/editar" element={<RequireAuth><EditarPublicacion /></RequireAuth>} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Registro />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />

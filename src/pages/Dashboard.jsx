@@ -427,6 +427,16 @@ function Dashboard() {
                     </motion.button>
                     <motion.button
                       type="button"
+                      className="publicacion-edit"
+                      whileTap={{ scale: 0.96 }}
+                      transition={springLatch}
+                      onClick={() => navigate(`/publicaciones/${product.id}/editar`)}
+                      aria-label={`Editar ${product.title}`}
+                    >
+                      <i className="fas fa-pen" aria-hidden="true" /> Editar
+                    </motion.button>
+                    <motion.button
+                      type="button"
                       className="publicacion-delete"
                       whileTap={{ scale: 0.96 }}
                       transition={springLatch}
