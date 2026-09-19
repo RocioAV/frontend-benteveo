@@ -1,13 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import {
-  fetchProduct,
-  updateProduct,
-} from '../services/products.service.js'
-import {
-  provincias,
-  fetchLocalitiesByProvince,
-} from '../services/locations.service.js'
+import { fetchProduct, updateProduct } from '../services/products.service.js'
+import { provincias, fetchLocalitiesByProvince } from '../services/locations.service.js'
+import './EditarPublicacion.css'
 
 const CATEGORIES = [
   'Herramientas',
@@ -36,6 +31,8 @@ function EditarPublicacion() {
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
   const [localities, setLocalities] = useState([])
 
   useEffect(() => {
@@ -72,9 +69,7 @@ function EditarPublicacion() {
   }, [id])
 
   useEffect(() => {
-    const province = provincias.find(
-      (item) => item.nombre === formData.state,
-    )
+    const province = provincias.find((p) => p.nombre === formData.state)
 
     if (!province) return
 
@@ -82,14 +77,10 @@ function EditarPublicacion() {
 
     fetchLocalitiesByProvince(province.id)
       .then((items) => {
-        if (!cancelled) {
-          setLocalities(items)
-        }
+        if (!cancelled) setLocalities(items)
       })
       .catch(() => {
-        if (!cancelled) {
-          setLocalities([])
-        }
+        if (!cancelled) setLocalities([])
       })
 
     return () => {
@@ -118,6 +109,8 @@ function EditarPublicacion() {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
+    setSaving(true)
+    setSaveError('')
 
     const payload = {
       title: formData.title,
@@ -136,9 +129,14 @@ function EditarPublicacion() {
       isAvailable: formData.isAvailable,
     }
 
-    await updateProduct(id, payload)
-
-    navigate('/dashboard?tab=publicaciones')
+    try {
+      await updateProduct(id, payload)
+      navigate('/dashboard?tab=publicaciones')
+    } catch {
+      setSaveError('No pudimos guardar los cambios.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const localityOptions =
@@ -146,19 +144,15 @@ function EditarPublicacion() {
       ? [formData.city, ...localities]
       : localities
 
-  if (loading) {
-    return <p role="status">Cargando publicación...</p>
-  }
+  if (loading) return <p role="status">Cargando publicación...</p>
 
-  if (error) {
-    return <p role="alert">No pudimos cargar la publicación.</p>
-  }
+  if (error) return <p role="alert">No pudimos cargar la publicación.</p>
 
   return (
-    <main>
-      <h1>Editar publicación</h1>
+    <main className="editar-publicacion-page">
+      <h1 className="editar-publicacion-title">Editar publicación</h1>
 
-      <form onSubmit={handleSubmit}>
+      <form className="editar-publicacion-form" onSubmit={handleSubmit}>
         <label htmlFor="edit-title">Título</label>
         <input
           id="edit-title"
@@ -221,9 +215,7 @@ function EditarPublicacion() {
         >
           <option value="">Seleccionar categoría</option>
           {CATEGORIES.map((category) => (
-            <option key={category} value={category}>
-              {category}
-            </option>
+            <option key={category} value={category}>{category}</option>
           ))}
         </select>
 
@@ -237,9 +229,7 @@ function EditarPublicacion() {
           <option value="">Seleccionar Provincia</option>
 
           {provincias.map((province) => (
-            <option key={province.id} value={province.nombre}>
-              {province.nombre}
-            </option>
+            <option key={province.id} value={province.nombre}>{province.nombre}</option>
           ))}
         </select>
 
@@ -254,9 +244,7 @@ function EditarPublicacion() {
           <option value="">Seleccionar localidad</option>
 
           {localityOptions.map((locality) => (
-            <option key={locality} value={locality}>
-              {locality}
-            </option>
+            <option key={locality} value={locality}>{locality}</option>
           ))}
         </select>
 
@@ -269,7 +257,7 @@ function EditarPublicacion() {
           onChange={handleChange}
         />
 
-        <label htmlFor="edit-available">
+        <label className="editar-publicacion-available" htmlFor="edit-available">
           <input
             id="edit-available"
             name="isAvailable"
@@ -280,8 +268,14 @@ function EditarPublicacion() {
           Publicación disponible
         </label>
 
-        <button type="submit">
-          Guardar cambios
+        {saveError && (
+          <p className="editar-publicacion-error" role="alert">
+            {saveError}
+          </p>
+        )}
+
+        <button className="editar-publicacion-submit" type="submit" disabled={saving}>
+          {saving ? 'Guardando...' : 'Guardar cambios'}
         </button>
       </form>
     </main>

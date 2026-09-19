@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/react'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import EditarPublicacion from './EditarPublicacion.jsx'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import EditarPublicacion from './EditarPublicacion.jsx'
 
 const { fetchProductMock, updateProductMock, fetchLocalitiesMock } = vi.hoisted(() => ({
   fetchProductMock: vi.fn(),
@@ -11,12 +11,11 @@ const { fetchProductMock, updateProductMock, fetchLocalitiesMock } = vi.hoisted(
 }))
 vi.mock('../services/locations.service.js', () => ({
   provincias: [
-    { id: '02', nombre: 'Ciudad Autonoma de Buenos Aires'},
-    { id: '06', nombre: 'Buenos Aires'},
+    { id: '02', nombre: 'Ciudad Autonoma de Buenos Aires' },
+    { id: '06', nombre: 'Buenos Aires' },
   ],
   fetchLocalitiesByProvince: fetchLocalitiesMock,
 }))
-
 
 vi.mock('../services/products.service.js', () => ({
   fetchProduct: fetchProductMock,
@@ -24,19 +23,12 @@ vi.mock('../services/products.service.js', () => ({
 }))
 
 vi.mock('../context/useAuth.js', () => ({
-  useAuth: () => ({
-    userId: 'owner-1',
-  }),
+  useAuth: () => ({ userId: 'owner-1' }),
 }))
 
 describe('EditarPublicacion', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    fetchLocalitiesMock.mockResolvedValue(['La Plata'])
-  })
-
-  it('carga el producto y completa sus campos editables', async () => {
-    const user = userEvent.setup()
     fetchProductMock.mockResolvedValue({
       id: 'product-1',
       ownerId: 'owner-1',
@@ -51,25 +43,31 @@ describe('EditarPublicacion', () => {
       address: 'Calle 10 123',
       isAvailable: true,
     })
+    fetchLocalitiesMock.mockResolvedValue(['La Plata'])
+  })
+
+  it('carga el producto y completa sus campos editables', async () => {
+    const user = userEvent.setup()
+
+    let resolveUpdate
+
+    updateProductMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveUpdate = resolve
+        }),
+    )
 
     render(
       <MemoryRouter initialEntries={['/publicaciones/product-1/editar']}>
         <Routes>
-          <Route
-            path="/publicaciones/:id/editar"
-            element={<EditarPublicacion />}
-          />
-          <Route
-            path="/dashboard"
-            element={<p>Destino: Mis publicaciones</p>}
-          />
+          <Route path="/publicaciones/:id/editar" element={<EditarPublicacion />} />
+          <Route path="/dashboard" element={<p>Destino: Mis publicaciones</p>} />
         </Routes>
-      </MemoryRouter>,
+      </MemoryRouter>
     )
 
-    const titleInput = await screen.findByRole('textbox', {
-      name: /título/i,
-    })
+    const titleInput = await screen.findByRole('textbox', { name: /título/i })
 
     expect(titleInput).toHaveValue('Taladro actual')
 
@@ -78,29 +76,21 @@ describe('EditarPublicacion', () => {
 
     expect(titleInput).toHaveValue('Taladro actualizado')
 
-    expect(screen.getByRole('textbox', { name: /descripción/i }))
-      .toHaveValue('Taladro con accesorios')
-    expect(screen.getByRole('spinbutton', { name: /precio por día/i }))
-      .toHaveValue(8500)
-    expect(screen.getByRole('spinbutton', { name: /precio por mes/i }))
-      .toHaveValue(90000)
-    expect(screen.getByRole('spinbutton', { name: /depósito/i }))
-      .toHaveValue(25000)
-    expect(screen.getByRole('combobox', { name: /categoría/i }))
-      .toHaveValue('Herramientas')
-    expect(screen.getByRole('combobox', { name: /provincia/i }))
-      .toHaveValue('Buenos Aires')
-    expect(screen.getByRole('combobox', { name: /localidad/i }))
-      .toHaveValue('La Plata')
-    expect(screen.getByRole('textbox', { name: /dirección/i }))
-      .toHaveValue('Calle 10 123')
-    expect(screen.getByRole('checkbox', { name: /disponible/i }))
-      .toBeChecked()
-    const saveButton = screen.getByRole('button', {
-      name: /guardar cambios/i,
-    })
+    expect(screen.getByRole('textbox', { name: /descripción/i })).toHaveValue('Taladro con accesorios')
+    expect(screen.getByRole('spinbutton', { name: /precio por día/i })).toHaveValue(8500)
+    expect(screen.getByRole('spinbutton', { name: /precio por mes/i })).toHaveValue(90000)
+    expect(screen.getByRole('spinbutton', { name: /depósito/i })).toHaveValue(25000)
+    expect(screen.getByRole('combobox', { name: /categoría/i })).toHaveValue('Herramientas')
+    expect(screen.getByRole('combobox', { name: /provincia/i })).toHaveValue('Buenos Aires')
+    expect(screen.getByRole('combobox', { name: /localidad/i })).toHaveValue('La Plata')
+    expect(screen.getByRole('textbox', { name: /dirección/i })).toHaveValue('Calle 10 123')
+    expect(screen.getByRole('checkbox', { name: /disponible/i })).toBeChecked()
+    const saveButton = screen.getByRole('button', { name: /guardar cambios/i })
 
     await user.click(saveButton)
+
+    expect(saveButton).toBeDisabled()
+    expect(saveButton).toHaveTextContent('Guardando...')
 
     expect(updateProductMock).toHaveBeenCalledWith('product-1', {
       title: 'Taladro actualizado',
@@ -116,10 +106,34 @@ describe('EditarPublicacion', () => {
       isAvailable: true,
     })
 
-    expect(
-      await screen.findByText('Destino: Mis publicaciones'),
-    ).toBeInTheDocument()
+    resolveUpdate()
+
+    expect(await screen.findByText('Destino: Mis publicaciones')).toBeInTheDocument()
 
     expect(fetchProductMock).toHaveBeenCalledWith('product-1')
+  })
+
+  it('muestra un mensaje si no puede guardar los cambios', async () => {
+    const user = userEvent.setup()
+
+    updateProductMock.mockRejectedValue(new Error('Error al guardar'))
+
+    render(
+      <MemoryRouter initialEntries={['/publicaciones/product-1/editar']}>
+        <Routes>
+          <Route path="/publicaciones/:id/editar" element={<EditarPublicacion />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    const saveButton = await screen.findByRole('button', { name: /guardar cambios/i })
+
+    await user.click(saveButton)
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'No pudimos guardar los cambios.',
+    )
+    expect(saveButton).not.toBeDisabled()
+    expect(saveButton).toHaveTextContent('Guardar cambios')
   })
 })
