@@ -150,114 +150,138 @@ function EditarPublicacion() {
 
   return (
     <main className="editar-publicacion-page">
-      <h1 className="editar-publicacion-title">Editar publicación</h1>
+      <header className="editar-publicacion-header">
+        <button className="editar-publicacion-back" type="button" onClick={() => navigate('/dashboard?tab=publicaciones')}>
+          ← Volver a mis publicaciones
+        </button>
+        <h1 className="editar-publicacion-title">Editar publicación</h1>
+        <p className="editar-publicacion-subtitle">Actualizá la información de tu producto.</p>
+      </header>
 
       <form className="editar-publicacion-form" onSubmit={handleSubmit}>
-        <label htmlFor="edit-title">Título</label>
-        <input
-          id="edit-title"
-          name="title"
-          type="text"
-          value={formData.title}
-          onChange={handleChange}
-          maxLength={60}
-        />
+        <div className="editar-publicacion-field editar-publicacion-full-width">
+          <label htmlFor="edit-title">Título</label>
+          <input
+            id="edit-title"
+            name="title"
+            type="text"
+            value={formData.title}
+            onChange={handleChange}
+            maxLength={60}
+          />
+        </div>
 
-        <label htmlFor="edit-description">Descripción</label>
-        <textarea
-          id="edit-description"
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          rows={4}
-          maxLength={300}
-        />
+        <div className="editar-publicacion-field editar-publicacion-full-width">
+          <label htmlFor="edit-description">Descripción</label>
+          <textarea
+            id="edit-description"
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            rows={4}
+            maxLength={300}
+          />
+        </div>
 
-        <label htmlFor="edit-price-day">Precio por día</label>
-        <input
-          id="edit-price-day"
-          name="priceDay"
-          type="number"
-          value={formData.priceDay}
-          onChange={handleChange}
-          min="0.01"
-          step="0.01"
-        />
+        <div className="editar-publicacion-field">
+          <label htmlFor="edit-price-day">Precio por día</label>
+          <input
+            id="edit-price-day"
+            name="priceDay"
+            type="number"
+            value={formData.priceDay}
+            onChange={handleChange}
+            min="0.01"
+            step="0.01"
+          />
+        </div>
 
-        <label htmlFor="edit-price-month">Precio por mes</label>
-        <input
-          id="edit-price-month"
-          name="priceMonth"
-          type="number"
-          value={formData.priceMonth}
-          onChange={handleChange}
-          min="0.01"
-          step="0.01"
-        />
+        <div className="editar-publicacion-field">
+          <label htmlFor="edit-price-month">Precio por mes</label>
+          <input
+            id="edit-price-month"
+            name="priceMonth"
+            type="number"
+            value={formData.priceMonth}
+            onChange={handleChange}
+            min="0.01"
+            step="0.01"
+          />
+        </div>
 
-        <label htmlFor="edit-deposit">Depósito</label>
-        <input
-          id="edit-deposit"
-          name="deposit"
-          type="number"
-          value={formData.deposit}
-          onChange={handleChange}
-          min="0.01"
-          step="0.01"
-        />
+        <div className="editar-publicacion-field">
+          <label htmlFor="edit-deposit">Depósito</label>
+          <input
+            id="edit-deposit"
+            name="deposit"
+            type="number"
+            value={formData.deposit}
+            onChange={handleChange}
+            min="0.01"
+            step="0.01"
+          />
+        </div>
 
-        <label htmlFor="edit-category">Categoría</label>
-        <select
-          id="edit-category"
-          name="category"
-          value={formData.category}
-          onChange={handleChange}
-        >
-          <option value="">Seleccionar categoría</option>
-          {CATEGORIES.map((category) => (
-            <option key={category} value={category}>{category}</option>
-          ))}
-        </select>
+        <div className="editar-publicacion-field">
+          <label htmlFor="edit-category">Categoría</label>
+          <select
+            id="edit-category"
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+          >
+            <option value="">Seleccionar categoría</option>
+            {CATEGORIES.map((category) => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </select>
+        </div>
 
-        <label htmlFor="edit-state">Provincia</label>
-        <select
-          id="edit-state"
-          name="state"
-          value={formData.state}
-          onChange={handleChange}
-        >
-          <option value="">Seleccionar Provincia</option>
+        <div className="editar-publicacion-field">
+          <label htmlFor="edit-state">Provincia</label>
+          <select
+            id="edit-state"
+            name="state"
+            value={formData.state}
+            onChange={handleChange}
+          >
+            <option value="">Seleccionar Provincia</option>
 
-          {provincias.map((province) => (
-            <option key={province.id} value={province.nombre}>{province.nombre}</option>
-          ))}
-        </select>
+            {provincias.map((province) => (
+              <option key={province.id} value={province.nombre}>{province.nombre}</option>
+            ))}
+          </select>
+        </div>
 
-        <label htmlFor="edit-city">Localidad</label>
-        <select
-          id="edit-city"
-          name="city"
-          value={formData.city}
-          onChange={handleChange}
-          disabled={!formData.state}
-        >
-          <option value="">Seleccionar localidad</option>
+        <div className="editar-publicacion-field">
+          <label htmlFor="edit-city">Localidad</label>
+          <select
+            id="edit-city"
+            name="city"
+            value={formData.city}
+            onChange={handleChange}
+            disabled={!formData.state}
+          >
+            <option value="">Seleccionar localidad</option>
 
-          {localityOptions.map((locality) => (
-            <option key={locality} value={locality}>{locality}</option>
-          ))}
-        </select>
+            {localityOptions.map((locality) => (
+              <option key={locality} value={locality}>{locality}</option>
+            ))}
+          </select>
+        </div>
 
-        <label htmlFor="edit-address">Dirección</label>
-        <input
-          id="edit-address"
-          name="address"
-          type="text"
-          value={formData.address}
-          onChange={handleChange}
-        />
+        <div className="editar-publicacion-field editar-publicacion-full-width">
+          <label htmlFor="edit-address">Dirección</label>
+          <input
+            id="edit-address"
+            name="address"
+            type="text"
+            value={formData.address}
+            onChange={handleChange}
+          />
+        </div>
 
-        <label className="editar-publicacion-available" htmlFor="edit-available">
+        <label className="editar-publicacion-available editar-publicacion-full-width" htmlFor="edit-available">
           <input
             id="edit-available"
             name="isAvailable"
@@ -269,12 +293,12 @@ function EditarPublicacion() {
         </label>
 
         {saveError && (
-          <p className="editar-publicacion-error" role="alert">
+          <p className="editar-publicacion-error editar-publicacion-full-width" role="alert">
             {saveError}
           </p>
         )}
 
-        <button className="editar-publicacion-submit" type="submit" disabled={saving}>
+        <button className="editar-publicacion-submit editar-publicacion-full-width" type="submit" disabled={saving}>
           {saving ? 'Guardando...' : 'Guardar cambios'}
         </button>
       </form>
