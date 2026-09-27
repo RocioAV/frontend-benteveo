@@ -4,6 +4,9 @@ import { motion, MotionConfig, AnimatePresence } from 'motion/react'
 import { toast } from 'react-toastify'
 import { useAuth } from '../context/useAuth'
 import { fetchProducts, deleteProduct, toggleAvailability } from '../services/products.service.js'
+import { fetchFavorites } from '../services/favorites.service.js'
+import { useFavorites } from '../context/useFavorites'
+import ProductCard from '../components/ProductCard/ProductCard.jsx'
 import {
   fetchMyReservations,
   fetchReservationsAsOwner,
@@ -18,7 +21,6 @@ import Skeleton from '../components/Skeleton/Skeleton.jsx'
 import VerificationModal from '../components/VerificationModal/VerificationModal.jsx'
 import './Dashboard.css'
 
-// Springs (DESIGN.md §3 — gramática mecánico-líquida)
 const springReveal = { type: 'spring', stiffness: 260, damping: 26 }
 const springLatch = { type: 'spring', stiffness: 400, damping: 28 }
 
@@ -27,6 +29,7 @@ const SECTIONS = [
   { id: 'reservas', label: 'Mis reservas', icon: 'fa-calendar-days' },
   { id: 'agenda', label: 'Agenda', icon: 'fa-calendar-week' },
   { id: 'publicaciones', label: 'Mis publicaciones', icon: 'fa-box' },
+  { id: 'favoritos', label: 'Favoritos', icon: 'fa-heart' },
   { id: 'conversaciones', label: 'Conversaciones', icon: 'fa-comments' },
 ]
 
@@ -42,7 +45,6 @@ const STATUS_LABELS = {
 
 const ACTIVE_STATUSES = ['PENDING', 'CONFIRMED', 'ACTIVE']
 
-// Entrega y devolución siempre a las 12:00 (mediodía), según regla del negocio.
 const PICKUP_TIME = '12:00'
 
 const OWNER_ACTIONS = {
@@ -76,7 +78,6 @@ function formatDate(iso) {
   }
 }
 
-// "12 ago · 12:00" — fecha + hora de entrega/devolución (mediodía).
 function formatDateTime(iso) {
   try {
     const d = new Date(iso).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })
@@ -109,18 +110,15 @@ function rentalDays(reservation) {
   return Number.isFinite(days) && days > 0 ? days : 1
 }
 
-// Horas restantes hasta el inicio del alquiler (regla de cancelación 48hs).
 function hoursUntil(dateInit) {
   return (new Date(dateInit) - new Date()) / (1000 * 60 * 60)
 }
 
-// La otra parte de la conversación según el punto de vista.
 function otherParty(reservation, role) {
   if (role === 'owner') return reservation.user?.name || 'Inquilino'
   return 'Propietario'
 }
 
-// Acción disponible para el dueño según el estado de la reserva.
 function ownerActionFor(status, wasDelivered) {
   switch (status) {
     case 'PENDING':
@@ -130,7 +128,6 @@ function ownerActionFor(status, wasDelivered) {
     case 'ACTIVE':
       return { key: 'return', label: 'Confirmar devolución' }
     case 'CANCELLED':
-      // Si se canceló y el producto no se entregó, el dueño resuelve la cancelación.
       return wasDelivered ? null : { key: 'resolveCancellation', label: 'Resolver cancelación' }
     default:
       return null
@@ -139,10 +136,10 @@ function ownerActionFor(status, wasDelivered) {
 
 function Dashboard() {
   const { user, userId, logout, refreshUser } = useAuth()
+  const { favoriteIds, isFavorite } = useFavorites()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
-  // Sección activa derivada del URL (?tab=) — sin estado duplicado.
   const rawTab = searchParams.get('tab')
   const activeSection = VALID_SECTIONS.includes(rawTab) ? rawTab : 'perfil'
 
@@ -159,13 +156,14 @@ function Dashboard() {
 
   useEffect(() => {
     let cancelled = false
-    Promise.all([fetchProducts(), fetchMyReservations(), fetchReservationsAsOwner()])
-      .then(([allProducts, renter, owner]) => {
+    Promise.all([fetchProducts(), fetchMyReservations(), fetchReservationsAsOwner(), fetchFavorites()])
+      .then(([allProducts, renter, owner, favorites]) => {
         if (cancelled) return
         setData({
           myProducts: allProducts.filter((p) => p.ownerId === userId),
           renterReservations: renter,
           ownerReservations: owner,
+          favorites,
         })
       })
       .catch(() => {
@@ -196,10 +194,10 @@ function Dashboard() {
     navigate('/')
   }
 
-  // ── Datos derivados ──
   const myProducts = data?.myProducts ?? []
   const renterReservations = data?.renterReservations ?? []
   const ownerReservations = data?.ownerReservations ?? []
+  const favorites = data?.favorites ?? []
   const allReservations = [...renterReservations, ...ownerReservations]
   const activeReservations = allReservations.filter((r) => ACTIVE_STATUSES.includes(r.status)).length
 
@@ -225,7 +223,6 @@ function Dashboard() {
   const initial = getInitial(user?.name)
   const displayAvatar = avatarPreview || avatar
 
-  // ── Acciones ──
   const requestDeleteProduct = (product) => {
     setConfirm({
       type: 'deleteProduct',
@@ -265,7 +262,6 @@ function Dashboard() {
   const requestOwnerAction = (key, reservation) => {
     const meta = OWNER_ACTIONS[key]
     if (!meta) {
-      // Cancelación resuelta: backend pendiente.
       toast.info('Resolver la cancelación estará disponible próximamente (falta backend).')
       return
     }
@@ -298,7 +294,6 @@ function Dashboard() {
     }
   }
 
-  // ── Edición de perfil (visual — backend pendiente) ──
   const startEditing = () => {
     setEditForm({ name, phone: phone || '', bio: bio || '' })
     setEditing(true)
@@ -328,12 +323,10 @@ function Dashboard() {
       setAvatarPreview(null)
       toast.error(err.message || 'No pudimos subir tu foto.')
     } finally {
-      // Libera el object URL del preview para evitar fugas de memoria.
       URL.revokeObjectURL(previewUrl)
     }
   }
 
-  // ── Render por sección ──
   const renderSection = () => {
     if (error) {
       return (
@@ -444,6 +437,40 @@ function Dashboard() {
       )
     }
 
+    if (activeSection === 'favoritos') {
+      const loadingFavorites = favoriteIds === null
+      const savedProducts = loadingFavorites
+        ? []
+        : favorites.filter((product) => isFavorite(product.id))
+
+      return (
+        <section aria-labelledby="favoritos-titulo">
+          <header className="dashboard-header">
+            <motion.h1 id="favoritos-titulo" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={springReveal}>
+              Mis favoritos
+            </motion.h1>
+            <p className="dashboard-sub">Los productos que guardaste para después.</p>
+          </header>
+
+          {loadingFavorites ? (
+            <Skeleton rows={4} />
+          ) : savedProducts.length === 0 ? (
+            <EmptyState
+              message="Todavía no guardaste ningún producto."
+              actionLabel="Explorar productos"
+              onAction={() => navigate('/explorar')}
+            />
+          ) : (
+            <div className="favoritos-grid">
+              {savedProducts.map((product, i) => (
+                <ProductCard key={product.id} product={product} index={i} />
+              ))}
+            </div>
+          )}
+        </section>
+      )
+    }
+
     if (activeSection === 'conversaciones') {
       const threads = [
         ...renterReservations.map((r) => ({ ...r, role: 'renter' })),
@@ -489,7 +516,6 @@ function Dashboard() {
       )
     }
 
-    // ── Perfil (default): info + estadísticas + historial ──
     return (
       <section aria-labelledby="perfil-titulo">
         <header className="dashboard-header">
@@ -590,7 +616,6 @@ function Dashboard() {
           )}
         </motion.div>
 
-        {/* Estadísticas del perfil */}
         <div className="stats-grid perfil-stats" aria-label="Estadísticas del perfil">
           {stats.map((stat, i) => (
             <motion.div
@@ -609,7 +634,6 @@ function Dashboard() {
           ))}
         </div>
 
-        {/* Historial de reservas / usos */}
         <div className="perfil-historial">
           <h2 className="perfil-historial-title">Historial de reservas</h2>
           {historyReservations.length === 0 ? (
@@ -701,7 +725,6 @@ function Dashboard() {
         </motion.aside>
       </div>
 
-      {/* Modal de confirmación */}
       <AnimatePresence>
         {confirm ? (
           <div className="dashboard-modal" role="dialog" aria-modal="true" aria-label={confirm.title}>
@@ -739,8 +762,6 @@ function Dashboard() {
   )
 }
 
-// Agenda: personas que reservaron tus productos, en cronograma ordenado por fecha,
-// con hora de entrega y devolución (12:00 mediodía).
 function AgendaList({ reservations, onChat }) {
   const sorted = [...reservations].sort((a, b) => new Date(a.dateInit) - new Date(b.dateInit))
 
@@ -807,7 +828,6 @@ function AgendaList({ reservations, onChat }) {
   )
 }
 
-// Sub-sección de reservas: tabs inquilino/dueño + acciones según estado + chatear.
 function ReservasList({ renter, owner, onCancel, onChat, onOwnerAction }) {
   const [tab, setTab] = useState('renter')
   const list = tab === 'renter' ? renter : owner
