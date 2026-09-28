@@ -125,7 +125,7 @@ function otherParty(reservation, role) {
 }
 
 // Acción disponible para el dueño según el estado de la reserva.
-function ownerActionFor(status, wasDelivered) {
+function ownerActionFor(status) {
   switch (status) {
     case 'PENDING':
       return { key: 'confirm', label: 'Confirmar reserva' }
@@ -134,8 +134,9 @@ function ownerActionFor(status, wasDelivered) {
     case 'ACTIVE':
       return { key: 'return', label: 'Confirmar devolución' }
     case 'CANCELLED':
-      // Si se canceló y el producto no se entregó, el dueño resuelve la cancelación.
-      return wasDelivered ? null : { key: 'resolveCancellation', label: 'Resolver cancelación' }
+      // La cancelación la resuelve el backend (revierte el pago en Mercado Pago
+      // si hace falta): no hay acción pendiente para el dueño.
+      return null
     default:
       return null
   }
@@ -269,11 +270,7 @@ function Dashboard() {
 
   const requestOwnerAction = (key, reservation) => {
     const meta = OWNER_ACTIONS[key]
-    if (!meta) {
-      // Cancelación resuelta: backend pendiente.
-      toast.info('Resolver la cancelación estará disponible próximamente (falta backend).')
-      return
-    }
+    if (!meta) return
     setConfirm({
       type: key,
       id: reservation.id,
@@ -1011,10 +1008,9 @@ function ReservasList({ renter, owner, userName, onCancel, onChat, onOwnerAction
             const other = otherParty(reservation, tab)
             const days = rentalDays(reservation)
             const isOwnerTab = tab === 'owner'
-            const wasDelivered = !!reservation.actualHandoffAt
             const canCancel = ACTIVE_STATUSES.includes(status) && hoursUntil(reservation.dateInit) > 48
             const needsCharge = ACTIVE_STATUSES.includes(status) && hoursUntil(reservation.dateInit) <= 48
-            const ownerAction = isOwnerTab ? ownerActionFor(status, wasDelivered) : null
+            const ownerAction = isOwnerTab ? ownerActionFor(status) : null
 
             return (
               <motion.article
