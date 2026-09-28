@@ -637,8 +637,8 @@ function ReservasSection() {
     try {
       await applyCancel(id)
       toast.success('Reserva cancelada')
-    } catch {
-      toast.error('Error al cancelar')
+    } catch (err) {
+      toast.error(err.message || 'Error al cancelar')
     } finally {
       setCancellingId(null)
     }
