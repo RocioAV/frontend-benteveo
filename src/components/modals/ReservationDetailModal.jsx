@@ -1,4 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { toast } from 'react-toastify'
+import Skeleton from '../Skeleton/Skeleton.jsx'
 import './ReservationDetailModal.css'
 
 // Ilustración de placeholder dibujada en SVG (se usa cuando la reserva
@@ -41,18 +43,37 @@ function Row({ label, value, className = '' }) {
   )
 }
 
+// Horas hasta el inicio del alquiler (∞ si no hay fecha válida).
+function hoursUntil(iso) {
+  if (!iso) return Infinity
+  try {
+    return (new Date(iso).getTime() - Date.now()) / (1000 * 60 * 60)
+  } catch {
+    return Infinity
+  }
+}
+
+// Estados desde los que el backend permite cancelar (PENDING/CONFIRMED/ACTIVE).
+const CANCELLABLE_STATUSES = ['PENDING', 'CONFIRMED', 'ACTIVE']
+
 // `reservation`: objeto ya mapeado con mapReservationToDetail (ver
-//   reservationDetail.map.js).
-// `onClose`, `onCancel`, `onEdit`, `onMarkPickedUp`: callbacks que dispara el
-//   modal ante cada acción. Sin callbacks, los botones quedan inertes.
+//   reservationDetail.map.js). `null` mientras carga.
+// `viewer`: 'renter' | 'owner' | 'admin' — controla qué acciones se muestran
+//   (el backend es quien finalmente autoriza: handoff es solo del dueño).
+// `onCancel`, `onMarkPickedUp`: callbacks async; el modal espera su promesa
+//   (éxito → feedback + badge actualizado por la página; error → toast).
 export default function ReservationDetailModal({
   isOpen,
   reservation,
+  viewer = 'renter',
   onClose,
   onCancel,
-  onEdit,
   onMarkPickedUp,
 }) {
+  const [step, setStep] = useState(null) // 'cancel' | 'handoff'
+  const [busy, setBusy] = useState(false)
+  const [feedback, setFeedback] = useState('')
+
   useEffect(() => {
     if (!isOpen) return undefined
 
@@ -69,26 +90,55 @@ export default function ReservationDetailModal({
     }
   }, [isOpen, onClose])
 
-  if (!isOpen || !reservation) return null
+  if (!isOpen) return null
+
+  // Cargando el detalle (fetch de la reserva por id).
+  if (!reservation) {
+    return (
+      <div className="bvrd-overlay" onClick={onClose}>
+        <div className="bvrd-modal" role="dialog" aria-modal="true" aria-label="Cargando detalle de reserva">
+          <div className="bvrd-loading">
+            <Skeleton rows={4} />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const status = reservation.status ?? 'Confirmada'
   const isDanger = status === 'Cancelada'
+  const canCancel = CANCELLABLE_STATUSES.includes(reservation.statusCode)
+  const canHandoff = viewer === 'owner' && reservation.statusCode === 'CONFIRMED'
+  const withCharge = hoursUntil(reservation.dateInit) <= 48
 
   const handleClose = () => {
     onClose?.()
   }
 
-  const handleCancel = () => {
-    onCancel?.(reservation)
+  const runAction = async () => {
+    if (busy) return
+    const current = step
+    const callback = current === 'cancel' ? onCancel : onMarkPickedUp
+    if (!callback) return
+
+    setBusy(true)
+    try {
+      await callback(reservation)
+      setFeedback(current === 'cancel' ? 'Reserva cancelada.' : 'Reserva marcada como retirada.')
+      setStep(null)
+    } catch (err) {
+      toast.error(err?.message || 'No se pudo completar la acción.')
+    } finally {
+      setBusy(false)
+    }
   }
 
-  const handleEdit = () => {
-    onEdit?.(reservation)
-  }
-
-  const handleMarkPickedUp = () => {
-    onMarkPickedUp?.(reservation)
-  }
+  const confirmMessage =
+    step === 'cancel'
+      ? withCharge
+        ? 'Faltan menos de 48 horas para el alquiler, por lo que esta cancelación tiene cargo. ¿Querés continuar?'
+        : '¿Seguro que querés cancelar esta reserva?'
+      : '¿Confirmás que entregaste el producto al inquilino?'
 
   return (
     <div className="bvrd-overlay" onClick={handleClose}>
@@ -140,6 +190,7 @@ export default function ReservationDetailModal({
         {/* Cuerpo */}
         <div className="bvrd-modal-body">
           <Row label="Cliente" value={reservation.client} />
+          <Row label="Dueño" value={reservation.owner} />
           <Row
             label="Contacto"
             value={
@@ -163,24 +214,57 @@ export default function ReservationDetailModal({
 
           {reservation.note ? (
             <div className="bvrd-notes">
-              <strong>Nota del cliente</strong>
+              <strong>Nota de entrega</strong>
               {reservation.note}
             </div>
           ) : null}
         </div>
 
-        {/* Acciones */}
-        <div className="bvrd-modal-actions">
-          <button className="bvrd-btn-danger-link" onClick={handleCancel}>
-            Cancelar reserva
-          </button>
-          <button className="bvrd-btn bvrd-btn--secondary" onClick={handleEdit}>
-            Editar
-          </button>
-          <button className="bvrd-btn bvrd-btn--primary" onClick={handleMarkPickedUp}>
-            Marcar como retirado
-          </button>
-        </div>
+        {feedback && <div className="bvrd-feedback">{feedback}</div>}
+
+        {/* Acciones / confirmación */}
+        {step ? (
+          <div className="bvrd-confirm">
+            <p className="bvrd-confirm-text">{confirmMessage}</p>
+            <div className="bvrd-modal-actions">
+              <button
+                type="button"
+                className="bvrd-btn bvrd-btn--secondary"
+                onClick={() => setStep(null)}
+                disabled={busy}
+              >
+                Volver
+              </button>
+              <button
+                type="button"
+                className={step === 'cancel' ? 'bvrd-btn bvrd-btn--danger' : 'bvrd-btn bvrd-btn--primary'}
+                onClick={runAction}
+                disabled={busy}
+              >
+                {busy ? (
+                  <i className="fas fa-spinner fa-spin" aria-hidden="true" />
+                ) : step === 'cancel' ? (
+                  'Sí, cancelar'
+                ) : (
+                  'Confirmar entrega'
+                )}
+              </button>
+            </div>
+          </div>
+        ) : canCancel || canHandoff ? (
+          <div className="bvrd-modal-actions">
+            {canCancel ? (
+              <button type="button" className="bvrd-btn-danger-link" onClick={() => setStep('cancel')}>
+                Cancelar reserva
+              </button>
+            ) : null}
+            {canHandoff ? (
+              <button type="button" className="bvrd-btn bvrd-btn--primary" onClick={() => setStep('handoff')}>
+                Marcar como retirado
+              </button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </div>
   )

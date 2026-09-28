@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, MotionConfig, AnimatePresence } from 'motion/react'
 import { toast } from 'react-toastify'
@@ -17,7 +17,7 @@ import EmptyState from '../components/EmptyState/EmptyState.jsx'
 import Skeleton from '../components/Skeleton/Skeleton.jsx'
 import VerificationModal from '../components/VerificationModal/VerificationModal.jsx'
 import ReservationDetailModal from '../components/modals/ReservationDetailModal.jsx'
-import { mapReservationToDetail } from '../components/modals/reservationDetail.map.js'
+import { fetchReservationDetail } from '../components/modals/reservationDetail.map.js'
 import './Dashboard.css'
 
 // Springs (DESIGN.md §3 — gramática mecánico-líquida)
@@ -300,6 +300,37 @@ function Dashboard() {
     }
   }
 
+  // Actualiza la reserva en las listas tras una acción del modal de detalle,
+  // sin recargar todo (el modal debe seguir abierto para mostrar el feedback).
+  const patchReservation = (updated) => {
+    setData((prev) => {
+      if (!prev) return prev
+      const fields = {
+        status: updated.status,
+        actualHandoffAt: updated.actualHandoffAt,
+        actualReturnAt: updated.actualReturnAt,
+      }
+      const patch = (list) => list.map((r) => (r.id === updated.id ? { ...r, ...fields } : r))
+      return {
+        ...prev,
+        renterReservations: patch(prev.renterReservations),
+        ownerReservations: patch(prev.ownerReservations),
+      }
+    })
+  }
+
+  // Acciones disparadas desde el modal de detalle (la confirmación vive en el
+  // modal). Los errores se propagan y el modal los muestra con toast.
+  const runDetailCancel = async (detail) => {
+    const updated = await cancelReservation(detail.id)
+    patchReservation(updated)
+  }
+
+  const runDetailHandoff = async (detail) => {
+    const updated = await handoffReservation(detail.id)
+    patchReservation(updated)
+  }
+
   // ── Edición de perfil (visual — backend pendiente) ──
   const startEditing = () => {
     setEditForm({ name, phone: phone || '', bio: bio || '' })
@@ -356,9 +387,12 @@ function Dashboard() {
         <ReservasList
           renter={renterReservations}
           owner={ownerReservations}
+          userName={name}
           onCancel={requestCancelReservation}
           onChat={openChat}
           onOwnerAction={requestOwnerAction}
+          onDetailCancel={runDetailCancel}
+          onDetailHandoff={runDetailHandoff}
         />
       )
     }
@@ -810,9 +844,11 @@ function AgendaList({ reservations, onChat }) {
 }
 
 // Sub-sección de reservas: tabs inquilino/dueño + acciones según estado + chatear.
-function ReservasList({ renter, owner, onCancel, onChat, onOwnerAction }) {
+function ReservasList({ renter, owner, userName, onCancel, onChat, onOwnerAction, onDetailCancel, onDetailHandoff }) {
   const [tab, setTab] = useState('renter')
+  const [detailOpen, setDetailOpen] = useState(false)
   const [detail, setDetail] = useState(null)
+  const detailClientRef = useRef('')
   const list = tab === 'renter' ? renter : owner
 
   const handleTabChange = (id) => {
@@ -820,8 +856,47 @@ function ReservasList({ renter, owner, onCancel, onChat, onOwnerAction }) {
     setTab(id)
   }
 
-  const openDetail = (reservation, clientName) => {
-    setDetail(mapReservationToDetail(reservation, { statusLabels: STATUS_LABELS, clientName }))
+  // El cliente es siempre el inquilino: en tab inquilino sos vos; en tab dueño,
+  // el usuario de la reserva (GET /reservations/:id lo trae).
+  const clientNameFor = (reservation) =>
+    tab === 'renter' ? userName : otherParty(reservation, 'owner')
+
+  const openDetail = async (reservation, clientName) => {
+    detailClientRef.current = clientName
+    setDetailOpen(true)
+    setDetail(null)
+    try {
+      const mapped = await fetchReservationDetail(reservation.id, {
+        statusLabels: STATUS_LABELS,
+        clientName,
+      })
+      setDetail(mapped)
+    } catch (err) {
+      toast.error(err?.message || 'No pudimos cargar el detalle de la reserva.')
+      setDetailOpen(false)
+    }
+  }
+
+  const refreshDetail = async (current) => {
+    try {
+      const mapped = await fetchReservationDetail(current.id, {
+        statusLabels: STATUS_LABELS,
+        clientName: detailClientRef.current,
+      })
+      setDetail(mapped)
+    } catch {
+      // Si el refetch falla, el modal conserva el snapshot actual.
+    }
+  }
+
+  const handleDetailCancel = async (current) => {
+    await onDetailCancel(current)
+    await refreshDetail(current)
+  }
+
+  const handleDetailHandoff = async (current) => {
+    await onDetailHandoff(current)
+    await refreshDetail(current)
   }
 
   return (
@@ -906,7 +981,7 @@ function ReservasList({ renter, owner, onCancel, onChat, onOwnerAction }) {
                         className="reserva-btn reserva-btn--detail"
                         whileTap={{ scale: 0.96 }}
                         transition={springLatch}
-                        onClick={() => openDetail(reservation, other)}
+                        onClick={() => openDetail(reservation, clientNameFor(reservation))}
                       >
                         <i className="fas fa-eye" aria-hidden="true" /> Detalle
                       </motion.button>
@@ -941,7 +1016,18 @@ function ReservasList({ renter, owner, onCancel, onChat, onOwnerAction }) {
         </div>
       )}
 
-      <ReservationDetailModal isOpen={!!detail} reservation={detail} onClose={() => setDetail(null)} />
+      <ReservationDetailModal
+        key={detail?.id ?? 'loading'}
+        isOpen={detailOpen}
+        reservation={detail}
+        viewer={tab === 'renter' ? 'renter' : 'owner'}
+        onClose={() => {
+          setDetailOpen(false)
+          setDetail(null)
+        }}
+        onCancel={handleDetailCancel}
+        onMarkPickedUp={handleDetailHandoff}
+      />
     </section>
   )
 }

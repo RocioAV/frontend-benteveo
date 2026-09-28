@@ -29,8 +29,6 @@
   --secondary-soft: #EFE4D6;
   --danger: #A23E2F;
   --shadow: rgba(28, 26, 23, 0.18);
-
-  --font-serif: Georgia, "Times New Roman", serif;
 }
 
 .bvrd-modal {
@@ -41,6 +39,7 @@
   background: var(--bg-card);
   border-radius: 6px;
   box-shadow: 0 24px 48px var(--shadow);
+  font-family: var(--font-body);
   animation: bvrd-rise 0.28s ease-out;
 }
 
@@ -125,7 +124,7 @@
 
 .bvrd-object-tag h2 {
   margin: 0;
-  font-family: var(--font-serif);
+  font-family: var(--font-title);
   font-size: 22px;
   font-weight: 400;
 }
@@ -197,7 +196,7 @@
 }
 
 .bvrd-period-block .bvrd-date {
-  font-family: var(--font-serif);
+  font-family: var(--font-title);
   font-size: 18px;
 }
 
@@ -253,7 +252,7 @@
 }
 
 .bvrd-row--total .bvrd-value {
-  font-family: var(--font-serif);
+  font-family: var(--font-title);
   font-size: 20px;
   font-weight: 400;
 }
@@ -285,6 +284,22 @@
   padding: 0 24px 8px;
   font-size: 12px;
   color: var(--accent-ink);
+}
+
+/* ---------- Carga (fetch del detalle) ---------- */
+
+.bvrd-loading {
+  padding: 24px;
+}
+
+/* ---------- Confirmación de acciones ---------- */
+
+.bvrd-confirm-text {
+  margin: 0;
+  padding: 0 24px 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-soft);
 }
 
 /* ---------- Acciones ---------- */
@@ -336,6 +351,22 @@
   background: #F1EBDC;
 }
 
+.bvrd-btn--danger {
+  background: var(--danger);
+  color: var(--bg-card);
+}
+
+.bvrd-btn--danger:hover {
+  background: #8E3428;
+}
+
+.bvrd-btn:disabled,
+.bvrd-btn-danger-link:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .bvrd-btn-danger-link {
   flex: none;
   background: none;
@@ -359,7 +390,9 @@
   .bvrd-rental-period,
   .bvrd-duration-note,
   .bvrd-modal-body,
-  .bvrd-modal-actions {
+  .bvrd-modal-actions,
+  .bvrd-confirm-text,
+  .bvrd-feedback {
     padding-left: 18px;
     padding-right: 18px;
   }
