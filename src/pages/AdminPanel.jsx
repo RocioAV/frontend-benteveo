@@ -5,6 +5,8 @@ import { useAuth } from '../context/useAuth'
 import { useNavigate, Link } from 'react-router-dom'
 import EmptyState from '../components/EmptyState/EmptyState.jsx'
 import Skeleton from '../components/Skeleton/Skeleton.jsx'
+import ReservationDetailModal from '../components/modals/ReservationDetailModal.jsx'
+import { fetchReservationDetail } from '../components/modals/reservationDetail.map.js'
 import {
   fetchRecentUsers,
   fetchUserByDni,
@@ -585,6 +587,8 @@ function ReservasSection() {
   const [searching, setSearching] = useState(false)
   const [loadingRes, setLoadingRes] = useState(false)
   const [cancellingId, setCancellingId] = useState(null)
+  const [detailOpen, setDetailOpen] = useState(false)
+  const [detail, setDetail] = useState(null)
 
   const handleSearch = async (e) => {
     e.preventDefault()
@@ -620,14 +624,19 @@ function ReservasSection() {
     }
   }
 
+  // Cancela y refleja el cambio en la tabla (sin toast: lo decide el llamador).
+  const applyCancel = async (id) => {
+    await adminCancelReservation(id)
+    setReservations((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, status: 'CANCELLED' } : r))
+    )
+  }
+
   const handleCancel = async (id) => {
     setCancellingId(id)
     try {
-      await adminCancelReservation(id)
+      await applyCancel(id)
       toast.success('Reserva cancelada')
-      setReservations((prev) =>
-        prev.map((r) => r.id === id ? { ...r, status: 'CANCELLED' } : r)
-      )
     } catch {
       toast.error('Error al cancelar')
     } finally {
@@ -635,8 +644,36 @@ function ReservasSection() {
     }
   }
 
-  const handleViewReservation = () => {
-    toast.info('Detalle de reserva próximamente')
+  const mapDetail = (r) =>
+    fetchReservationDetail(r.id, {
+      statusLabels: STATUS_LABELS,
+      clientName: foundUser?.name ?? r.user?.name,
+    })
+
+  const handleViewReservation = async (r) => {
+    setDetailOpen(true)
+    setDetail(null)
+    try {
+      setDetail(await mapDetail(r))
+    } catch (err) {
+      toast.error(err?.message || 'No pudimos cargar el detalle de la reserva.')
+      setDetailOpen(false)
+    }
+  }
+
+  // Acción desde el modal de detalle (la confirmación vive en el modal).
+  const handleDetailCancel = async (current) => {
+    await applyCancel(current.id)
+    try {
+      setDetail(
+        await fetchReservationDetail(current.id, {
+          statusLabels: STATUS_LABELS,
+          clientName: foundUser?.name,
+        })
+      )
+    } catch {
+      // Si el refetch falla, el modal conserva el snapshot actual.
+    }
   }
 
   return (
@@ -735,6 +772,18 @@ function ReservasSection() {
           <p>Ingresá el DNI de un usuario para ver sus reservas.</p>
         </div>
       )}
+
+      <ReservationDetailModal
+        key={detail?.id ?? 'loading'}
+        isOpen={detailOpen}
+        reservation={detail}
+        viewer="admin"
+        onClose={() => {
+          setDetailOpen(false)
+          setDetail(null)
+        }}
+        onCancel={handleDetailCancel}
+      />
     </motion.div>
   )
 }

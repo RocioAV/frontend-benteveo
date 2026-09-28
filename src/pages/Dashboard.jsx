@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, MotionConfig, AnimatePresence } from 'motion/react'
 import { toast } from 'react-toastify'
@@ -16,6 +16,9 @@ import { uploadAvatar } from '../services/profile.service.js'
 import EmptyState from '../components/EmptyState/EmptyState.jsx'
 import Skeleton from '../components/Skeleton/Skeleton.jsx'
 import VerificationModal from '../components/VerificationModal/VerificationModal.jsx'
+import RatingModal from '../components/modals/RatingModal.jsx'
+import ReservationDetailModal from '../components/modals/ReservationDetailModal.jsx'
+import { fetchReservationDetail } from '../components/modals/reservationDetail.map.js'
 import './Dashboard.css'
 
 // Springs (DESIGN.md §3 — gramática mecánico-líquida)
@@ -62,6 +65,7 @@ const OWNER_ACTIONS = {
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24
 const HISTORY_LIMIT = 6
+const RESERVAS_PAGE_SIZE = 10
 
 function getInitial(name) {
   const trimmed = (name || '').trim()
@@ -150,7 +154,8 @@ function Dashboard() {
   const [error, setError] = useState(false)
   const [reloadToken, setReloadToken] = useState(0)
 
-  const [confirm, setConfirm] = useState(null) // { type, id, title, message }
+  const [confirm, setConfirm] = useState(null) // { type, id, title, message, objectName? }
+  const [ratingFor, setRatingFor] = useState(null) // { id, objectName } — devolución pendiente de calificar
 
   const [editing, setEditing] = useState(false)
   const [editForm, setEditForm] = useState({ name: '', phone: '', bio: '' })
@@ -269,11 +274,24 @@ function Dashboard() {
       toast.info('Resolver la cancelación estará disponible próximamente (falta backend).')
       return
     }
-    setConfirm({ type: key, id: reservation.id, title: meta.title, message: meta.message })
+    setConfirm({
+      type: key,
+      id: reservation.id,
+      title: meta.title,
+      message: meta.message,
+      objectName: reservation.product?.title || '',
+    })
   }
 
   const runConfirm = async () => {
     if (!confirm) return
+    // Devolución: antes de pasar a "recibido" se abre el modal de rating;
+    // la llamada al backend se dispara al cerrarlo (finishRating).
+    if (confirm.type === 'return') {
+      setRatingFor({ id: confirm.id, objectName: confirm.objectName || '' })
+      setConfirm(null)
+      return
+    }
     try {
       if (confirm.type === 'deleteProduct') {
         await deleteProduct(confirm.id)
@@ -287,15 +305,58 @@ function Dashboard() {
       } else if (confirm.type === 'handoff') {
         await handoffReservation(confirm.id)
         toast.success('Entrega confirmada.')
-      } else if (confirm.type === 'return') {
-        await returnReservation(confirm.id)
-        toast.success('Devolución confirmada.')
       }
       setConfirm(null)
       handleRetry()
     } catch (err) {
       toast.error(err.message || 'No se pudo completar la acción.')
     }
+  }
+
+  // Cierra el modal de rating (envío o "Ahora no") y ejecuta la devolución.
+  // TODO: cuando exista el endpoint de reviews, enviar { rating, comment } aquí.
+  const finishRating = async () => {
+    const pending = ratingFor
+    if (!pending) return
+    setRatingFor(null)
+    try {
+      await returnReservation(pending.id)
+      toast.success('Devolución confirmada.')
+      handleRetry()
+    } catch (err) {
+      toast.error(err.message || 'No se pudo completar la acción.')
+    }
+  }
+
+  // Actualiza la reserva en las listas tras una acción del modal de detalle,
+  // sin recargar todo (el modal debe seguir abierto para mostrar el feedback).
+  const patchReservation = (updated) => {
+    setData((prev) => {
+      if (!prev) return prev
+      const fields = {
+        status: updated.status,
+        actualHandoffAt: updated.actualHandoffAt,
+        actualReturnAt: updated.actualReturnAt,
+      }
+      const patch = (list) => list.map((r) => (r.id === updated.id ? { ...r, ...fields } : r))
+      return {
+        ...prev,
+        renterReservations: patch(prev.renterReservations),
+        ownerReservations: patch(prev.ownerReservations),
+      }
+    })
+  }
+
+  // Acciones disparadas desde el modal de detalle (la confirmación vive en el
+  // modal). Los errores se propagan y el modal los muestra con toast.
+  const runDetailCancel = async (detail) => {
+    const updated = await cancelReservation(detail.id)
+    patchReservation(updated)
+  }
+
+  const runDetailHandoff = async (detail) => {
+    const updated = await handoffReservation(detail.id)
+    patchReservation(updated)
   }
 
   // ── Edición de perfil (visual — backend pendiente) ──
@@ -354,15 +415,18 @@ function Dashboard() {
         <ReservasList
           renter={renterReservations}
           owner={ownerReservations}
+          userName={name}
           onCancel={requestCancelReservation}
           onChat={openChat}
           onOwnerAction={requestOwnerAction}
+          onDetailCancel={runDetailCancel}
+          onDetailHandoff={runDetailHandoff}
         />
       )
     }
 
     if (activeSection === 'agenda') {
-      return <AgendaList reservations={ownerReservations} onChat={openChat} />
+      return <AgendaList reservations={ownerReservations} onChat={openChat} onOwnerAction={requestOwnerAction} />
     }
 
     if (activeSection === 'publicaciones') {
@@ -735,14 +799,22 @@ function Dashboard() {
       </AnimatePresence>
 
       <VerificationModal open={verificationOpen} onClose={() => setVerificationOpen(false)} />
+      <RatingModal
+        isOpen={Boolean(ratingFor)}
+        onClose={finishRating}
+        onSubmit={finishRating}
+        objectName={ratingFor?.objectName || ''}
+      />
     </MotionConfig>
   )
 }
 
-// Agenda: personas que reservaron tus productos, en cronograma ordenado por fecha,
-// con hora de entrega y devolución (12:00 mediodía).
-function AgendaList({ reservations, onChat }) {
-  const sorted = [...reservations].sort((a, b) => new Date(a.dateInit) - new Date(b.dateInit))
+// Agenda: reservas de tus productos con flujo en curso (confirmadas o ya
+// entregadas), en cronograma ordenado por fecha, con botones de acción.
+function AgendaList({ reservations, onChat, onOwnerAction }) {
+  const AGENDA_STATUSES = ['CONFIRMED', 'ACTIVE']
+  const visible = reservations.filter((r) => AGENDA_STATUSES.includes(r.status))
+  const sorted = [...visible].sort((a, b) => new Date(a.dateInit) - new Date(b.dateInit))
 
   return (
     <section aria-labelledby="agenda-titulo">
@@ -751,17 +823,25 @@ function AgendaList({ reservations, onChat }) {
           Agenda
         </motion.h1>
         <p className="dashboard-sub">
-          Las reservas de tus productos, ordenadas por fecha. Entrega y devolución a las {PICKUP_TIME}.
+          Reservas confirmadas y en curso, ordenadas por fecha. Entrega y devolución a las {PICKUP_TIME}.
         </p>
       </header>
 
-      {sorted.length === 0 ? (
+      {reservations.length === 0 ? (
         <EmptyState message="Todavía nadie reservó tus productos." />
+      ) : sorted.length === 0 ? (
+        <EmptyState message="No hay reservas confirmadas ni en curso." />
       ) : (
         <ol className="agenda-list">
           {sorted.map((reservation, i) => {
             const renterName = otherParty(reservation, 'owner')
             const product = reservation.product
+            const ownerAction =
+              reservation.status === 'CONFIRMED'
+                ? { key: 'handoff', label: 'Marcar como entregado', icon: 'fa-check' }
+                : reservation.status === 'ACTIVE'
+                  ? { key: 'return', label: 'Marcar como recibido', icon: 'fa-arrow-rotate-left' }
+                  : null
             return (
               <motion.li
                 key={reservation.id}
@@ -788,16 +868,29 @@ function AgendaList({ reservations, onChat }) {
                     </span>
                   </p>
                 </div>
-                <motion.button
-                  type="button"
-                  className="agenda-chat"
-                  whileTap={{ scale: 0.96 }}
-                  transition={springLatch}
-                  onClick={() => onChat(reservation.id)}
-                  aria-label={`Hablar con ${renterName}`}
-                >
-                  <i className="fas fa-comment" aria-hidden="true" /> Hablar
-                </motion.button>
+                <div className="agenda-actions">
+                  {ownerAction ? (
+                    <motion.button
+                      type="button"
+                      className="reserva-btn reserva-btn--owner"
+                      whileTap={{ scale: 0.96 }}
+                      transition={springLatch}
+                      onClick={() => onOwnerAction(ownerAction.key, reservation)}
+                    >
+                      <i className={`fas ${ownerAction.icon}`} aria-hidden="true" /> {ownerAction.label}
+                    </motion.button>
+                  ) : null}
+                  <motion.button
+                    type="button"
+                    className="agenda-chat"
+                    whileTap={{ scale: 0.96 }}
+                    transition={springLatch}
+                    onClick={() => onChat(reservation.id)}
+                    aria-label={`Hablar con ${renterName}`}
+                  >
+                    <i className="fas fa-comment" aria-hidden="true" /> Hablar
+                  </motion.button>
+                </div>
               </motion.li>
             )
           })}
@@ -808,13 +901,70 @@ function AgendaList({ reservations, onChat }) {
 }
 
 // Sub-sección de reservas: tabs inquilino/dueño + acciones según estado + chatear.
-function ReservasList({ renter, owner, onCancel, onChat, onOwnerAction }) {
+function ReservasList({ renter, owner, userName, onCancel, onChat, onOwnerAction, onDetailCancel, onDetailHandoff }) {
   const [tab, setTab] = useState('renter')
+  const [page, setPage] = useState(1)
+  const [detailOpen, setDetailOpen] = useState(false)
+  const [detail, setDetail] = useState(null)
+  const detailClientRef = useRef('')
   const list = tab === 'renter' ? renter : owner
 
   const handleTabChange = (id) => {
     if (id === tab) return
     setTab(id)
+    setPage(1)
+  }
+
+  // Más reciente primero (createdAt desc — el backend también lo ordena así).
+  const sorted = [...list].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  const totalPages = Math.max(1, Math.ceil(sorted.length / RESERVAS_PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const pageItems = sorted.slice(
+    (currentPage - 1) * RESERVAS_PAGE_SIZE,
+    currentPage * RESERVAS_PAGE_SIZE
+  )
+
+  // El cliente es siempre el inquilino: en tab inquilino sos vos; en tab dueño,
+  // el usuario de la reserva (GET /reservations/:id lo trae).
+  const clientNameFor = (reservation) =>
+    tab === 'renter' ? userName : otherParty(reservation, 'owner')
+
+  const openDetail = async (reservation, clientName) => {
+    detailClientRef.current = clientName
+    setDetailOpen(true)
+    setDetail(null)
+    try {
+      const mapped = await fetchReservationDetail(reservation.id, {
+        statusLabels: STATUS_LABELS,
+        clientName,
+      })
+      setDetail(mapped)
+    } catch (err) {
+      toast.error(err?.message || 'No pudimos cargar el detalle de la reserva.')
+      setDetailOpen(false)
+    }
+  }
+
+  const refreshDetail = async (current) => {
+    try {
+      const mapped = await fetchReservationDetail(current.id, {
+        statusLabels: STATUS_LABELS,
+        clientName: detailClientRef.current,
+      })
+      setDetail(mapped)
+    } catch {
+      // Si el refetch falla, el modal conserva el snapshot actual.
+    }
+  }
+
+  const handleDetailCancel = async (current) => {
+    await onDetailCancel(current)
+    await refreshDetail(current)
+  }
+
+  const handleDetailHandoff = async (current) => {
+    await onDetailHandoff(current)
+    await refreshDetail(current)
   }
 
   return (
@@ -845,7 +995,7 @@ function ReservasList({ renter, owner, onCancel, onChat, onOwnerAction }) {
         />
       ) : (
         <div className="reservas-list">
-          {list.map((reservation, i) => {
+          {pageItems.map((reservation, i) => {
             const product = reservation.product
             const status = reservation.status
             const other = otherParty(reservation, tab)
@@ -894,6 +1044,15 @@ function ReservasList({ renter, owner, onCancel, onChat, onOwnerAction }) {
                       <span>/día</span>
                     </span>
                     <div className="reserva-actions">
+                      <motion.button
+                        type="button"
+                        className="reserva-btn reserva-btn--detail"
+                        whileTap={{ scale: 0.96 }}
+                        transition={springLatch}
+                        onClick={() => openDetail(reservation, clientNameFor(reservation))}
+                      >
+                        <i className="fas fa-eye" aria-hidden="true" /> Detalle
+                      </motion.button>
                       {needsCharge ? (
                         <span className="reserva-charge-note">
                           <i className="fas fa-triangle-exclamation" aria-hidden="true" /> Cancelación con cargo
@@ -924,6 +1083,43 @@ function ReservasList({ renter, owner, onCancel, onChat, onOwnerAction }) {
           })}
         </div>
       )}
+
+      {sorted.length > RESERVAS_PAGE_SIZE && (
+        <nav className="reservas-pagination" aria-label="Paginación de reservas">
+          <button
+            type="button"
+            className="reservas-pagination__btn"
+            disabled={currentPage <= 1}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            <i className="fas fa-chevron-left" aria-hidden="true" /> Anterior
+          </button>
+          <span className="reservas-pagination__info">
+            Página {currentPage} de {totalPages}
+          </span>
+          <button
+            type="button"
+            className="reservas-pagination__btn"
+            disabled={currentPage >= totalPages}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Siguiente <i className="fas fa-chevron-right" aria-hidden="true" />
+          </button>
+        </nav>
+      )}
+
+      <ReservationDetailModal
+        key={detail?.id ?? 'loading'}
+        isOpen={detailOpen}
+        reservation={detail}
+        viewer={tab === 'renter' ? 'renter' : 'owner'}
+        onClose={() => {
+          setDetailOpen(false)
+          setDetail(null)
+        }}
+        onCancel={handleDetailCancel}
+        onMarkPickedUp={handleDetailHandoff}
+      />
     </section>
   )
 }
