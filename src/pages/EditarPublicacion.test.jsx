@@ -69,7 +69,11 @@ describe('EditarPublicacion', () => {
   )
 
   beforeEach(() => {
-    vi.clearAllMocks()
+    deleteProductPhotoMock.mockReset()
+    fetchProductMock.mockReset()
+    updateProductMock.mockReset()
+    uploadProductPhotosMock.mockReset()
+    fetchLocalitiesMock.mockReset()
     fetchProductMock.mockResolvedValue(product)
     updateProductMock.mockResolvedValue(product)
     uploadProductPhotosMock.mockResolvedValue([])
@@ -178,22 +182,62 @@ describe('EditarPublicacion', () => {
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:nueva.png')
   })
 
+  it('rechaza una foto con un tipo MIME no permitido sin crear una vista previa', async () => {
+    const user = userEvent.setup({ applyAccept: false })
+    const file = new File(['foto'], 'nueva.gif', { type: 'image/gif' })
+
+    renderPage()
+
+    await user.upload(await screen.findByLabelText('Agregar fotos'), file)
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Las fotos deben ser archivos JPG, PNG o WEBP.',
+    )
+    expect(screen.queryByRole('img', { name: 'Vista previa de nueva.gif' })).not.toBeInTheDocument()
+    expect(URL.createObjectURL).not.toHaveBeenCalled()
+  })
+
+  it('rechaza una foto mayor de 5 MB sin crear una vista previa', async () => {
+    const user = userEvent.setup()
+    const file = new File(
+      [new Uint8Array(5 * 1024 * 1024 + 1)],
+      'grande.jpg',
+      { type: 'image/jpeg' },
+    )
+
+    renderPage()
+
+    await user.upload(await screen.findByLabelText('Agregar fotos'), file)
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Cada foto debe pesar como máximo 5 MB.',
+    )
+    expect(screen.queryByRole('img', { name: 'Vista previa de grande.jpg' })).not.toBeInTheDocument()
+    expect(URL.createObjectURL).not.toHaveBeenCalled()
+  })
+
   it('marca y desmarca una foto existente sin llamar a la API', async () => {
     const user = userEvent.setup()
 
     renderPage()
 
-    const deleteButton = await screen.findByRole('button', { name: 'Eliminar foto' })
+    const deleteButton = await screen.findByRole('button', {
+      name: 'Eliminar foto 1 de Taladro actual',
+    })
     await user.click(deleteButton)
 
     expect(screen.getByText('Marcada para eliminar')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Conservar foto' })).toHaveAttribute(
+    expect(screen.getByRole('button', {
+      name: 'Conservar foto 1 de Taladro actual',
+    })).toHaveAttribute(
       'aria-pressed',
       'true',
     )
     expect(deleteProductPhotoMock).not.toHaveBeenCalled()
 
-    await user.click(screen.getByRole('button', { name: 'Conservar foto' }))
+    await user.click(screen.getByRole('button', {
+      name: 'Conservar foto 1 de Taladro actual',
+    }))
 
     expect(screen.queryByText('Marcada para eliminar')).not.toBeInTheDocument()
     expect(deleteProductPhotoMock).not.toHaveBeenCalled()
@@ -204,7 +248,9 @@ describe('EditarPublicacion', () => {
 
     renderPage()
 
-    await user.click(await screen.findByRole('button', { name: 'Eliminar foto' }))
+    await user.click(await screen.findByRole('button', {
+      name: 'Eliminar foto 1 de Taladro actual',
+    }))
     await user.click(screen.getByRole('button', { name: 'Guardar cambios' }))
 
     expect(screen.getByRole('alert')).toHaveTextContent(
@@ -236,7 +282,9 @@ describe('EditarPublicacion', () => {
     renderPage()
 
     await user.upload(await screen.findByLabelText('Agregar fotos'), file)
-    await user.click(screen.getByRole('button', { name: 'Eliminar foto' }))
+    await user.click(screen.getByRole('button', {
+      name: 'Eliminar foto 1 de Taladro actual',
+    }))
     await user.click(screen.getByRole('button', { name: 'Guardar cambios' }))
 
     expect(uploadProductPhotosMock).toHaveBeenCalledTimes(1)
@@ -250,7 +298,7 @@ describe('EditarPublicacion', () => {
     expect(await screen.findByText('Destino: Mis publicaciones')).toBeInTheDocument()
   })
 
-  it('permanece en la página y reconcilia las fotos si falla una operación', async () => {
+  it('informa el guardado parcial y reconcilia las fotos si falla la carga', async () => {
     const user = userEvent.setup()
     const file = new File(['foto'], 'nueva.jpg', { type: 'image/jpeg' })
     const reconciledProduct = {
@@ -270,17 +318,97 @@ describe('EditarPublicacion', () => {
 
     renderPage()
 
+    const titleInput = await screen.findByRole('textbox', { name: /título/i })
+    await user.clear(titleInput)
+    await user.type(titleInput, 'Taladro con fotos nuevas')
     await user.upload(await screen.findByLabelText('Agregar fotos'), file)
     await user.click(screen.getByRole('button', { name: 'Guardar cambios' }))
 
-    expect(await screen.findByRole('alert')).toHaveTextContent('No pudimos guardar los cambios.')
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Algunos cambios se guardaron, pero no pudimos completar la actualización de las fotos.',
+    )
+    expect(updateProductMock).toHaveBeenCalledWith(
+      'product-1',
+      expect.objectContaining({ title: 'Taladro con fotos nuevas' }),
+    )
+    expect(screen.queryByText('Destino: Mis publicaciones')).not.toBeInTheDocument()
+    expect(
+      await screen.findByRole('img', { name: 'Foto 1 de Taladro con fotos nuevas' }),
+    ).toHaveAttribute('src', 'https://example.com/reconciliada.jpg')
+    expect(fetchProductMock).toHaveBeenCalledTimes(2)
+    expect(deleteProductPhotoMock).not.toHaveBeenCalled()
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:nueva.jpg')
+  })
+
+  it('informa el guardado parcial y reconcilia las fotos si falla una eliminación', async () => {
+    const user = userEvent.setup()
+    const productWithTwoPhotos = {
+      ...product,
+      photos: [
+        ...product.photos,
+        {
+          id: 'photo-2',
+          url: 'https://example.com/accesorios.jpg',
+          publicId: 'benteveo/products/product-1/photo-2',
+        },
+      ],
+    }
+    const reconciledProduct = {
+      ...product,
+      photos: [
+        {
+          id: 'photo-2',
+          url: 'https://example.com/reconciliada.jpg',
+          publicId: 'benteveo/products/product-1/photo-2',
+        },
+      ],
+    }
+    fetchProductMock
+      .mockResolvedValueOnce(productWithTwoPhotos)
+      .mockResolvedValueOnce(reconciledProduct)
+    deleteProductPhotoMock.mockRejectedValue(new Error('Error al eliminar'))
+
+    renderPage()
+
+    await user.click(await screen.findByRole('button', {
+      name: 'Eliminar foto 1 de Taladro actual',
+    }))
+    await user.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Algunos cambios se guardaron, pero no pudimos completar la actualización de las fotos.',
+    )
+    expect(updateProductMock).toHaveBeenCalledTimes(1)
+    expect(uploadProductPhotosMock).not.toHaveBeenCalled()
+    expect(deleteProductPhotoMock).toHaveBeenCalledWith(
+      'benteveo/products/product-1/photo-1',
+    )
     expect(screen.queryByText('Destino: Mis publicaciones')).not.toBeInTheDocument()
     expect(
       await screen.findByRole('img', { name: 'Foto 1 de Taladro actual' }),
     ).toHaveAttribute('src', 'https://example.com/reconciliada.jpg')
     expect(fetchProductMock).toHaveBeenCalledTimes(2)
-    expect(deleteProductPhotoMock).not.toHaveBeenCalled()
-    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:nueva.jpg')
+  })
+
+  it('informa un estado incierto si también falla la reconciliación de fotos', async () => {
+    const user = userEvent.setup()
+    const file = new File(['foto'], 'nueva.jpg', { type: 'image/jpeg' })
+    fetchProductMock
+      .mockResolvedValueOnce(product)
+      .mockRejectedValueOnce(new Error('Error al reconciliar'))
+    uploadProductPhotosMock.mockRejectedValue(new Error('Error al subir'))
+
+    renderPage()
+
+    await user.upload(await screen.findByLabelText('Agregar fotos'), file)
+    await user.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+
+    expect(await screen.findByText(
+      'Algunos cambios pueden haberse guardado, pero no pudimos actualizar el estado actual de las fotos.',
+    )).toBeInTheDocument()
+    expect(updateProductMock).toHaveBeenCalledTimes(1)
+    expect(fetchProductMock).toHaveBeenCalledTimes(2)
+    expect(screen.queryByText('Destino: Mis publicaciones')).not.toBeInTheDocument()
   })
 
   it('muestra un mensaje si no puede guardar los cambios', async () => {

@@ -11,11 +11,11 @@ vi.mock('./api', () => ({
   default: vi.fn(),
 }))
 
-describe('updateProduct', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
+beforeEach(() => {
+  apiClient.mockReset()
+})
 
+describe('updateProduct', () => {
   it('envía los cambios mediante PATCH al producto indicado', async () => {
     const data = {
       title: 'Taladro actualizado',
@@ -79,15 +79,19 @@ describe('uploadProductPhotos', () => {
     ]
     const appendSpy = vi.spyOn(FormData.prototype, 'append')
 
-    apiClient.mockResolvedValue([])
+    try {
+      apiClient.mockResolvedValue([])
 
-    await uploadProductPhotos('product-1', files)
+      await uploadProductPhotos('product-1', files)
 
-    expect(apiClient).toHaveBeenCalledWith('/products/product-1/photos', {
-      method: 'POST',
-      body: expect.any(FormData),
-    })
-    expect(appendSpy).toHaveBeenNthCalledWith(1, 'photos', files[0])
-    expect(appendSpy).toHaveBeenNthCalledWith(2, 'photos', files[1])
+      expect(apiClient).toHaveBeenCalledWith('/products/product-1/photos', {
+        method: 'POST',
+        body: expect.any(FormData),
+      })
+      expect(appendSpy).toHaveBeenNthCalledWith(1, 'photos', files[0])
+      expect(appendSpy).toHaveBeenNthCalledWith(2, 'photos', files[1])
+    } finally {
+      appendSpy.mockRestore()
+    }
   })
 })

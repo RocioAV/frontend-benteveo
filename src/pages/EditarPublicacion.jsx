@@ -220,8 +220,11 @@ function EditarPublicacion() {
       isAvailable: formData.isAvailable,
     }
 
+    let productUpdated = false
+
     try {
       await updateProduct(id, payload)
+      productUpdated = true
 
       if (newPhotos.length > 0) {
         await uploadProductPhotos(id, newPhotos.map(({ file }) => file))
@@ -233,7 +236,11 @@ function EditarPublicacion() {
 
       navigate('/dashboard?tab=publicaciones')
     } catch {
-      setSaveError('No pudimos guardar los cambios.')
+      setSaveError(
+        productUpdated
+          ? 'Algunos cambios se guardaron, pero no pudimos completar la actualización de las fotos.'
+          : 'No pudimos guardar los cambios.',
+      )
 
       clearNewPhotos()
 
@@ -242,7 +249,9 @@ function EditarPublicacion() {
         setExistingPhotos(product.photos ?? [])
         setMarkedPhotoIds([])
       } catch {
-        setSaveError('No pudimos guardar los cambios ni actualizar las fotos.')
+        setSaveError(
+          'Algunos cambios pueden haberse guardado, pero no pudimos actualizar el estado actual de las fotos.',
+        )
       }
     } finally {
       setSaving(false)
@@ -424,6 +433,7 @@ function EditarPublicacion() {
                   <button
                     type="button"
                     className="editar-publicacion-photo-action"
+                    aria-label={`${markedForDeletion ? 'Conservar' : 'Eliminar'} foto ${index + 1} de ${formData.title}`}
                     aria-pressed={markedForDeletion}
                     onClick={() => toggleExistingPhoto(photo.publicId)}
                     disabled={saving}
