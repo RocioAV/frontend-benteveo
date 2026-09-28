@@ -774,6 +774,16 @@
   background: var(--color-primary-hover);
 }
 
+.reserva-btn--detail {
+  color: var(--color-dark);
+  background: transparent;
+  border: 1px solid var(--color-border);
+}
+
+.reserva-btn--detail:hover {
+  background: var(--color-concrete-surface);
+}
+
 /* ── Publicaciones ── */
 .publicacion-body {
   flex: 1;

@@ -16,6 +16,8 @@ import { uploadAvatar } from '../services/profile.service.js'
 import EmptyState from '../components/EmptyState/EmptyState.jsx'
 import Skeleton from '../components/Skeleton/Skeleton.jsx'
 import VerificationModal from '../components/VerificationModal/VerificationModal.jsx'
+import ReservationDetailModal from '../components/modals/ReservationDetailModal.jsx'
+import { mapReservationToDetail } from '../components/modals/reservationDetail.map.js'
 import './Dashboard.css'
 
 // Springs (DESIGN.md §3 — gramática mecánico-líquida)
@@ -810,11 +812,16 @@ function AgendaList({ reservations, onChat }) {
 // Sub-sección de reservas: tabs inquilino/dueño + acciones según estado + chatear.
 function ReservasList({ renter, owner, onCancel, onChat, onOwnerAction }) {
   const [tab, setTab] = useState('renter')
+  const [detail, setDetail] = useState(null)
   const list = tab === 'renter' ? renter : owner
 
   const handleTabChange = (id) => {
     if (id === tab) return
     setTab(id)
+  }
+
+  const openDetail = (reservation, clientName) => {
+    setDetail(mapReservationToDetail(reservation, { statusLabels: STATUS_LABELS, clientName }))
   }
 
   return (
@@ -894,6 +901,15 @@ function ReservasList({ renter, owner, onCancel, onChat, onOwnerAction }) {
                       <span>/día</span>
                     </span>
                     <div className="reserva-actions">
+                      <motion.button
+                        type="button"
+                        className="reserva-btn reserva-btn--detail"
+                        whileTap={{ scale: 0.96 }}
+                        transition={springLatch}
+                        onClick={() => openDetail(reservation, other)}
+                      >
+                        <i className="fas fa-eye" aria-hidden="true" /> Detalle
+                      </motion.button>
                       {needsCharge ? (
                         <span className="reserva-charge-note">
                           <i className="fas fa-triangle-exclamation" aria-hidden="true" /> Cancelación con cargo
@@ -924,6 +940,8 @@ function ReservasList({ renter, owner, onCancel, onChat, onOwnerAction }) {
           })}
         </div>
       )}
+
+      <ReservationDetailModal isOpen={!!detail} reservation={detail} onClose={() => setDetail(null)} />
     </section>
   )
 }

@@ -5,6 +5,8 @@ import { useAuth } from '../context/useAuth'
 import { useNavigate, Link } from 'react-router-dom'
 import EmptyState from '../components/EmptyState/EmptyState.jsx'
 import Skeleton from '../components/Skeleton/Skeleton.jsx'
+import ReservationDetailModal from '../components/modals/ReservationDetailModal.jsx'
+import { mapReservationToDetail } from '../components/modals/reservationDetail.map.js'
 import {
   fetchRecentUsers,
   fetchUserByDni,
@@ -585,6 +587,7 @@ function ReservasSection() {
   const [searching, setSearching] = useState(false)
   const [loadingRes, setLoadingRes] = useState(false)
   const [cancellingId, setCancellingId] = useState(null)
+  const [detail, setDetail] = useState(null)
 
   const handleSearch = async (e) => {
     e.preventDefault()
@@ -635,8 +638,13 @@ function ReservasSection() {
     }
   }
 
-  const handleViewReservation = () => {
-    toast.info('Detalle de reserva próximamente')
+  const handleViewReservation = (r) => {
+    setDetail(
+      mapReservationToDetail(r, {
+        statusLabels: STATUS_LABELS,
+        clientName: foundUser?.name ?? r.user?.name,
+      })
+    )
   }
 
   return (
@@ -735,6 +743,8 @@ function ReservasSection() {
           <p>Ingresá el DNI de un usuario para ver sus reservas.</p>
         </div>
       )}
+
+      <ReservationDetailModal isOpen={!!detail} reservation={detail} onClose={() => setDetail(null)} />
     </motion.div>
   )
 }

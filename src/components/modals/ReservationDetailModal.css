@@ -1,0 +1,366 @@
+/* ReservationDetailModal.css
+   Estilos del modal de detalle de reserva de Benteveo.
+   Original: estilos.css (diseño de la colega). Se mantienen las mismas
+   declaraciones, pero con prefijo `bvrd-` para evitar colisiones de clases
+   globales (.modal-actions, .btn, .row, etc.) con el resto del proyecto. */
+
+/* ---------- Overlay + modal ---------- */
+
+.bvrd-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 17, 12, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 50;
+
+  --bg-page: #EDE7D8;
+  --bg-card: #FBF8F2;
+  --ink: #1C1A17;
+  --ink-soft: #746B5C;
+  --border: #E8E1D3;
+  --accent: #F2B705;
+  --accent-hover: #E0AB04;
+  --accent-ink: #6B4F00;
+  --accent-soft: #FCF0C8;
+  --secondary: #8C6A4A;
+  --secondary-soft: #EFE4D6;
+  --danger: #A23E2F;
+  --shadow: rgba(28, 26, 23, 0.18);
+
+  --font-serif: Georgia, "Times New Roman", serif;
+}
+
+.bvrd-modal {
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--bg-card);
+  border-radius: 6px;
+  box-shadow: 0 24px 48px var(--shadow);
+  animation: bvrd-rise 0.28s ease-out;
+}
+
+@keyframes bvrd-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bvrd-modal { animation: none; }
+}
+
+/* ---------- Imagen del objeto ---------- */
+
+.bvrd-object-media {
+  position: relative;
+  height: 190px;
+  overflow: hidden;
+  background-color: var(--secondary);
+}
+
+.bvrd-object-media img,
+.bvrd-object-media svg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.bvrd-object-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(28, 26, 23, 0) 40%, rgba(28, 26, 23, 0.72) 100%);
+}
+
+.bvrd-close-btn {
+  position: absolute;
+  z-index: 2;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(251, 248, 242, 0.9);
+  border: none;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.bvrd-close-btn:hover {
+  background: #FFFFFF;
+}
+
+.bvrd-close-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.bvrd-close-btn i {
+  font-size: 16px;
+}
+
+.bvrd-object-tag {
+  position: absolute;
+  z-index: 2;
+  left: 20px;
+  bottom: 16px;
+  color: var(--bg-card);
+}
+
+.bvrd-object-tag .bvrd-category {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.85;
+  margin-bottom: 2px;
+}
+
+.bvrd-object-tag h2 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 400;
+}
+
+/* ---------- Encabezado con estado y código ---------- */
+
+.bvrd-modal-header {
+  padding: 18px 24px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.bvrd-ref {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.bvrd-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.bvrd-status::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Variante de color cuando la reserva se cancela */
+.bvrd-status.bvrd-status--danger {
+  background: #F3E3E0;
+  color: var(--danger);
+}
+.bvrd-status.bvrd-status--danger::before {
+  background: var(--danger);
+}
+
+/* ---------- Período de alquiler ---------- */
+
+.bvrd-rental-period {
+  display: flex;
+  align-items: center;
+  padding: 20px 24px;
+  gap: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.bvrd-period-block {
+  flex: 1;
+  text-align: center;
+}
+
+.bvrd-period-block .bvrd-label {
+  font-size: 11px;
+  color: var(--ink-soft);
+  margin-bottom: 4px;
+}
+
+.bvrd-period-block .bvrd-date {
+  font-family: var(--font-serif);
+  font-size: 18px;
+}
+
+.bvrd-period-arrow {
+  color: var(--secondary);
+  font-size: 16px;
+  padding-bottom: 2px;
+}
+
+.bvrd-duration-note {
+  text-align: center;
+  font-size: 12px;
+  color: var(--ink-soft);
+  padding: 8px 24px 0;
+}
+
+/* ---------- Cuerpo ---------- */
+
+.bvrd-modal-body {
+  padding: 16px 24px 4px;
+}
+
+.bvrd-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--border);
+  gap: 16px;
+}
+
+.bvrd-row:last-child {
+  border-bottom: none;
+}
+
+.bvrd-row .bvrd-label {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.bvrd-row .bvrd-value {
+  font-size: 14px;
+  text-align: right;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.bvrd-row .bvrd-value i {
+  font-size: 13px;
+}
+
+.bvrd-row--total .bvrd-value {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.bvrd-row--total .bvrd-label {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.bvrd-notes {
+  margin: 16px 0 4px;
+  padding: 14px 16px;
+  background: var(--secondary-soft);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.bvrd-notes strong {
+  display: block;
+  color: var(--ink);
+  font-size: 12px;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.bvrd-feedback {
+  padding: 0 24px 8px;
+  font-size: 12px;
+  color: var(--accent-ink);
+}
+
+/* ---------- Acciones ---------- */
+
+.bvrd-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 20px 24px 24px;
+}
+
+.bvrd-btn {
+  flex: 1;
+  min-width: 120px;
+  padding: 12px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.bvrd-btn:active {
+  transform: scale(0.98);
+}
+
+.bvrd-btn:focus-visible {
+  outline: 2px solid var(--accent-ink);
+  outline-offset: 2px;
+}
+
+.bvrd-btn--primary {
+  background: var(--accent);
+  color: var(--ink);
+}
+
+.bvrd-btn--primary:hover {
+  background: var(--accent-hover);
+}
+
+.bvrd-btn--secondary {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--border);
+}
+
+.bvrd-btn--secondary:hover {
+  background: #F1EBDC;
+}
+
+.bvrd-btn-danger-link {
+  flex: none;
+  background: none;
+  border: none;
+  color: var(--danger);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 12px 4px;
+  width: 100%;
+  text-align: center;
+  order: 3;
+}
+
+.bvrd-btn-danger-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .bvrd-modal-header,
+  .bvrd-rental-period,
+  .bvrd-duration-note,
+  .bvrd-modal-body,
+  .bvrd-modal-actions {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+}
