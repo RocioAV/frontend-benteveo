@@ -64,6 +64,7 @@ const OWNER_ACTIONS = {
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24
 const HISTORY_LIMIT = 6
+const RESERVAS_PAGE_SIZE = 10
 
 function getInitial(name) {
   const trimmed = (name || '').trim()
@@ -846,6 +847,7 @@ function AgendaList({ reservations, onChat }) {
 // Sub-sección de reservas: tabs inquilino/dueño + acciones según estado + chatear.
 function ReservasList({ renter, owner, userName, onCancel, onChat, onOwnerAction, onDetailCancel, onDetailHandoff }) {
   const [tab, setTab] = useState('renter')
+  const [page, setPage] = useState(1)
   const [detailOpen, setDetailOpen] = useState(false)
   const [detail, setDetail] = useState(null)
   const detailClientRef = useRef('')
@@ -854,7 +856,17 @@ function ReservasList({ renter, owner, userName, onCancel, onChat, onOwnerAction
   const handleTabChange = (id) => {
     if (id === tab) return
     setTab(id)
+    setPage(1)
   }
+
+  // Más reciente primero (createdAt desc — el backend también lo ordena así).
+  const sorted = [...list].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  const totalPages = Math.max(1, Math.ceil(sorted.length / RESERVAS_PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const pageItems = sorted.slice(
+    (currentPage - 1) * RESERVAS_PAGE_SIZE,
+    currentPage * RESERVAS_PAGE_SIZE
+  )
 
   // El cliente es siempre el inquilino: en tab inquilino sos vos; en tab dueño,
   // el usuario de la reserva (GET /reservations/:id lo trae).
@@ -927,7 +939,7 @@ function ReservasList({ renter, owner, userName, onCancel, onChat, onOwnerAction
         />
       ) : (
         <div className="reservas-list">
-          {list.map((reservation, i) => {
+          {pageItems.map((reservation, i) => {
             const product = reservation.product
             const status = reservation.status
             const other = otherParty(reservation, tab)
@@ -1014,6 +1026,30 @@ function ReservasList({ renter, owner, userName, onCancel, onChat, onOwnerAction
             )
           })}
         </div>
+      )}
+
+      {sorted.length > RESERVAS_PAGE_SIZE && (
+        <nav className="reservas-pagination" aria-label="Paginación de reservas">
+          <button
+            type="button"
+            className="reservas-pagination__btn"
+            disabled={currentPage <= 1}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            <i className="fas fa-chevron-left" aria-hidden="true" /> Anterior
+          </button>
+          <span className="reservas-pagination__info">
+            Página {currentPage} de {totalPages}
+          </span>
+          <button
+            type="button"
+            className="reservas-pagination__btn"
+            disabled={currentPage >= totalPages}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            Siguiente <i className="fas fa-chevron-right" aria-hidden="true" />
+          </button>
+        </nav>
       )}
 
       <ReservationDetailModal

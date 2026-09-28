@@ -255,7 +255,7 @@ export default function ReservationDetailModal({
           <div className="bvrd-modal-actions">
             {canCancel ? (
               <button type="button" className="bvrd-btn-danger-link" onClick={() => setStep('cancel')}>
-                Cancelar reserva
+                <i className="fas fa-ban" aria-hidden="true" /> Cancelar reserva
               </button>
             ) : null}
             {canHandoff ? (

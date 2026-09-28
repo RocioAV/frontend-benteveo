@@ -368,21 +368,29 @@
 }
 
 .bvrd-btn-danger-link {
-  flex: none;
-  background: none;
-  border: none;
+  flex: 1 1 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid var(--danger);
   color: var(--danger);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  padding: 12px 4px;
-  width: 100%;
-  text-align: center;
+  padding: 12px 16px;
+  border-radius: 4px;
   order: 3;
+  transition: background 0.15s ease, transform 0.1s ease;
 }
 
 .bvrd-btn-danger-link:hover {
-  text-decoration: underline;
+  background: #F3E3E0;
+}
+
+.bvrd-btn-danger-link:active {
+  transform: scale(0.98);
 }
 
 @media (max-width: 480px) {
