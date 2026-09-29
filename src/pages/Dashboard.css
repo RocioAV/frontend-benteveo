@@ -921,9 +921,29 @@
 
 .publicacion-actions {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   margin-left: auto;
+}
+
+.publicacion-title-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.publicacion-title-link:hover,
+.publicacion-title-link:focus-visible {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
 }
 
 .publicacion-toggle {
@@ -1255,6 +1275,7 @@
     flex-basis: 100%;
   }
 
+  .publicacion-toggle,
   .publicacion-edit,
   .publicacion-delete {
     flex: 1;
