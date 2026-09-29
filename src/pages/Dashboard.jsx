@@ -12,7 +12,7 @@ import {
   handoffReservation,
   returnReservation,
 } from '../services/reservations.service.js'
-import { uploadAvatar } from '../services/profile.service.js'
+import { uploadAvatar, updateProfile } from '../services/profile.service.js'
 import EmptyState from '../components/EmptyState/EmptyState.jsx'
 import Skeleton from '../components/Skeleton/Skeleton.jsx'
 import VerificationModal from '../components/VerificationModal/VerificationModal.jsx'
@@ -142,6 +142,22 @@ function ownerActionFor(status) {
   }
 }
 
+// Mensaje más útil del backend: primero el detalle por campo (fields),
+// luego el message del ApiError y por último un fallback genérico.
+function getProfileErrorMessage(err) {
+  const fields = err?.fields
+  if (fields && typeof fields === 'object') {
+    const first = Object.values(fields).find(
+      (value) => typeof value === 'string' && value.trim() !== ''
+    )
+    if (first) return first
+  }
+  if (typeof err?.message === 'string' && err.message.trim() !== '') {
+    return err.message
+  }
+  return 'No pudimos guardar los cambios.'
+}
+
 function Dashboard() {
   const { user, userId, logout, refreshUser } = useAuth()
   const navigate = useNavigate()
@@ -160,6 +176,7 @@ function Dashboard() {
 
   const [editing, setEditing] = useState(false)
   const [editForm, setEditForm] = useState({ name: '', phone: '', bio: '' })
+  const [savingProfile, setSavingProfile] = useState(false)
   const [avatarPreview, setAvatarPreview] = useState(null)
   const [verificationOpen, setVerificationOpen] = useState(false)
 
@@ -356,7 +373,7 @@ function Dashboard() {
     patchReservation(updated)
   }
 
-  // ── Edición de perfil (visual — backend pendiente) ──
+  // ── Edición de perfil (PATCH /user/data-user) ──
   const startEditing = () => {
     setEditForm({ name, phone: phone || '', bio: bio || '' })
     setEditing(true)
@@ -366,11 +383,37 @@ function Dashboard() {
     setEditForm((f) => ({ ...f, [e.target.name]: e.target.value }))
   }
 
-  const cancelEditing = () => setEditing(false)
-
-  const saveEditing = () => {
+  const cancelEditing = () => {
+    if (savingProfile) return
     setEditing(false)
-    toast.info('Edición de perfil disponible próximamente (falta backend).')
+  }
+
+  // PATCH /user/data-user con solo los campos cambiados. `bio` (alias visual)
+  // se mapea a `description`; nunca se envían bio, email, DNI, IDs ni otros
+  // campos. Un nombre/teléfono vaciado se envía tal cual para que el backend
+  // lo rechace como error de validación; una bio vacía se envía como
+  // `description: ''` para permitir limpiar la presentación.
+  const saveEditing = async () => {
+    if (savingProfile) return
+    const payload = {}
+    if (editForm.name !== name) payload.name = editForm.name
+    if (editForm.phone !== (phone || '')) payload.phone = editForm.phone
+    if (editForm.bio !== (bio || '')) payload.description = editForm.bio
+    if (Object.keys(payload).length === 0) {
+      setEditing(false)
+      return
+    }
+    setSavingProfile(true)
+    try {
+      await updateProfile(payload)
+      await refreshUser()
+      setEditing(false)
+      toast.success('Perfil actualizado.')
+    } catch (err) {
+      toast.error(getProfileErrorMessage(err))
+    } finally {
+      setSavingProfile(false)
+    }
   }
 
   const handleAvatarChange = async (e) => {
@@ -635,11 +678,11 @@ function Dashboard() {
                 <textarea id="edit-bio" name="bio" className="perfil-input" rows={3} value={editForm.bio} onChange={handleEditChange} />
               </div>
               <div className="perfil-form-actions">
-                <button type="button" className="perfil-btn perfil-btn--ghost" onClick={cancelEditing}>
+                <button type="button" className="perfil-btn perfil-btn--ghost" onClick={cancelEditing} disabled={savingProfile}>
                   Cancelar
                 </button>
-                <motion.button type="button" className="perfil-btn perfil-btn--primary" whileTap={{ scale: 0.96 }} transition={springLatch} onClick={saveEditing}>
-                  Guardar cambios
+                <motion.button type="button" className="perfil-btn perfil-btn--primary" whileTap={{ scale: 0.96 }} transition={springLatch} onClick={saveEditing} disabled={savingProfile}>
+                  {savingProfile ? 'Guardando...' : 'Guardar cambios'}
                 </motion.button>
               </div>
             </div>
