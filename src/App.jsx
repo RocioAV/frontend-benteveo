@@ -20,6 +20,10 @@ const MisReservas = lazy(() => import('./pages/MisReservas.jsx'))
 const Dashboard = lazy(() => import('./pages/Dashboard.jsx'))
 const ChatPage = lazy(() => import('./pages/ChatPage.jsx'))
 const AdminPanel = lazy(() => import('./pages/AdminPanel.jsx'))
+const PagoExitoso = lazy(() => import('./pages/PagoExitoso.jsx'))
+const PagoFallido = lazy(() => import('./pages/PagoFallido.jsx'))
+const PagoPendiente = lazy(() => import('./pages/PagoPendiente.jsx'))
+const EditarPublicacion = lazy(() => import('./pages/EditarPublicacion.jsx'))
 
 function PageFallback() {
   return (
@@ -46,10 +50,15 @@ function App() {
             <Route path="/admin" element={<RequireAuth><AdminPanel /></RequireAuth>} />
             <Route path="/chat/:reservationId" element={<RequireAuth><ChatPage /></RequireAuth>} />
             <Route path="/demo-modales" element={<DemoModales />} />
+            {/* Retorno desde Mercado Pago (back_urls) */}
+            <Route path="/pago-exitoso" element={<PagoExitoso />} />
+            <Route path="/pago-fallido" element={<PagoFallido />} />
+            <Route path="/pago-pendiente" element={<PagoPendiente />} />
             <Route path="*" element={<NotFound />} />
           </Route>
           {/* Autenticación: sin header/footer, solo botón de volver */}
           <Route path="/publicar" element={<RequireAuth><Publicar /></RequireAuth>} />
+          <Route path="/publicaciones/:id/editar" element={<RequireAuth><EditarPublicacion /></RequireAuth>} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Registro />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />

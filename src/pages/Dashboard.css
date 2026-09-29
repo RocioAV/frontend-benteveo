@@ -772,6 +772,55 @@
   background: var(--color-primary-hover);
 }
 
+.reserva-btn--detail {
+  color: var(--color-dark);
+  background: transparent;
+  border: 1px solid var(--color-border);
+}
+
+.reserva-btn--detail:hover {
+  background: var(--color-concrete-surface);
+}
+
+/* ── Paginación de "Mis reservas" ── */
+.reservas-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.reservas-pagination__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-dark);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.reservas-pagination__btn:hover:not(:disabled) {
+  background: var(--color-concrete-surface);
+}
+
+.reservas-pagination__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.reservas-pagination__info {
+  font-size: 0.82rem;
+  color: var(--color-concrete);
+}
+
 .publicacion-body {
   flex: 1;
   min-width: 0;
@@ -789,6 +838,34 @@
   font-size: 0.8rem;
   font-weight: 500;
   color: var(--color-concrete);
+}
+
+.publicacion-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.publicacion-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-dark);
+  background: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.publicacion-edit:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
 }
 
 .publicacion-delete {
@@ -841,9 +918,29 @@
 
 .publicacion-actions {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   margin-left: auto;
+}
+
+.publicacion-title-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.publicacion-title-link:hover,
+.publicacion-title-link:focus-visible {
+  color: var(--color-primary-hover);
+  text-decoration: underline;
 }
 
 .publicacion-toggle {
@@ -980,6 +1077,15 @@
 
 .agenda-chat:hover {
   background: var(--color-primary-hover);
+}
+
+.agenda-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .conversacion-card {
@@ -1156,6 +1262,17 @@
   .reserva-card,
   .publicacion-card {
     flex-wrap: wrap;
+  }
+
+  .publicacion-actions {
+    flex-basis: 100%;
+  }
+
+  .publicacion-toggle,
+  .publicacion-edit,
+  .publicacion-delete {
+    flex: 1;
+    justify-content: center;
   }
 }
 

@@ -23,6 +23,7 @@ export function mapProduct(p) {
     deliveryMethod: p.deliveryMethod ?? null,
     imageUrl: photos[0]?.url ?? null,
     images: photos.map((photo) => photo.url),
+    photos: photos.map(({ id, url, publicId }) => ({ id, url, publicId })),
     isAvailable: p.isAvailable,
     rating: p.rating ?? null,
     reviewCount: p.reviewCount ?? 0,
@@ -54,6 +55,13 @@ export async function deleteProduct(id) {
   return apiClient(`/products/${id}`, { method: 'DELETE' })
 }
 
+export async function updateProduct(id, data) {
+  return apiClient(`/products/${id}`, {
+    method: 'PATCH',
+    body: data,
+  })
+}
+
 export async function createProduct(data) {
   return apiClient('/products', { method: 'POST', body: data })
 }
@@ -66,6 +74,12 @@ export async function uploadProductPhotos(productId, files) {
   return apiClient(`/products/${productId}/photos`, {
     method: 'POST',
     body: formData,
+  })
+}
+
+export async function deleteProductPhoto(publicId) {
+  return apiClient(`/products/photos?publicId=${encodeURIComponent(publicId)}`, {
+    method: 'DELETE',
   })
 }
 
