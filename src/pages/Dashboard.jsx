@@ -465,7 +465,15 @@ function Dashboard() {
                     )}
                   </div>
                   <div className="publicacion-body">
-                    <h2 className="publicacion-title">{product.title}</h2>
+                    <h2 className="publicacion-title">
+                      <button
+                        type="button"
+                        className="publicacion-title-link"
+                        onClick={() => navigate(`/detalle/${product.id}`)}
+                      >
+                        {product.title}
+                      </button>
+                    </h2>
                     <p className="publicacion-price">
                       ${product.pricePerDay.toLocaleString('es-AR')}
                       <span>/día</span>
@@ -485,6 +493,16 @@ function Dashboard() {
                       ) : (
                         <><i className="fas fa-eye-slash" aria-hidden="true" /> Desactivar</>
                       )}
+                    </motion.button>
+                    <motion.button
+                      type="button"
+                      className="publicacion-edit"
+                      whileTap={{ scale: 0.96 }}
+                      transition={springLatch}
+                      onClick={() => navigate(`/publicaciones/${product.id}/editar`)}
+                      aria-label={`Editar ${product.title}`}
+                    >
+                      <i className="fas fa-pen" aria-hidden="true" /> Editar
                     </motion.button>
                     <motion.button
                       type="button"

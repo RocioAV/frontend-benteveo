@@ -23,6 +23,7 @@ const AdminPanel = lazy(() => import('./pages/AdminPanel.jsx'))
 const PagoExitoso = lazy(() => import('./pages/PagoExitoso.jsx'))
 const PagoFallido = lazy(() => import('./pages/PagoFallido.jsx'))
 const PagoPendiente = lazy(() => import('./pages/PagoPendiente.jsx'))
+const EditarPublicacion = lazy(() => import('./pages/EditarPublicacion.jsx'))
 
 function PageFallback() {
   return (
@@ -57,6 +58,7 @@ function App() {
           </Route>
           {/* Autenticación: sin header/footer, solo botón de volver */}
           <Route path="/publicar" element={<RequireAuth><Publicar /></RequireAuth>} />
+          <Route path="/publicaciones/:id/editar" element={<RequireAuth><EditarPublicacion /></RequireAuth>} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Registro />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
