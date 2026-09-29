@@ -1,16 +1,14 @@
 import { Fragment, useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion, MotionConfig } from 'motion/react'
-// import { useParams, Link } from 'react-router-dom'
-// import { getProductById } from '../services/product.service.js'
-// import { getUserById } from '../services/user.service.js'
 import Reservation from './Reservation.jsx'
 import ProductCard from '../components/ProductCard/ProductCard.jsx'
 import Skeleton from '../components/Skeleton/Skeleton.jsx'
 import EmptyState from '../components/EmptyState/EmptyState.jsx'
+import ProductReviews from '../components/ProductReviews/ProductReviews.jsx'
 import { fetchProduct, fetchProducts, fetchPublicProfile } from '../services/products.service.js'
+import { useFavorites } from '../context/useFavorites'
 
-// Springs (DESIGN.md §3 — gramática mecánico-líquida)
 const springReveal = { type: 'spring', stiffness: 260, damping: 26 }
 const springLatch = { type: 'spring', stiffness: 400, damping: 28 }
 const springSoft = { type: 'spring', stiffness: 170, damping: 26 }
@@ -18,6 +16,7 @@ const springSoft = { type: 'spring', stiffness: 170, damping: 26 }
 function DetalleProducto() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { isFavorite, toggleFavorite } = useFavorites()
 
   const [product, setProduct] = useState(null) // null = cargando
   const [owner, setOwner] = useState(null)
@@ -26,12 +25,8 @@ function DetalleProducto() {
   const [prevId, setPrevId] = useState(id)
 
   const [activeTab, setActiveTab] = useState('descripcion')
-  const [showAllReviews, setShowAllReviews] = useState(false)
   const [activeImage, setActiveImage] = useState(0)
 
-  // Ajuste de estado durante render: al cambiar el id (navegar entre productos
-  // desde "Productos similares"), se resetea para mostrar loading en vez del
-  // producto anterior. Patrón recomendado por React ("adjusting state during render").
   if (prevId !== id) {
     setPrevId(id)
     setProduct(null)
@@ -39,7 +34,6 @@ function DetalleProducto() {
     setOwner(null)
     setSuggestions([])
     setActiveTab('descripcion')
-    setShowAllReviews(false)
     setActiveImage(0)
   }
 
@@ -54,7 +48,6 @@ function DetalleProducto() {
         setOwner(null)
         setSuggestions([])
 
-        // Perfil público del propietario (best-effort: si falla, fallback neutro).
         if (data.ownerId) {
           fetchPublicProfile(data.ownerId)
             .then((profile) => {
@@ -65,7 +58,6 @@ function DetalleProducto() {
             })
         }
 
-        // Sugerencias de la misma categoría (best-effort).
         fetchProducts()
           .then((list) => {
             if (cancelled) return
@@ -111,7 +103,6 @@ function DetalleProducto() {
     )
   }
 
-  // Galería: consume tokens var(--color-*) — derivo de product.images (mapProduct) con fallback a imageUrl.
   const images = Array.isArray(product.images) && product.images.length > 0
     ? product.images
     : (product.imageUrl ? [product.imageUrl] : [])
@@ -119,10 +110,9 @@ function DetalleProducto() {
   const goPrev = () => setActiveImage((i) => (i - 1 + images.length) % images.length)
   const goNext = () => setActiveImage((i) => (i + 1) % images.length)
 
-  const reviews = product.reviews || []
-  const visibleReviews = showAllReviews ? reviews : reviews.slice(0, 3)
-
-  // Perfil público del dueño (fallback neutro si el fetch falló o no llegó).
+  const handleRated = ({ rating, reviewCount }) => {
+    setProduct((prev) => (prev ? { ...prev, rating, reviewCount } : prev))
+  }
   const ownerName = owner?.name ?? 'Propietario'
   const ownerAvatar = owner?.profile?.avatar ?? null
   const ownerInitials = owner?.name
@@ -137,7 +127,6 @@ function DetalleProducto() {
   const isVerified = owner?.isIdentityVerified ?? false
   const memberSince = owner?.createdAt ? new Date(owner.createdAt).getFullYear() : null
 
-  // Metadatos condicionales: solo se muestran los que tienen datos.
   const locationText = [product.city, product.region].filter(Boolean).join(', ')
   const metaItems = []
   if (product.rating != null) {
@@ -149,7 +138,7 @@ function DetalleProducto() {
             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
           </svg>
           <span className="font-bold text-[var(--color-dark)]">{Number(product.rating).toFixed(1)}</span>
-          <span>({reviews.length} reseñas)</span>
+          <span>({product.reviewCount ?? 0} reseñas)</span>
         </div>
       ),
     })
@@ -185,45 +174,10 @@ function DetalleProducto() {
     })
   }
 
-  const renderStars = (count) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <svg
-        key={i}
-        className={`w-4 h-4 ${i < count ? 'text-[var(--color-amber-400)]' : 'text-[var(--color-border)]'}`}
-        fill="currentColor"
-        viewBox="0 0 20 20"
-        aria-hidden="true"
-      >
-        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-      </svg>
-    ))
-  }
-
-  // Demo: algunas reseñas incluyen fotos (determinístico por id de reseña).
-  const renderReviewPhotos = (review) => {
-    const count = review.id % 3
-    if (count === 0) return null
-    return (
-      <div className="flex gap-2 mt-3">
-        {Array.from({ length: count }, (_, i) => (
-          <img
-            key={i}
-            src={`https://picsum.photos/seed/resena-${product.id}-${review.id}-${i}/120/120`}
-            alt={`Foto ${i + 1} de la reseña de ${review.author}`}
-            loading="lazy"
-            decoding="async"
-            className="w-16 h-16 rounded-lg object-cover border border-[var(--color-border)]"
-          />
-        ))}
-      </div>
-    )
-  }
-
   return (
     <MotionConfig reducedMotion="user">
       <div className="max-w-6xl mx-auto px-4 py-8">
 
-        {/* Breadcrumb — ruta de llegada al producto */}
         <nav className="flex flex-wrap items-center gap-2 text-xs font-semibold mb-5" aria-label="Ruta de navegación">
           <Link to="/" className="text-[var(--color-concrete)] hover:text-[var(--color-dark)] transition-colors">INICIO</Link>
           <span className="text-[var(--color-border)]">›</span>
@@ -234,10 +188,8 @@ function DetalleProducto() {
 
         <div className="flex flex-col lg:flex-row gap-8">
 
-          {/* ===================== COLUMNA IZQUIERDA ===================== */}
           <div className="flex-1 min-w-0">
 
-            {/* 1. GALERÍA PRINCIPAL — carrusel inline sin lib, 0 deps */}
             <motion.div
               className="relative rounded-3xl overflow-hidden bg-[var(--color-concrete-surface)] mb-5"
               initial={{ opacity: 0, scale: 0.98 }}
@@ -280,14 +232,12 @@ function DetalleProducto() {
                   />
                 )}
 
-                {/* Contador — solo si hay varias */}
                 {hasMany && (
                   <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-[var(--color-dark)]/75 text-[var(--color-surface)] text-xs font-semibold">
                     {activeImage + 1} / {images.length}
                   </span>
                 )}
 
-                {/* Flechas — solo si hay varias */}
                 {hasMany && (
                   <>
                     <motion.button
@@ -319,7 +269,6 @@ function DetalleProducto() {
                   </>
                 )}
 
-                {/* Dots — solo si hay varias */}
                 {hasMany && (
                   <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--color-dark)]/20 backdrop-blur-sm">
                     {images.map((_, i) => (
@@ -335,23 +284,34 @@ function DetalleProducto() {
                   </div>
                 )}
 
-                {/* SR live para lectores */}
                 <span className="sr-only" aria-live="polite" aria-atomic="true">
                   Imagen {activeImage + 1} de {images.length}
                 </span>
               </div>
 
-              {/* Botones favorito + compartir — siempre visibles, fuera del viewport interno para no tapar dots */}
               <div className="absolute bottom-4 right-4 flex gap-2">
                 <motion.button
                   type="button"
-                  className="w-9 h-9 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center shadow-[var(--shadow-sm)]"
+                  className={`w-9 h-9 rounded-full bg-[var(--color-surface)] border flex items-center justify-center shadow-[var(--shadow-sm)] ${
+                    isFavorite(product.id)
+                      ? 'border-[var(--color-error)] text-[var(--color-error)]'
+                      : 'border-[var(--color-border)] text-[var(--color-concrete)]'
+                  }`}
                   whileHover={{ scale: 1.08 }}
                   whileTap={{ scale: 0.96 }}
                   transition={springLatch}
-                  aria-label="Favorito"
+                  onClick={() => toggleFavorite(product.id)}
+                  aria-label={isFavorite(product.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+                  aria-pressed={isFavorite(product.id)}
                 >
-                  <svg className="w-5 h-5 text-[var(--color-concrete)]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                  <svg
+                    className="w-5 h-5"
+                    fill={isFavorite(product.id) ? 'currentColor' : 'none'}
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                   </svg>
                 </motion.button>
@@ -374,7 +334,6 @@ function DetalleProducto() {
               </div>
             </motion.div>
 
-            {/* 2. TÍTULO (debajo de la foto) */}
             <motion.h1
               className="text-3xl md:text-4xl font-extrabold text-[var(--color-dark)] mb-3"
               style={{ fontFamily: 'var(--font-title)' }}
@@ -385,7 +344,6 @@ function DetalleProducto() {
               {product.title}
             </motion.h1>
 
-            {/* 3. BADGES */}
             <motion.div
               className="flex flex-wrap items-center gap-3 mb-4"
               initial={{ opacity: 0, y: 12 }}
@@ -400,7 +358,6 @@ function DetalleProducto() {
               </span>
             </motion.div>
 
-            {/* 4. FILA DE METADATOS (solo si hay datos) */}
             {metaItems.length > 0 && (
               <motion.div
                 className="flex flex-wrap items-center gap-4 text-sm text-[var(--color-concrete)] mb-6"
@@ -417,7 +374,6 @@ function DetalleProducto() {
               </motion.div>
             )}
 
-            {/* 5. TARJETA DEL DUEÑO */}
             <motion.div
               className="flex items-center justify-between bg-[var(--color-surface)] rounded-2xl shadow-[var(--shadow-sm)] border border-[var(--color-border)] p-4 mb-6"
               initial={{ opacity: 0, y: 12 }}
@@ -467,7 +423,6 @@ function DetalleProducto() {
               </motion.button>
             </motion.div>
 
-            {/* 6. TABS */}
             <motion.div
               className="mb-6"
               initial={{ opacity: 0, y: 12 }}
@@ -514,84 +469,10 @@ function DetalleProducto() {
               </motion.div>
             </motion.div>
 
-            {/* 7. SECCIÓN DE RESEÑAS (solo si hay reseñas) */}
-            {reviews.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ ...springReveal, delay: 0.28 }}
-              >
-                <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-2xl font-bold text-[var(--color-dark)]" style={{ fontFamily: 'var(--font-title)' }}>
-                    Reseñas ({reviews.length})
-                  </h2>
-                  {product.rating != null && (
-                    <div className="flex items-center gap-1.5">
-                      <svg className="w-5 h-5 text-[var(--color-amber-400)]" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                      <span className="font-bold text-[var(--color-dark)]">{Number(product.rating).toFixed(1)}</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex flex-col gap-4">
-                  {visibleReviews.map((review, index) => (
-                    <motion.div
-                      key={review.id}
-                      className="bg-[var(--color-surface)] rounded-xl border border-[var(--color-border)] p-4 shadow-[var(--shadow-sm)]"
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, amount: 0.3 }}
-                      transition={{ ...springReveal, delay: (index % 3) * 0.03 }}
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-[var(--color-concrete-surface)] flex items-center justify-center text-[var(--color-concrete)] font-semibold text-xs">
-                            {review.initials}
-                          </div>
-                          <div>
-                            <p className="font-bold text-[var(--color-dark)] text-sm">{review.author}</p>
-                            <p className="text-xs text-[var(--color-concrete)]">{review.date}</p>
-                          </div>
-                        </div>
-                        <div className="flex gap-0.5">
-                          {renderStars(review.rating)}
-                        </div>
-                      </div>
-                      <p className="text-sm text-[var(--color-concrete)] leading-relaxed">{review.comment}</p>
-                      {renderReviewPhotos(review)}
-                    </motion.div>
-                  ))}
-                </div>
-
-                {reviews.length > 3 && (
-                  <motion.button
-                    onClick={() => setShowAllReviews(!showAllReviews)}
-                    className="flex items-center gap-2 mt-4 text-sm font-semibold text-[var(--color-dark)] underline underline-offset-4 hover:text-[var(--color-brown)] transition-colors"
-                    whileTap={{ scale: 0.96 }}
-                    transition={springLatch}
-                  >
-                    {showAllReviews ? 'Ocultar reseñas' : `Ver las ${reviews.length - 3} reseñas`}
-                    <svg
-                      className={`w-4 h-4 transition-transform ${showAllReviews ? 'rotate-180' : ''}`}
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                      aria-hidden="true"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                    </svg>
-                  </motion.button>
-                )}
-              </motion.div>
-            )}
+            <ProductReviews product={product} onRated={handleRated} />
 
           </div>
-          {/* ===================== FIN COLUMNA IZQUIERDA ===================== */}
 
-          {/* ===================== COLUMNA DERECHA (RESERVA) ===================== */}
           <motion.div
             className="w-full lg:w-[380px] flex-shrink-0"
             initial={{ opacity: 0, y: 24 }}
@@ -603,7 +484,6 @@ function DetalleProducto() {
 
         </div>
 
-        {/* ===================== CONDICIONES DE ALQUILER ===================== */}
         <section className="mt-12">
           <motion.h2
             className="text-xl font-bold text-[var(--color-dark)] mb-5"
@@ -683,7 +563,6 @@ function DetalleProducto() {
           </div>
         </section>
 
-        {/* Sugerencias de la misma categoría */}
         {suggestions.length > 0 && (
           <section className="mt-12">
             <h2 className="text-xl font-bold text-[var(--color-dark)] mb-5" style={{ fontFamily: 'var(--font-title)' }}>

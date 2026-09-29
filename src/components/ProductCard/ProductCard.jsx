@@ -1,11 +1,12 @@
-import { useState } from 'react'
 import { motion } from 'motion/react'
 import { Link } from 'react-router-dom'
 import { formatProximity, getAvailabilityDays } from '../../utils/products.js'
+import { useFavorites } from '../../context/useFavorites'
 import styles from './ProductCard.module.css'
 
 function ProductCard({ product, index = 0 }) {
-  const [isFav, setIsFav] = useState(false)
+  const { isFavorite, toggleFavorite } = useFavorites()
+  const isFav = isFavorite(product.id)
   const proximity = formatProximity(product.distance)
   const location = proximity || `${product.city}, ${product.region}`
   const availableDays = getAvailabilityDays(product)
@@ -60,7 +61,11 @@ function ProductCard({ product, index = 0 }) {
         transition={{ type: 'spring', stiffness: 400, damping: 20 }}
         aria-label={isFav ? 'Quitar de favoritos' : 'Agregar a favoritos'}
         aria-pressed={isFav}
-        onClick={() => setIsFav((prev) => !prev)}
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          toggleFavorite(product.id)
+        }}
       >
         <i className={isFav ? 'fa-solid fa-heart' : 'fa-regular fa-heart'} aria-hidden="true" />
       </motion.button>
