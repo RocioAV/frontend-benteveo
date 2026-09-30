@@ -114,7 +114,11 @@ function DetalleProducto() {
     setProduct((prev) => (prev ? { ...prev, rating, reviewCount } : prev))
   }
   const ownerName = owner?.name ?? 'Propietario'
-  const ownerAvatar = owner?.profile?.avatar ?? null
+  // Perfil público (GET /user/:id): `avatar` plano + `averageRating`/`ratingCount`
+  // dinámicos. Se acepta `profile.avatar` como fallback de formas anteriores.
+  const ownerAvatar = owner?.avatar ?? owner?.profile?.avatar ?? null
+  const ownerAverageRating = typeof owner?.averageRating === 'number' ? owner.averageRating : null
+  const ownerRatingCount = typeof owner?.ratingCount === 'number' ? owner.ratingCount : 0
   const ownerInitials = owner?.name
     ? owner.name
         .split(' ')
@@ -408,6 +412,21 @@ function DetalleProducto() {
                     )}
                     {memberSince && <span className="text-[var(--color-border)]">·</span>}
                     {memberSince && <span>Miembro desde {memberSince}</span>}
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-[var(--color-concrete)] mt-1">
+                    {ownerAverageRating != null ? (
+                      <>
+                        <svg className="w-3.5 h-3.5 text-[var(--color-amber-400)]" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <span aria-label={`Calificación del dueño: ${ownerAverageRating} de 5 en ${ownerRatingCount} ${ownerRatingCount === 1 ? 'calificación' : 'calificaciones'}`}>
+                          <strong className="text-[var(--color-dark)]">{ownerAverageRating.toFixed(1)}</strong>
+                          {' '}({ownerRatingCount} {ownerRatingCount === 1 ? 'calificación' : 'calificaciones'})
+                        </span>
+                      </>
+                    ) : (
+                      <span>Este dueño todavía no tiene calificaciones</span>
+                    )}
                   </div>
                 </div>
               </div>

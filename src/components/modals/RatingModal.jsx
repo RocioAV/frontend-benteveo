@@ -19,7 +19,21 @@ const STAR_PATH = 'M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.9
 const springModal = { type: 'spring', stiffness: 400, damping: 28 }
 const springLatch = { type: 'spring', stiffness: 400, damping: 28 }
 
-function RatingModal({ isOpen, onClose, onSubmit, objectName = '' }) {
+function RatingModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  objectName = '',
+  // Modo solo-estrellas (calificación entre usuarios): oculta el comentario y
+  // envía `{ rating }` sin campo `comment`. El modo con comentario (rating de
+  // productos) no cambia.
+  commentEnabled = true,
+  title = '¿Cómo fue tu experiencia?',
+  description = 'Contanos cómo fue tu experiencia con el alquiler.',
+  submitLabel = 'Enviar calificación',
+  // Error de envío controlado por el padre (se muestra sin cerrar el modal).
+  submitError = '',
+}) {
   const [rating, setRating] = useState(0)
   const [hoverRating, setHoverRating] = useState(0)
   const [comment, setComment] = useState('')
@@ -28,6 +42,9 @@ function RatingModal({ isOpen, onClose, onSubmit, objectName = '' }) {
   const overlayRef = useRef(null)
   const modalRef = useRef(null)
   const previousFocusRef = useRef(null)
+  // Timer del reseteo diferido al cerrar: se cancela al reabrir para que una
+  // reapertura rápida no limpie la sesión fresca.
+  const resetTimerRef = useRef(null)
 
   const displayRating = hoverRating || rating
 
@@ -35,11 +52,14 @@ function RatingModal({ isOpen, onClose, onSubmit, objectName = '' }) {
     if (!rating || loading) return
     setLoading(true)
     try {
-      await onSubmit?.({ rating, comment: comment.trim() })
+      // Cerrar/cancelar nunca envía: solo este submit llama a `onSubmit`.
+      // El padre cierra el modal únicamente ante éxito; ante error muestra
+      // `submitError` y el modal permanece abierto.
+      await onSubmit?.(commentEnabled ? { rating, comment: comment.trim() } : { rating })
     } finally {
       setLoading(false)
     }
-  }, [rating, comment, loading, onSubmit])
+  }, [rating, comment, commentEnabled, loading, onSubmit])
 
   const handleOverlayClick = useCallback((e) => {
     if (e.target === overlayRef.current) {
@@ -59,7 +79,12 @@ function RatingModal({ isOpen, onClose, onSubmit, objectName = '' }) {
     previousFocusRef.current = document.activeElement
     document.addEventListener('keydown', handleKeyDown)
     document.body.style.overflow = 'hidden'
-    const timer = setTimeout(() => modalRef.current?.focus(), 50)
+    // Foco inicial diferido (espera el montaje animado). No roba el foco si ya
+    // está dentro del modal (p. ej. tipeo iniciado en los primeros ms).
+    const timer = setTimeout(() => {
+      const modal = modalRef.current
+      if (modal && !modal.contains(document.activeElement)) modal.focus()
+    }, 50)
 
     return () => {
       clearTimeout(timer)
@@ -69,16 +94,25 @@ function RatingModal({ isOpen, onClose, onSubmit, objectName = '' }) {
     }
   }, [isOpen, handleKeyDown])
 
-  // Reset form state when modal closes (deferred to avoid cascading renders)
+  // Reset form state when modal closes (deferred to avoid cascading renders).
+  // Se cancela al reabrir o desmontar: una reapertura rápida conserva la sesión.
   useEffect(() => {
     if (!isOpen) {
-      const timer = setTimeout(() => {
+      resetTimerRef.current = setTimeout(() => {
+        resetTimerRef.current = null
         setRating(0)
         setHoverRating(0)
         setComment('')
         setLoading(false)
       }, 300)
-      return () => clearTimeout(timer)
+      return () => {
+        clearTimeout(resetTimerRef.current)
+        resetTimerRef.current = null
+      }
+    }
+    if (resetTimerRef.current) {
+      clearTimeout(resetTimerRef.current)
+      resetTimerRef.current = null
     }
   }, [isOpen])
 
@@ -122,7 +156,7 @@ function RatingModal({ isOpen, onClose, onSubmit, objectName = '' }) {
               </div>
 
               <h2 id="rating-modal-title" className="bv-modal__title">
-                ¿Cómo fue tu experiencia?
+                {title}
               </h2>
 
               {objectName && (
@@ -130,7 +164,7 @@ function RatingModal({ isOpen, onClose, onSubmit, objectName = '' }) {
               )}
 
               <p className="bv-modal__description">
-                Contanos cómo fue tu experiencia con el alquiler.
+                {description}
               </p>
 
               {/* Stars */}
@@ -169,28 +203,38 @@ function RatingModal({ isOpen, onClose, onSubmit, objectName = '' }) {
                 {displayRating > 0 ? RATING_LABELS[displayRating] : '\u00A0'}
               </p>
 
-              {/* Comment textarea */}
-              <label className="bv-rating-modal__comment-label" htmlFor="rating-comment">
-                Comentario (opcional)
-              </label>
-              <textarea
-                id="rating-comment"
-                className="bv-rating-modal__textarea"
-                placeholder="Escribí tu comentario..."
-                value={comment}
-                onChange={(e) => {
-                  if (e.target.value.length <= MAX_COMMENT_LENGTH) {
-                    setComment(e.target.value)
-                  }
-                }}
-                maxLength={MAX_COMMENT_LENGTH}
-                rows={3}
-              />
-              <p className={`bv-rating-modal__char-count ${
-                comment.length >= MAX_COMMENT_LENGTH ? 'bv-rating-modal__char-count--warn' : ''
-              }`}>
-                {comment.length}/{MAX_COMMENT_LENGTH}
-              </p>
+              {/* Comment textarea (solo en modo con comentario) */}
+              {commentEnabled && (
+                <>
+                  <label className="bv-rating-modal__comment-label" htmlFor="rating-comment">
+                    Comentario (opcional)
+                  </label>
+                  <textarea
+                    id="rating-comment"
+                    className="bv-rating-modal__textarea"
+                    placeholder="Escribí tu comentario..."
+                    value={comment}
+                    onChange={(e) => {
+                      if (e.target.value.length <= MAX_COMMENT_LENGTH) {
+                        setComment(e.target.value)
+                      }
+                    }}
+                    maxLength={MAX_COMMENT_LENGTH}
+                    rows={3}
+                  />
+                  <p className={`bv-rating-modal__char-count ${
+                    comment.length >= MAX_COMMENT_LENGTH ? 'bv-rating-modal__char-count--warn' : ''
+                  }`}>
+                    {comment.length}/{MAX_COMMENT_LENGTH}
+                  </p>
+                </>
+              )}
+
+              {submitError && (
+                <p className="bv-rating-modal__error" role="alert">
+                  {submitError}
+                </p>
+              )}
 
               {/* Footer buttons */}
               <div className="bv-rating-modal__footer">
@@ -216,7 +260,7 @@ function RatingModal({ isOpen, onClose, onSubmit, objectName = '' }) {
                       Enviando...
                     </>
                   ) : (
-                    'Enviar calificación'
+                    submitLabel
                   )}
                 </motion.button>
               </div>
