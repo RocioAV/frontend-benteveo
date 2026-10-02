@@ -296,3 +296,78 @@ describe('Dashboard — diálogo genérico anti doble-click', () => {
     expect(handoffReservationMock).not.toHaveBeenCalled()
   })
 })
+
+describe('Dashboard — sidebar a la izquierda sin avatar duplicado', () => {
+  function renderPerfil(user = { id: 'user-1', name: 'Dueño Uno', email: 'dueno@example.com' }) {
+    useAuthMock.mockReturnValue({
+      user,
+      userId: user.id,
+      logout: vi.fn(),
+      refreshUser: vi.fn(),
+    })
+    return render(
+      <MemoryRouter initialEntries={['/dashboard']}>
+        <Dashboard />
+      </MemoryRouter>,
+    )
+  }
+
+  it('el sidebar precede al main en el DOM (lectura izquierda→derecha)', async () => {
+    const { container } = renderPerfil()
+    await screen.findByRole('heading', { name: /mi perfil/i })
+
+    const nav = container.querySelector('.dashboard-nav')
+    const main = container.querySelector('.dashboard-main')
+    expect(nav).toBeInTheDocument()
+    expect(main).toBeInTheDocument()
+    expect(nav.compareDocumentPosition(main)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+  })
+
+  it('el sidebar conserva nombre, email y navegación sin renderizar avatar', async () => {
+    const { container } = renderPerfil()
+    await screen.findByRole('heading', { name: /mi perfil/i })
+
+    const nav = container.querySelector('.dashboard-nav')
+    expect(nav).toHaveTextContent('Dueño Uno')
+    expect(nav).toHaveTextContent('dueno@example.com')
+    for (const label of ['Mi perfil', 'Mis reservas', 'Agenda', 'Mis publicaciones', 'Favoritos', 'Conversaciones']) {
+      expect(screen.getByRole('button', { name: new RegExp(label, 'i') })).toBeInTheDocument()
+    }
+    expect(container.querySelector('.dashboard-nav-avatar')).not.toBeInTheDocument()
+  })
+
+  it('Mi perfil mantiene su avatar y el sidebar no lo duplica', async () => {
+    const { container } = renderPerfil({
+      id: 'user-1',
+      name: 'Dueño Uno',
+      email: 'dueno@example.com',
+      profile: { avatar: 'https://example.com/avatar.jpg' },
+    })
+    await screen.findByRole('heading', { name: /mi perfil/i })
+
+    expect(screen.getByAltText(/foto de dueño uno/i)).toBeInTheDocument()
+    expect(container.querySelector('.dashboard-nav-avatar')).not.toBeInTheDocument()
+  })
+
+  it('Mi perfil conserva el fallback con inicial sin avatar en el sidebar', async () => {
+    const { container } = renderPerfil()
+    await screen.findByRole('heading', { name: /mi perfil/i })
+
+    const perfilAvatar = container.querySelector('.perfil-avatar')
+    expect(perfilAvatar).toBeInTheDocument()
+    expect(perfilAvatar).toHaveTextContent('D')
+    expect(container.querySelector('.dashboard-nav-avatar')).not.toBeInTheDocument()
+  })
+
+  it('cambiar de sección desde el sidebar sigue funcionando', async () => {
+    const user = userEvent.setup()
+    renderPerfil()
+    await screen.findByRole('heading', { name: /mi perfil/i })
+
+    await user.click(screen.getByRole('button', { name: /^agenda$/i }))
+    expect(await screen.findByRole('heading', { name: /^agenda$/i })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /^mis reservas$/i }))
+    expect(await screen.findByRole('heading', { name: /^mis reservas$/i })).toBeInTheDocument()
+  })
+})

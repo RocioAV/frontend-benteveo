@@ -901,22 +901,13 @@ function Dashboard() {
   return (
     <MotionConfig reducedMotion="user">
       <div className="dashboard">
-        <main className="dashboard-main">{renderSection()}</main>
-
         <motion.aside
           className="dashboard-nav"
-          initial={{ opacity: 0, x: 16 }}
+          initial={{ opacity: 0, x: -16 }}
           animate={{ opacity: 1, x: 0 }}
           transition={springReveal}
         >
           <div className="dashboard-nav-user">
-            {displayAvatar ? (
-              <img className="dashboard-nav-avatar" src={displayAvatar} alt="" />
-            ) : (
-              <span className="dashboard-nav-avatar dashboard-nav-avatar--initial" aria-hidden="true">
-                {initial}
-              </span>
-            )}
             <div className="dashboard-nav-meta">
               <p className="dashboard-nav-name">{name}</p>
               <p className="dashboard-nav-email">{email}</p>
@@ -953,6 +944,8 @@ function Dashboard() {
             <span>Cerrar sesión</span>
           </motion.button>
         </motion.aside>
+
+        <main className="dashboard-main">{renderSection()}</main>
       </div>
 
       <AnimatePresence>

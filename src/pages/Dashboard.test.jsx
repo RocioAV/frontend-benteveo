@@ -6,19 +6,25 @@ import Dashboard from './Dashboard.jsx'
 
 const {
   fetchProductsMock,
+  fetchFavoritesMock,
   fetchMyReservationsMock,
   fetchReservationsAsOwnerMock,
+  fetchMyUserRatingMock,
   updateProfileMock,
   useAuthMock,
+  useFavoritesMock,
   refreshUserMock,
   toastSuccessMock,
   toastErrorMock,
 } = vi.hoisted(() => ({
   fetchProductsMock: vi.fn(),
+  fetchFavoritesMock: vi.fn(),
   fetchMyReservationsMock: vi.fn(),
   fetchReservationsAsOwnerMock: vi.fn(),
+  fetchMyUserRatingMock: vi.fn(),
   updateProfileMock: vi.fn(),
   useAuthMock: vi.fn(),
+  useFavoritesMock: vi.fn(),
   refreshUserMock: vi.fn(),
   toastSuccessMock: vi.fn(),
   toastErrorMock: vi.fn(),
@@ -30,13 +36,28 @@ vi.mock('../services/products.service.js', () => ({
   toggleAvailability: vi.fn(),
 }))
 
+vi.mock('../services/favorites.service.js', () => ({
+  fetchFavorites: fetchFavoritesMock,
+}))
+
+vi.mock('../context/useFavorites', () => ({
+  useFavorites: useFavoritesMock,
+}))
+
+vi.mock('../services/user-ratings.service.js', () => ({
+  fetchMyUserRating: fetchMyUserRatingMock,
+  submitUserRating: vi.fn(),
+}))
+
 vi.mock('../services/reservations.service.js', () => ({
   fetchMyReservations: fetchMyReservationsMock,
   fetchReservationsAsOwner: fetchReservationsAsOwnerMock,
   cancelReservation: vi.fn(),
   confirmReservation: vi.fn(),
   handoffReservation: vi.fn(),
+  confirmHandoffReceipt: vi.fn(),
   returnReservation: vi.fn(),
+  confirmReturnReceipt: vi.fn(),
 }))
 
 vi.mock('../services/profile.service.js', () => ({
@@ -117,16 +138,22 @@ function expectNoForbiddenFields(payload) {
 describe('Dashboard — edición de perfil', () => {
   beforeEach(() => {
     fetchProductsMock.mockReset()
+    fetchFavoritesMock.mockReset()
     fetchMyReservationsMock.mockReset()
     fetchReservationsAsOwnerMock.mockReset()
+    fetchMyUserRatingMock.mockReset()
     updateProfileMock.mockReset()
     useAuthMock.mockReset()
+    useFavoritesMock.mockReset()
     refreshUserMock.mockReset()
     toastSuccessMock.mockReset()
     toastErrorMock.mockReset()
     fetchProductsMock.mockResolvedValue([])
+    fetchFavoritesMock.mockResolvedValue([])
     fetchMyReservationsMock.mockResolvedValue([])
     fetchReservationsAsOwnerMock.mockResolvedValue([])
+    fetchMyUserRatingMock.mockResolvedValue({ rated: false })
+    useFavoritesMock.mockReturnValue({ favoriteIds: [], isFavorite: () => false })
     updateProfileMock.mockResolvedValue({ id: 'user-1' })
     refreshUserMock.mockResolvedValue(undefined)
   })
