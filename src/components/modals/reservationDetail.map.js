@@ -15,7 +15,7 @@ function rentalDays(dateInit, dateEnd) {
   try {
     const start = new Date(dateInit)
     const end = new Date(dateEnd)
-    return Math.max(1, Math.round((end - start) / MS_PER_DAY))
+    return Math.max(1, Math.ceil((end - start) / MS_PER_DAY))
   } catch {
     return null
   }

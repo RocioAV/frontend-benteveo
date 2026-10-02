@@ -17,7 +17,7 @@ import {
   confirmReturnReceipt,
 } from '../services/reservations.service.js'
 import { submitUserRating, fetchMyUserRating } from '../services/user-ratings.service.js'
-import { getReservationStep, getRatingView, mergeReservationUpdate } from '../utils/reservation-actions.js'
+import { getReservationStep, getRatingView, mergeReservationUpdate, selectAgendaReservations } from '../utils/reservation-actions.js'
 import { uploadAvatar, updateProfile } from '../services/profile.service.js'
 import EmptyState from '../components/EmptyState/EmptyState.jsx'
 import Skeleton from '../components/Skeleton/Skeleton.jsx'
@@ -135,7 +135,7 @@ function monthOf(iso) {
 function rentalDays(reservation) {
   const start = new Date(reservation.dateInit)
   const end = new Date(reservation.dateEnd)
-  const days = Math.round((end - start) / MS_PER_DAY) + 1
+  const days = Math.ceil((end - start) / MS_PER_DAY)
   return Number.isFinite(days) && days > 0 ? days : 1
 }
 
@@ -551,8 +551,6 @@ function Dashboard() {
           userName={name}
           onCancel={requestCancelReservation}
           onChat={openChat}
-          onReservationAction={requestReservationAction}
-          onRate={openUserRating}
           ratingState={ratingState}
           onDetailAction={runDetailAction}
         />
@@ -560,7 +558,16 @@ function Dashboard() {
     }
 
     if (activeSection === 'agenda') {
-      return <AgendaList reservations={ownerReservations} onChat={openChat} onReservationAction={requestReservationAction} />
+      return (
+        <AgendaList
+          renterReservations={renterReservations}
+          ownerReservations={ownerReservations}
+          onChat={openChat}
+          onReservationAction={requestReservationAction}
+          onRate={openUserRating}
+          ratingState={ratingState}
+        />
+      )
     }
 
     if (activeSection === 'publicaciones') {
@@ -998,10 +1005,73 @@ function Dashboard() {
   )
 }
 
-// Agenda: personas que reservaron tus productos, en cronograma ordenado por fecha,
-// con hora de entrega y devolución (12:00 mediodía).
-export function AgendaList({ reservations, onChat, onReservationAction }) {
-  const sorted = [...reservations].sort((a, b) => new Date(a.dateInit) - new Date(b.dateInit))
+// Agenda operativa: solo lo que requiere acción, espera o calificación.
+// Tabs por rol (mismo patrón que Mis reservas), selección y orden mediante
+// `selectAgendaReservations`. Las acciones/esperas salen de
+// `getReservationStep` y la calificación de `getRatingView`, sin duplicar la
+// máquina de estados.
+export function AgendaList({
+  renterReservations = [],
+  ownerReservations = [],
+  onChat,
+  onReservationAction,
+  onRate,
+  ratingState = {},
+}) {
+  const [tab, setTab] = useState('renter')
+  const role = tab === 'owner' ? 'owner' : 'renter'
+  const source = role === 'owner' ? ownerReservations : renterReservations
+  // `selectAgendaReservations` ya ordena por fecha operativa; una COMPLETED
+  // que pase a `rated` sale de la lista sin otro cambio.
+  const items = selectAgendaReservations(source, role, ratingState)
+
+  const renderAgendaStep = (reservation, other) => {
+    const step = getReservationStep(reservation, role)
+    if (step.kind === 'action') {
+      return (
+        <motion.button
+          type="button"
+          className="reserva-btn reserva-btn--owner"
+          whileTap={{ scale: 0.96 }}
+          transition={springLatch}
+          onClick={() => onReservationAction?.(step.key, reservation)}
+        >
+          <i className="fas fa-check" aria-hidden="true" /> {step.label}
+        </motion.button>
+      )
+    }
+    if (step.kind === 'wait') {
+      return <span className="reserva-wait">{step.message}</span>
+    }
+    if (step.kind === 'rate') {
+      const view = getRatingView(ratingState, reservation.id)
+      if (view.kind === 'rated') return null
+      if (view.kind === 'rate' || view.kind === 'retry') {
+        return (
+          <>
+            <motion.button
+              type="button"
+              className="reserva-btn reserva-btn--rate"
+              whileTap={{ scale: 0.96 }}
+              transition={springLatch}
+              onClick={() => onRate?.(reservation, other)}
+            >
+              <i className="fas fa-star" aria-hidden="true" /> Calificar
+            </motion.button>
+            {view.kind === 'retry' ? (
+              <span className="reserva-wait">No pudimos verificar tu calificación.</span>
+            ) : null}
+          </>
+        )
+      }
+      return (
+        <button type="button" className="reserva-btn reserva-btn--rate" disabled>
+          Verificando…
+        </button>
+      )
+    }
+    return null
+  }
 
   return (
     <section aria-labelledby="agenda-titulo">
@@ -1010,23 +1080,44 @@ export function AgendaList({ reservations, onChat, onReservationAction }) {
           Agenda
         </motion.h1>
         <p className="dashboard-sub">
-          Reservas confirmadas y en curso, ordenadas por fecha. Entrega y devolución a las {PICKUP_TIME}.
+          Entregas, devoluciones y calificaciones pendientes, ordenadas por fecha. Entrega y devolución a las {PICKUP_TIME}.
         </p>
       </header>
 
-      {reservations.length === 0 ? (
-        <EmptyState message="Todavía nadie reservó tus productos." />
-      ) : sorted.length === 0 ? (
-        <EmptyState message="No hay reservas confirmadas ni en curso." />
+      <div className="reservas-tabs" role="tablist" aria-label="Agenda por rol">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'renter'}
+          className={tab === 'renter' ? 'reservas-tab reservas-tab--active' : 'reservas-tab'}
+          onClick={() => setTab('renter')}
+        >
+          Como inquilino
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'owner'}
+          className={tab === 'owner' ? 'reservas-tab reservas-tab--active' : 'reservas-tab'}
+          onClick={() => setTab('owner')}
+        >
+          Como dueño
+        </button>
+      </div>
+
+      {items.length === 0 ? (
+        <EmptyState
+          message={
+            role === 'renter'
+              ? 'No tenés entregas, devoluciones ni calificaciones pendientes como inquilino.'
+              : 'No tenés entregas, recepciones ni calificaciones pendientes como dueño.'
+          }
+        />
       ) : (
         <ol className="agenda-list">
-          {sorted.map((reservation, i) => {
-            const renterName = otherParty(reservation, 'owner')
+          {items.map((reservation, i) => {
+            const other = otherParty(reservation, role)
             const product = reservation.product
-            const step = getReservationStep(reservation, 'owner')
-            const ownerAction = step.kind === 'action'
-              ? { key: step.key, label: step.label, icon: 'fa-check' }
-              : null
             return (
               <motion.li
                 key={reservation.id}
@@ -1040,7 +1131,7 @@ export function AgendaList({ reservations, onChat, onReservationAction }) {
                   <span className="agenda-month">{monthOf(reservation.dateInit)}</span>
                 </div>
                 <div className="agenda-body">
-                  <p className="agenda-name">{renterName}</p>
+                  <p className="agenda-name">{other}</p>
                   <p className="agenda-meta">
                     <strong>{product?.title || 'Producto'}</strong>
                   </p>
@@ -1052,26 +1143,16 @@ export function AgendaList({ reservations, onChat, onReservationAction }) {
                       <i className="fas fa-box-archive" aria-hidden="true" /> Devolución: {formatDateTime(reservation.dateEnd)}
                     </span>
                   </p>
+                  <div className="agenda-step">{renderAgendaStep(reservation, other)}</div>
                 </div>
                 <div className="agenda-actions">
-                  {ownerAction ? (
-                    <motion.button
-                      type="button"
-                      className="reserva-btn reserva-btn--owner"
-                      whileTap={{ scale: 0.96 }}
-                      transition={springLatch}
-                      onClick={() => onReservationAction?.(ownerAction.key, reservation)}
-                    >
-                      <i className={`fas ${ownerAction.icon}`} aria-hidden="true" /> {ownerAction.label}
-                    </motion.button>
-                  ) : null}
                   <motion.button
                     type="button"
                     className="agenda-chat"
                     whileTap={{ scale: 0.96 }}
                     transition={springLatch}
                     onClick={() => onChat(reservation.id)}
-                    aria-label={`Hablar con ${renterName}`}
+                    aria-label={`Hablar con ${other}`}
                   >
                     <i className="fas fa-comment" aria-hidden="true" /> Hablar
                   </motion.button>
@@ -1085,15 +1166,16 @@ export function AgendaList({ reservations, onChat, onReservationAction }) {
   )
 }
 
-// Sub-sección de reservas: tabs inquilino/dueño + acciones según estado + chatear.
+// Mis reservas como seguimiento/historial: tabs inquilino/dueño, estado,
+// fechas, precio, contraparte, imagen, Detalle, Chat y Cancelar. Sin acciones
+// bilaterales ni calificación interactiva (viven en Agenda). Solo conserva el
+// hecho histórico `Ya calificaste (N/5)` y mensajes no interactivos de espera.
 export function ReservasList({
   renter,
   owner,
   userName,
   onCancel,
   onChat,
-  onReservationAction,
-  onRate,
   ratingState = {},
   onDetailAction,
 }) {
@@ -1152,26 +1234,20 @@ export function ReservasList({
     }
   }
 
+  // Detalle en modo seguimiento: solo propaga `cancel` (gestión previa, no
+  // bilateral). Cualquier clave bilateral se ignora aunque el modal la
+  // enviara: la coordinación vive en Agenda.
   const handleDetailAction = async (key, current) => {
+    if (key !== 'cancel') return
     await onDetailAction(key, current)
     await refreshDetail(current)
   }
 
-  // Renderiza la acción bilateral / espera / calificación de una tarjeta según
-  // rol (tab) + estado + timestamps. Nunca muestra acciones del otro rol.
-  const renderStep = (reservation, role, other) => {
+  // Solo seguimiento/historial: mensajes no interactivos de espera y hecho
+  // histórico de calificación. Nunca botones bilaterales, `Calificar`,
+  // `Verificando…` ni reintentos (viven en Agenda).
+  const renderTrackingStatus = (reservation, role) => {
     const step = getReservationStep(reservation, role)
-    if (step.kind === 'action') {
-      return (
-        <button
-          type="button"
-          className="reserva-btn reserva-btn--owner"
-          onClick={() => onReservationAction?.(step.key, reservation)}
-        >
-          <i className="fas fa-check" aria-hidden="true" /> {step.label}
-        </button>
-      )
-    }
     if (step.kind === 'wait') {
       return <span className="reserva-wait">{step.message}</span>
     }
@@ -1184,36 +1260,6 @@ export function ReservasList({
           </span>
         )
       }
-      if (view.kind === 'rate') {
-        return (
-          <button
-            type="button"
-            className="reserva-btn reserva-btn--rate"
-            onClick={() => onRate?.(reservation, other)}
-          >
-            <i className="fas fa-star" aria-hidden="true" /> Calificar
-          </button>
-        )
-      }
-      if (view.kind === 'retry') {
-        return (
-          <>
-            <button
-              type="button"
-              className="reserva-btn reserva-btn--rate"
-              onClick={() => onRate?.(reservation, other)}
-            >
-              <i className="fas fa-star" aria-hidden="true" /> Calificar
-            </button>
-            <span className="reserva-wait">No pudimos verificar tu calificación.</span>
-          </>
-        )
-      }
-      return (
-        <button type="button" className="reserva-btn reserva-btn--rate" disabled>
-          Verificando…
-        </button>
-      )
     }
     return null
   }
@@ -1224,7 +1270,7 @@ export function ReservasList({
         <motion.h1 id="reservas-titulo" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={springReveal}>
           Mis reservas
         </motion.h1>
-        <p className="dashboard-sub">Coordiná entregas y devoluciones (a las {PICKUP_TIME}) y hablá con la otra parte.</p>
+        <p className="dashboard-sub">Seguimiento e historial de tus reservas. La coordinación de entregas y devoluciones se hace desde Agenda.</p>
       </header>
 
       <div className="reservas-tabs" role="tablist" aria-label="Tipo de reserva">
@@ -1312,7 +1358,7 @@ export function ReservasList({
                           <i className="fas fa-xmark" aria-hidden="true" /> Cancelar
                         </button>
                       ) : null}
-                      {renderStep(reservation, role, other)}
+                      {renderTrackingStatus(reservation, role)}
                       <motion.button type="button" className="reserva-btn reserva-btn--primary" whileTap={{ scale: 0.96 }} transition={springLatch} onClick={() => onChat(reservation.id)}>
                         <i className="fas fa-comment" aria-hidden="true" /> Chatear
                       </motion.button>
@@ -1354,6 +1400,7 @@ export function ReservasList({
         isOpen={detailOpen}
         reservation={detail}
         viewer={tab === 'renter' ? 'renter' : 'owner'}
+        readOnly
         onClose={() => {
           setDetailOpen(false)
           setDetail(null)

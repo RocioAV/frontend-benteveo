@@ -86,16 +86,20 @@ const BILATERAL_META = {
 //   reservationDetail.map.js). `null` mientras carga.
 // `viewer`: 'renter' | 'owner' | 'admin' — controla qué acciones se muestran
 //   (el backend es quien finalmente autoriza cada transición).
+// `readOnly`: modo seguimiento/historial — oculta las acciones bilaterales
+//   de entrega/devolución aunque la reserva sea accionable. `cancel` sigue
+//   disponible bajo su regla actual (gestión previa, no bilateral).
 // `onAction`: callback async único `onAction(key, reservation)` con
 //   key ∈ 'cancel' | 'handoff' | 'confirmHandoff' | 'return' | 'confirmReturn';
 //   el modal espera su promesa (éxito → feedback + badge actualizado por la
-//   página; error → toast).
+//   página; error → toast). En modo `readOnly` solo se usa con 'cancel'.
 export default function ReservationDetailModal({
   isOpen,
   reservation,
   viewer = 'renter',
   onClose,
   onAction,
+  readOnly = false,
 }) {
   const [step, setStep] = useState(null) // 'cancel' | bilateral key
   const [busy, setBusy] = useState(false)
@@ -136,6 +140,8 @@ export default function ReservationDetailModal({
   const isDanger = status === 'Cancelada'
   const canCancel = CANCELLABLE_STATUSES.includes(reservation.statusCode)
   // Paso bilateral visible según rol + estado + timestamps (nunca se saltea).
+  // En modo seguimiento (`readOnly`, p. ej. Mis reservas) se suprime aunque
+  // la reserva sea accionable: la coordinación vive en Agenda.
   const role = viewer === 'owner' ? 'owner' : viewer === 'renter' ? 'renter' : null
   const bilateral = getReservationStep(
     {
@@ -147,7 +153,7 @@ export default function ReservationDetailModal({
     },
     role,
   )
-  const bilateralAction = bilateral.kind === 'action' ? bilateral : null
+  const bilateralAction = !readOnly && bilateral.kind === 'action' ? bilateral : null
   const withCharge = hoursUntil(reservation.dateInit) <= 48
 
   const handleClose = () => {
@@ -156,6 +162,7 @@ export default function ReservationDetailModal({
 
   const runAction = async () => {
     if (busy || !step) return
+    if (readOnly && step !== 'cancel') return
     if (!onAction) return
 
     setBusy(true)

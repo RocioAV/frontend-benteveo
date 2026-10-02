@@ -86,3 +86,75 @@ describe('ReservationDetailModal — flujo bilateral del dueño', () => {
     ).not.toBeInTheDocument()
   })
 })
+
+describe('ReservationDetailModal — modo seguimiento readOnly (Mis reservas)', () => {
+  it('oculta la acción bilateral aunque la reserva sea accionable', async () => {
+    const onAction = vi.fn()
+    render(
+      <ReservationDetailModal
+        isOpen
+        reservation={detail()}
+        viewer="owner"
+        readOnly
+        onClose={vi.fn()}
+        onAction={onAction}
+      />,
+    )
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    expect(screen.getByText('Taladro')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /marcar como entregado/i }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /confirmar entrega/i }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /confirmar recepción/i }),
+    ).not.toBeInTheDocument()
+    expect(onAction).not.toHaveBeenCalled()
+  })
+
+  it('conserva Cancelar reserva y lo propaga con `cancel`', async () => {
+    const onAction = vi.fn().mockResolvedValue({ id: 'res-1', status: 'CANCELLED' })
+    const user = userEvent.setup()
+    render(
+      <ReservationDetailModal
+        isOpen
+        reservation={detail()}
+        viewer="owner"
+        readOnly
+        onClose={vi.fn()}
+        onAction={onAction}
+      />,
+    )
+
+    await user.click(await screen.findByRole('button', { name: /cancelar reserva/i }))
+    await user.click(await screen.findByRole('button', { name: /sí, cancelar/i }))
+
+    expect(onAction).toHaveBeenCalledTimes(1)
+    expect(onAction).toHaveBeenCalledWith('cancel', expect.objectContaining({ id: 'res-1' }))
+    expect(await screen.findByText(/reserva cancelada/i)).toBeInTheDocument()
+  })
+
+  it('oculta la recepción del inquilino accionable en modo seguimiento', async () => {
+    render(
+      <ReservationDetailModal
+        isOpen
+        reservation={detail({
+          statusCode: 'CONFIRMED',
+          actualHandoffAt: '2026-09-30T10:00:00.000Z',
+        })}
+        viewer="renter"
+        readOnly
+        onClose={vi.fn()}
+        onAction={vi.fn()}
+      />,
+    )
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /confirmar recepción/i }),
+    ).not.toBeInTheDocument()
+  })
+})

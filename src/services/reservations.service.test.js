@@ -94,6 +94,36 @@ describe('lectura de reservas', () => {
     expect(list[0].product.pricePerDay).toBe(2000)
   })
 
+  it('deriva imageUrl de la primera foto del producto', async () => {
+    apiClient.mockResolvedValue([
+      {
+        id: 'res-1',
+        product: {
+          id: 'prod-1',
+          priceDay: 1000,
+          photos: [
+            { id: 'photo-1', url: 'https://example.com/1.jpg', publicId: 'a' },
+            { id: 'photo-2', url: 'https://example.com/2.jpg', publicId: 'b' },
+          ],
+        },
+      },
+    ])
+
+    const list = await fetchMyReservations()
+
+    expect(list[0].product.imageUrl).toBe('https://example.com/1.jpg')
+  })
+
+  it('deja imageUrl en null sin fotos para que el placeholder siga funcionando', async () => {
+    apiClient.mockResolvedValue([
+      { id: 'res-1', product: { id: 'prod-1', priceDay: 1000, photos: [] } },
+    ])
+
+    const list = await fetchMyReservations()
+
+    expect(list[0].product.imageUrl).toBeNull()
+  })
+
   it('cancela mediante PATCH y obtiene el detalle normalizado', async () => {
     apiClient.mockResolvedValue({ id: 'res-1' })
     await cancelReservation('res-1')

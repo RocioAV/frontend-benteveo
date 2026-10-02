@@ -55,6 +55,81 @@ export function mergeReservationUpdate(reservation, updated) {
   return { ...reservation, ...fields }
 }
 
+// Fecha operativa más pertinente para Agenda: la entrega (dateInit) en
+// CONFIRMED y la devolución (dateEnd) en ACTIVE/COMPLETED.
+function agendaRelevantIso(reservation) {
+  if (!reservation) return null
+  if (reservation.status === 'ACTIVE' || reservation.status === 'COMPLETED') {
+    return reservation.dateEnd || reservation.dateInit || null
+  }
+  return reservation.dateInit || reservation.dateEnd || null
+}
+
+function startOfDay(value) {
+  const d = value instanceof Date ? new Date(value) : new Date(value)
+  if (Number.isNaN(d.getTime())) return null
+  d.setHours(0, 0, 0, 0)
+  return d
+}
+
+function agendaSortTime(reservation) {
+  const raw = agendaRelevantIso(reservation)
+  if (!raw) return Number.POSITIVE_INFINITY
+  const time = new Date(raw).getTime()
+  return Number.isNaN(time) ? Number.POSITIVE_INFINITY : time
+}
+
+// Selección pura de reservas visibles en Agenda por rol.
+// - CONFIRMED/ACTIVE: visibles mientras `getReservationStep` exprese
+//   acción o espera operativa (incluso vencidas si siguen abiertas). Sin paso
+//   operativo solo se conserva la CONFIRMED con fecha relevante no anterior a hoy.
+// - COMPLETED: visible mientras `getRatingView` no sea `rated` (checking,
+//   unrated, retry y desconocido se conservan para no esconder prematuro).
+// - PENDING, CANCELLED y COMPLETED ya calificada quedan excluidas.
+// - `now` es inyectable para pruebas; el orden es determinista por fecha
+//   operativa ascendente con desempate por id.
+export function selectAgendaReservations(reservations, role, ratingState = {}, now = new Date()) {
+  if (!Array.isArray(reservations)) return []
+  if (role !== 'owner' && role !== 'renter') return []
+  const today = startOfDay(now) ?? startOfDay(new Date())
+
+  const visible = []
+  for (const reservation of reservations) {
+    if (!reservation) continue
+    const status = reservation.status
+    if (status === 'PENDING' || status === 'CANCELLED') continue
+
+    if (status === 'COMPLETED') {
+      if (getRatingView(ratingState, reservation.id).kind === 'rated') continue
+      visible.push(reservation)
+      continue
+    }
+
+    if (status === 'CONFIRMED' || status === 'ACTIVE') {
+      const step = getReservationStep(reservation, role)
+      if (step.kind === 'action' || step.kind === 'wait') {
+        visible.push(reservation)
+        continue
+      }
+      if (status === 'ACTIVE') {
+        visible.push(reservation)
+        continue
+      }
+      const relevant = agendaRelevantIso(reservation)
+      const day = relevant ? startOfDay(relevant) : null
+      if (day && today && day >= today) visible.push(reservation)
+      continue
+    }
+  }
+
+  visible.sort((a, b) => {
+    const diff = agendaSortTime(a) - agendaSortTime(b)
+    if (diff !== 0) return diff
+    return String(a?.id ?? '').localeCompare(String(b?.id ?? ''))
+  })
+  return visible
+}
+
 export function getReservationStep(reservation, role) {
   if (!reservation || (role !== 'owner' && role !== 'renter')) {
     return { kind: 'none' }
