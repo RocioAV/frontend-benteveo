@@ -11,10 +11,13 @@ import {
   fetchMyReservations,
   fetchReservationsAsOwner,
   cancelReservation,
-  confirmReservation,
   handoffReservation,
+  confirmHandoffReceipt,
   returnReservation,
+  confirmReturnReceipt,
 } from '../services/reservations.service.js'
+import { submitUserRating, fetchMyUserRating } from '../services/user-ratings.service.js'
+import { getReservationStep, getRatingView, mergeReservationUpdate } from '../utils/reservation-actions.js'
 import { uploadAvatar, updateProfile } from '../services/profile.service.js'
 import EmptyState from '../components/EmptyState/EmptyState.jsx'
 import Skeleton from '../components/Skeleton/Skeleton.jsx'
@@ -50,19 +53,41 @@ const ACTIVE_STATUSES = ['PENDING', 'CONFIRMED', 'ACTIVE']
 
 const PICKUP_TIME = '12:00'
 
-const OWNER_ACTIONS = {
-  confirm: {
-    title: 'Confirmar reserva',
-    message: '¿Confirmás esta reserva? El inquilino podrá coordinar la entrega.',
-  },
+// Diálogos de confirmación por paso bilateral (las transiciones las autoriza el
+// backend; PENDING no tiene acción manual: el pago aprobado deja CONFIRMED).
+const RESERVATION_ACTION_META = {
   handoff: {
-    title: 'Confirmar entrega',
-    message: '¿Confirmás que entregaste el producto al inquilino?',
+    title: 'Marcar como entregado',
+    message: '¿Confirmás que entregaste el producto al inquilino? La reserva sigue confirmada hasta que el inquilino confirme la recepción.',
+  },
+  confirmHandoff: {
+    title: 'Confirmar recepción',
+    message: '¿Confirmás que recibiste el producto? La reserva pasará a estar en curso.',
   },
   return: {
-    title: 'Confirmar devolución',
-    message: '¿Confirmás que el inquilino devolvió el producto?',
+    title: 'Marcar como devuelto',
+    message: '¿Confirmás que devolviste el producto al dueño? La reserva sigue en curso hasta que el dueño confirme la recepción.',
   },
+  confirmReturn: {
+    title: 'Confirmar recepción final',
+    message: '¿Confirmás que recibiste el producto devuelto? La reserva quedará completada.',
+  },
+}
+
+// Ejecuta el paso bilateral según su clave.
+function runReservationAction(key, id) {
+  switch (key) {
+    case 'handoff':
+      return handoffReservation(id)
+    case 'confirmHandoff':
+      return confirmHandoffReceipt(id)
+    case 'return':
+      return returnReservation(id)
+    case 'confirmReturn':
+      return confirmReturnReceipt(id)
+    default:
+      return Promise.reject(new Error('Acción de reserva desconocida.'))
+  }
 }
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24
@@ -123,22 +148,6 @@ function otherParty(reservation, role) {
   return 'Propietario'
 }
 
-function ownerActionFor(status) {
-  switch (status) {
-    case 'PENDING':
-      return { key: 'confirm', label: 'Confirmar reserva' }
-    case 'CONFIRMED':
-      return { key: 'handoff', label: 'Confirmar entrega' }
-    case 'ACTIVE':
-      return { key: 'return', label: 'Confirmar devolución' }
-    case 'CANCELLED':
-      // Si se canceló y el producto no se entregó, el dueño resuelve la cancelación.
-      return wasDelivered ? null : { key: 'resolveCancellation', label: 'Resolver cancelación' }
-    default:
-      return null
-  }
-}
-
 // Mensaje más útil del backend: primero el detalle por campo (fields),
 // luego el message del ApiError y por último un fallback genérico.
 function getProfileErrorMessage(err) {
@@ -168,8 +177,23 @@ function Dashboard() {
   const [error, setError] = useState(false)
   const [reloadToken, setReloadToken] = useState(0)
 
-  const [confirm, setConfirm] = useState(null) // { type, id, title, message, objectName? }
-  const [ratingFor, setRatingFor] = useState(null) // { id, objectName } — devolución pendiente de calificar
+  const [confirm, setConfirm] = useState(null) // { type, id, title, message }
+  const [confirmBusy, setConfirmBusy] = useState(false) // PATCH del diálogo en curso
+  const [userRatingFor, setUserRatingFor] = useState(null) // { id, objectName } — calificación entre usuarios
+  const [userRatingError, setUserRatingError] = useState('')
+  // Hidratación del `mine` de cada COMPLETED única al cargar los
+  // datos (ambos roles). `getRatingView` trata lo desconocido como checking,
+  // así que el efecto solo dispara pedidos y aplica resultados.
+  const [ratingState, setRatingState] = useState({})
+  // Espejo del estado para el efecto de hidratación (deps [data]): evita
+  // rehidratar ante cada cambio de estado y solo reintenta `error` al recargar.
+  const ratingStateRef = useRef({})
+  useEffect(() => {
+    ratingStateRef.current = ratingState
+  })
+  // IDs con GET mine ya pedido (en curso o resuelto): deduplica copias
+  // dueño/inquilino y evita rehidratar en cada rerender.
+  const ratingHydratedRef = useRef(new Set())
 
   const [editing, setEditing] = useState(false)
   const [editForm, setEditForm] = useState({ name: '', phone: '', bio: '' })
@@ -198,10 +222,57 @@ function Dashboard() {
     }
   }, [userId, reloadToken])
 
+  // Hidratación proactiva del `mine` de cada COMPLETED única al cargar los
+  // datos (ambos roles). Deduplica IDs, corre solo ante datos nuevos (sin
+  // bucles por cambios de estado) y es segura ante desmontaje. Un `rated`
+  // local nunca se degrada por una respuesta tardía. Los `error` se
+  // reintentan en la próxima carga.
+  // El cuerpo solo dispara pedidos; los resultados se aplican en callbacks.
+  useEffect(() => {
+    if (!data) return undefined
+    let cancelled = false
+    const hydrated = ratingHydratedRef.current
+    const states = ratingStateRef.current
+    const seen = new Set()
+    const ids = []
+    for (const r of [...data.renterReservations, ...data.ownerReservations]) {
+      if (r?.status !== 'COMPLETED' || !r.id || seen.has(r.id)) continue
+      seen.add(r.id)
+      if (hydrated.has(r.id) && states[r.id]?.status !== 'error') continue
+      ids.push(r.id)
+    }
+    if (ids.length === 0) return undefined
+    for (const id of ids) hydrated.add(id)
+    for (const id of ids) {
+      fetchMyUserRating(id)
+        .then((mine) => {
+          if (cancelled) return
+          setRatingState((prev) => {
+            if (prev[id]?.status === 'rated') return prev
+            return {
+              ...prev,
+              [id]: mine?.rated
+                ? { status: 'rated', score: mine.rating?.score ?? null }
+                : { status: 'unrated', score: null },
+            }
+          })
+        })
+        .catch(() => {
+          if (cancelled) return
+          setRatingState((prev) => {
+            if (prev[id]?.status === 'rated') return prev
+            return { ...prev, [id]: { status: 'error', score: null } }
+          })
+        })
+    }
+    return () => {
+      cancelled = true
+    }
+  }, [data])
+
   const goToSection = (id) => {
     setSearchParams(id === 'perfil' ? {} : { tab: id }, { replace: true })
   }
-
   const openChat = (reservationId) => {
     navigate(`/chat/${reservationId}`)
   }
@@ -282,25 +353,15 @@ function Dashboard() {
     })
   }
 
-  const requestOwnerAction = (key, reservation) => {
-    const meta = OWNER_ACTIONS[key]
-    if (!meta) {
-      // Cancelación resuelta: backend pendiente.
-      toast.info('Resolver la cancelación estará disponible próximamente (falta backend).')
-      return
-    }
+  const requestReservationAction = (key, reservation) => {
+    const meta = RESERVATION_ACTION_META[key]
+    if (!meta) return
     setConfirm({ type: key, id: reservation.id, title: meta.title, message: meta.message })
   }
 
   const runConfirm = async () => {
-    if (!confirm) return
-    // Devolución: antes de pasar a "recibido" se abre el modal de rating;
-    // la llamada al backend se dispara al cerrarlo (finishRating).
-    if (confirm.type === 'return') {
-      setRatingFor({ id: confirm.id, objectName: confirm.objectName || '' })
-      setConfirm(null)
-      return
-    }
+    if (!confirm || confirmBusy) return
+    setConfirmBusy(true)
     try {
       if (confirm.type === 'deleteProduct') {
         await deleteProduct(confirm.id)
@@ -308,46 +369,85 @@ function Dashboard() {
       } else if (confirm.type === 'cancelReservation') {
         await cancelReservation(confirm.id)
         toast.success('Reserva cancelada.')
-      } else if (confirm.type === 'confirm') {
-        await confirmReservation(confirm.id)
-        toast.success('Reserva confirmada.')
-      } else if (confirm.type === 'handoff') {
-        await handoffReservation(confirm.id)
-        toast.success('Entrega confirmada.')
+      } else {
+        await runReservationAction(confirm.type, confirm.id)
+        toast.success('Acción completada.')
       }
       setConfirm(null)
       handleRetry()
     } catch (err) {
       toast.error(err.message || 'No se pudo completar la acción.')
+    } finally {
+      setConfirmBusy(false)
     }
   }
 
-  // Cierra el modal de rating (envío o "Ahora no") y ejecuta la devolución.
-  // TODO: cuando exista el endpoint de reviews, enviar { rating, comment } aquí.
-  const finishRating = async () => {
-    const pending = ratingFor
-    if (!pending) return
-    setRatingFor(null)
+  // ── Calificación entre usuarios (solo reservas COMPLETED) ──
+  const markRated = (reservationId, score) => {
+    setRatingState((prev) => ({ ...prev, [reservationId]: { status: 'rated', score: score ?? null } }))
+  }
+
+  const openUserRating = (reservation, otherName) => {
+    const id = reservation.id
+    const entry = ratingState[id]
+    // Ya verificado como calificado o verificación en curso: no hay acción.
+    // Desconocido tampoco abre (la vista ya muestra checking).
+    if (!entry || entry.status === 'rated' || entry.status === 'checking') return
+    if (entry.status === 'unrated') {
+      // Hidratación ya confirmó rated:false: se abre directo, sin otro GET.
+      setUserRatingError('')
+      setUserRatingFor({ id, objectName: otherName || '' })
+      return
+    }
+    // Estado `error`: se reintenta la verificación antes de abrir. Si vuelve a
+    // fallar, el POST sigue protegido por el backend con error visible.
+    ratingHydratedRef.current.add(id)
+    setRatingState((prev) => ({ ...prev, [id]: { status: 'checking', score: null } }))
+    setUserRatingError('')
+    fetchMyUserRating(id)
+      .then((mine) => {
+        if (mine?.rated) {
+          markRated(id, mine.rating?.score ?? null)
+        } else {
+          setUserRatingFor({ id, objectName: otherName || '' })
+          setRatingState((prev) => ({ ...prev, [id]: { status: 'unrated', score: null } }))
+        }
+      })
+      .catch(() => {
+        setRatingState((prev) => ({ ...prev, [id]: { status: 'error', score: null } }))
+        toast.error('No pudimos verificar tu calificación. Probá de nuevo.')
+      })
+  }
+
+  const closeUserRating = () => {
+    setUserRatingFor(null)
+    setUserRatingError('')
+  }
+
+  // Envía `{ score }` (el backend deriva a la contraparte desde la reserva).
+  // Solo cierra ante éxito y actualiza el estado local para que el botón no reaparezca.
+  const submitUserRatingForm = async ({ rating }) => {
+    if (!userRatingFor) return
     try {
-      await returnReservation(pending.id)
-      toast.success('Devolución confirmada.')
-      handleRetry()
+      await submitUserRating(userRatingFor.id, rating)
+      markRated(userRatingFor.id, rating)
+      setUserRatingFor(null)
+      setUserRatingError('')
+      toast.success('Calificación enviada.')
     } catch (err) {
-      toast.error(err.message || 'No se pudo completar la acción.')
+      setUserRatingError(err?.message || 'No pudimos enviar tu calificación.')
     }
   }
 
   // Actualiza la reserva en las listas tras una acción del modal de detalle,
   // sin recargar todo (el modal debe seguir abierto para mostrar el feedback).
+  // Solo pisa los campos presentes en la respuesta: un PATCH parcial nunca
+  // borra valores existentes con `undefined`.
   const patchReservation = (updated) => {
     setData((prev) => {
       if (!prev) return prev
-      const fields = {
-        status: updated.status,
-        actualHandoffAt: updated.actualHandoffAt,
-        actualReturnAt: updated.actualReturnAt,
-      }
-      const patch = (list) => list.map((r) => (r.id === updated.id ? { ...r, ...fields } : r))
+      const patch = (list) =>
+        list.map((r) => (r.id === updated.id ? mergeReservationUpdate(r, updated) : r))
       return {
         ...prev,
         renterReservations: patch(prev.renterReservations),
@@ -356,15 +456,15 @@ function Dashboard() {
     })
   }
 
-  // Acciones disparadas desde el modal de detalle (la confirmación vive en el
-  // modal). Los errores se propagan y el modal los muestra con toast.
-  const runDetailCancel = async (detail) => {
-    const updated = await cancelReservation(detail.id)
-    patchReservation(updated)
-  }
-
-  const runDetailHandoff = async (detail) => {
-    const updated = await handoffReservation(detail.id)
+  // Acción bilateral disparada desde el modal de detalle (la confirmación vive
+  // en el modal). Los errores se propagan y el modal los muestra con toast.
+  const runDetailAction = async (key, detail) => {
+    if (key === 'cancel') {
+      const updated = await cancelReservation(detail.id)
+      patchReservation(updated)
+      return
+    }
+    const updated = await runReservationAction(key, detail.id)
     patchReservation(updated)
   }
 
@@ -451,15 +551,16 @@ function Dashboard() {
           userName={name}
           onCancel={requestCancelReservation}
           onChat={openChat}
-          onOwnerAction={requestOwnerAction}
-          onDetailCancel={runDetailCancel}
-          onDetailHandoff={runDetailHandoff}
+          onReservationAction={requestReservationAction}
+          onRate={openUserRating}
+          ratingState={ratingState}
+          onDetailAction={runDetailAction}
         />
       )
     }
 
     if (activeSection === 'agenda') {
-      return <AgendaList reservations={ownerReservations} onChat={openChat} onOwnerAction={requestOwnerAction} />
+      return <AgendaList reservations={ownerReservations} onChat={openChat} onReservationAction={requestReservationAction} />
     }
 
     if (activeSection === 'publicaciones') {
@@ -855,7 +956,9 @@ function Dashboard() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setConfirm(null)}
+              onClick={() => {
+                if (!confirmBusy) setConfirm(null)
+              }}
             />
             <motion.div
               className="dashboard-modal-panel"
@@ -867,11 +970,11 @@ function Dashboard() {
               <h2 className="dashboard-modal-title">{confirm.title}</h2>
               <p className="dashboard-modal-message">{confirm.message}</p>
               <div className="dashboard-modal-actions">
-                <button type="button" className="perfil-btn perfil-btn--ghost" onClick={() => setConfirm(null)}>
+                <button type="button" className="perfil-btn perfil-btn--ghost" onClick={() => setConfirm(null)} disabled={confirmBusy}>
                   Cancelar
                 </button>
-                <motion.button type="button" className="perfil-btn perfil-btn--danger" whileTap={{ scale: 0.96 }} transition={springLatch} onClick={runConfirm}>
-                  Confirmar
+                <motion.button type="button" className="perfil-btn perfil-btn--danger" whileTap={{ scale: 0.96 }} transition={springLatch} onClick={runConfirm} disabled={confirmBusy}>
+                  {confirmBusy ? 'Procesando…' : 'Confirmar'}
                 </motion.button>
               </div>
             </motion.div>
@@ -881,10 +984,15 @@ function Dashboard() {
 
       <VerificationModal open={verificationOpen} onClose={() => setVerificationOpen(false)} />
       <RatingModal
-        isOpen={Boolean(ratingFor)}
-        onClose={finishRating}
-        onSubmit={finishRating}
-        objectName={ratingFor?.objectName || ''}
+        isOpen={Boolean(userRatingFor)}
+        onClose={closeUserRating}
+        onSubmit={submitUserRatingForm}
+        objectName={userRatingFor?.objectName || ''}
+        commentEnabled={false}
+        title="Calificá a la otra persona"
+        description="Tu calificación es solo con estrellas y ayuda a construir confianza en la comunidad."
+        submitLabel="Enviar calificación"
+        submitError={userRatingError}
       />
     </MotionConfig>
   )
@@ -892,7 +1000,7 @@ function Dashboard() {
 
 // Agenda: personas que reservaron tus productos, en cronograma ordenado por fecha,
 // con hora de entrega y devolución (12:00 mediodía).
-function AgendaList({ reservations, onChat }) {
+export function AgendaList({ reservations, onChat, onReservationAction }) {
   const sorted = [...reservations].sort((a, b) => new Date(a.dateInit) - new Date(b.dateInit))
 
   return (
@@ -915,12 +1023,10 @@ function AgendaList({ reservations, onChat }) {
           {sorted.map((reservation, i) => {
             const renterName = otherParty(reservation, 'owner')
             const product = reservation.product
-            const ownerAction =
-              reservation.status === 'CONFIRMED'
-                ? { key: 'handoff', label: 'Marcar como entregado', icon: 'fa-check' }
-                : reservation.status === 'ACTIVE'
-                  ? { key: 'return', label: 'Marcar como recibido', icon: 'fa-arrow-rotate-left' }
-                  : null
+            const step = getReservationStep(reservation, 'owner')
+            const ownerAction = step.kind === 'action'
+              ? { key: step.key, label: step.label, icon: 'fa-check' }
+              : null
             return (
               <motion.li
                 key={reservation.id}
@@ -954,7 +1060,7 @@ function AgendaList({ reservations, onChat }) {
                       className="reserva-btn reserva-btn--owner"
                       whileTap={{ scale: 0.96 }}
                       transition={springLatch}
-                      onClick={() => onOwnerAction(ownerAction.key, reservation)}
+                      onClick={() => onReservationAction?.(ownerAction.key, reservation)}
                     >
                       <i className={`fas ${ownerAction.icon}`} aria-hidden="true" /> {ownerAction.label}
                     </motion.button>
@@ -980,7 +1086,17 @@ function AgendaList({ reservations, onChat }) {
 }
 
 // Sub-sección de reservas: tabs inquilino/dueño + acciones según estado + chatear.
-function ReservasList({ renter, owner, onCancel, onChat, onOwnerAction }) {
+export function ReservasList({
+  renter,
+  owner,
+  userName,
+  onCancel,
+  onChat,
+  onReservationAction,
+  onRate,
+  ratingState = {},
+  onDetailAction,
+}) {
   const [tab, setTab] = useState('renter')
   const [page, setPage] = useState(1)
   const [detailOpen, setDetailOpen] = useState(false)
@@ -1036,14 +1152,70 @@ function ReservasList({ renter, owner, onCancel, onChat, onOwnerAction }) {
     }
   }
 
-  const handleDetailCancel = async (current) => {
-    await onDetailCancel(current)
+  const handleDetailAction = async (key, current) => {
+    await onDetailAction(key, current)
     await refreshDetail(current)
   }
 
-  const handleDetailHandoff = async (current) => {
-    await onDetailHandoff(current)
-    await refreshDetail(current)
+  // Renderiza la acción bilateral / espera / calificación de una tarjeta según
+  // rol (tab) + estado + timestamps. Nunca muestra acciones del otro rol.
+  const renderStep = (reservation, role, other) => {
+    const step = getReservationStep(reservation, role)
+    if (step.kind === 'action') {
+      return (
+        <button
+          type="button"
+          className="reserva-btn reserva-btn--owner"
+          onClick={() => onReservationAction?.(step.key, reservation)}
+        >
+          <i className="fas fa-check" aria-hidden="true" /> {step.label}
+        </button>
+      )
+    }
+    if (step.kind === 'wait') {
+      return <span className="reserva-wait">{step.message}</span>
+    }
+    if (step.kind === 'rate') {
+      const view = getRatingView(ratingState, reservation.id)
+      if (view.kind === 'rated') {
+        return (
+          <span className="reserva-wait">
+            Ya calificaste esta reserva{typeof view.score === 'number' ? ` (${view.score}/5)` : ''}.
+          </span>
+        )
+      }
+      if (view.kind === 'rate') {
+        return (
+          <button
+            type="button"
+            className="reserva-btn reserva-btn--rate"
+            onClick={() => onRate?.(reservation, other)}
+          >
+            <i className="fas fa-star" aria-hidden="true" /> Calificar
+          </button>
+        )
+      }
+      if (view.kind === 'retry') {
+        return (
+          <>
+            <button
+              type="button"
+              className="reserva-btn reserva-btn--rate"
+              onClick={() => onRate?.(reservation, other)}
+            >
+              <i className="fas fa-star" aria-hidden="true" /> Calificar
+            </button>
+            <span className="reserva-wait">No pudimos verificar tu calificación.</span>
+          </>
+        )
+      }
+      return (
+        <button type="button" className="reserva-btn reserva-btn--rate" disabled>
+          Verificando…
+        </button>
+      )
+    }
+    return null
   }
 
   return (
@@ -1079,10 +1251,9 @@ function ReservasList({ renter, owner, onCancel, onChat, onOwnerAction }) {
             const status = reservation.status
             const other = otherParty(reservation, tab)
             const days = rentalDays(reservation)
-            const isOwnerTab = tab === 'owner'
+            const role = tab === 'renter' ? 'renter' : 'owner'
             const canCancel = ACTIVE_STATUSES.includes(status) && hoursUntil(reservation.dateInit) > 48
             const needsCharge = ACTIVE_STATUSES.includes(status) && hoursUntil(reservation.dateInit) <= 48
-            const ownerAction = isOwnerTab ? ownerActionFor(status) : null
 
             return (
               <motion.article
@@ -1141,15 +1312,7 @@ function ReservasList({ renter, owner, onCancel, onChat, onOwnerAction }) {
                           <i className="fas fa-xmark" aria-hidden="true" /> Cancelar
                         </button>
                       ) : null}
-                      {ownerAction ? (
-                        <button
-                          type="button"
-                          className="reserva-btn reserva-btn--owner"
-                          onClick={() => onOwnerAction(ownerAction.key, reservation)}
-                        >
-                          <i className="fas fa-check" aria-hidden="true" /> {ownerAction.label}
-                        </button>
-                      ) : null}
+                      {renderStep(reservation, role, other)}
                       <motion.button type="button" className="reserva-btn reserva-btn--primary" whileTap={{ scale: 0.96 }} transition={springLatch} onClick={() => onChat(reservation.id)}>
                         <i className="fas fa-comment" aria-hidden="true" /> Chatear
                       </motion.button>
@@ -1195,8 +1358,7 @@ function ReservasList({ renter, owner, onCancel, onChat, onOwnerAction }) {
           setDetailOpen(false)
           setDetail(null)
         }}
-        onCancel={handleDetailCancel}
-        onMarkPickedUp={handleDetailHandoff}
+        onAction={handleDetailAction}
       />
     </section>
   )

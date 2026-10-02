@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import Skeleton from '../Skeleton/Skeleton.jsx'
+import { getReservationStep } from '../../utils/reservation-actions.js'
 import './ReservationDetailModal.css'
 
 // Ilustración de placeholder dibujada en SVG (se usa cuando la reserva
@@ -56,21 +57,47 @@ function hoursUntil(iso) {
 // Estados desde los que el backend permite cancelar (PENDING/CONFIRMED/ACTIVE).
 const CANCELLABLE_STATUSES = ['PENDING', 'CONFIRMED', 'ACTIVE']
 
+// Textos de confirmación y feedback por paso bilateral (solo-lectura: el backend
+// autoriza cada transición; el modal solo ofrece el paso que corresponde al rol).
+const BILATERAL_META = {
+  handoff: {
+    confirm: '¿Confirmás que entregaste el producto al inquilino?',
+    done: 'Entrega marcada. Esperando que el inquilino confirme la recepción.',
+    button: 'Confirmar entrega',
+  },
+  confirmHandoff: {
+    confirm: '¿Confirmás que recibiste el producto?',
+    done: 'Recepción confirmada. La reserva ya está en curso.',
+    button: 'Confirmar recepción',
+  },
+  return: {
+    confirm: '¿Confirmás que devolviste el producto al dueño?',
+    done: 'Devolución marcada. Esperando que el dueño confirme la recepción.',
+    button: 'Confirmar devolución',
+  },
+  confirmReturn: {
+    confirm: '¿Confirmás que recibiste el producto devuelto?',
+    done: 'Recepción confirmada. La reserva quedó completada.',
+    button: 'Confirmar recepción final',
+  },
+}
+
 // `reservation`: objeto ya mapeado con mapReservationToDetail (ver
 //   reservationDetail.map.js). `null` mientras carga.
 // `viewer`: 'renter' | 'owner' | 'admin' — controla qué acciones se muestran
-//   (el backend es quien finalmente autoriza: handoff es solo del dueño).
-// `onCancel`, `onMarkPickedUp`: callbacks async; el modal espera su promesa
-//   (éxito → feedback + badge actualizado por la página; error → toast).
+//   (el backend es quien finalmente autoriza cada transición).
+// `onAction`: callback async único `onAction(key, reservation)` con
+//   key ∈ 'cancel' | 'handoff' | 'confirmHandoff' | 'return' | 'confirmReturn';
+//   el modal espera su promesa (éxito → feedback + badge actualizado por la
+//   página; error → toast).
 export default function ReservationDetailModal({
   isOpen,
   reservation,
   viewer = 'renter',
   onClose,
-  onCancel,
-  onMarkPickedUp,
+  onAction,
 }) {
-  const [step, setStep] = useState(null) // 'cancel' | 'handoff'
+  const [step, setStep] = useState(null) // 'cancel' | bilateral key
   const [busy, setBusy] = useState(false)
   const [feedback, setFeedback] = useState('')
 
@@ -108,7 +135,19 @@ export default function ReservationDetailModal({
   const status = reservation.status ?? 'Confirmada'
   const isDanger = status === 'Cancelada'
   const canCancel = CANCELLABLE_STATUSES.includes(reservation.statusCode)
-  const canHandoff = viewer === 'owner' && reservation.statusCode === 'CONFIRMED'
+  // Paso bilateral visible según rol + estado + timestamps (nunca se saltea).
+  const role = viewer === 'owner' ? 'owner' : viewer === 'renter' ? 'renter' : null
+  const bilateral = getReservationStep(
+    {
+      status: reservation.statusCode,
+      actualHandoffAt: reservation.actualHandoffAt,
+      renterReceivedAt: reservation.renterReceivedAt,
+      renterReturnedAt: reservation.renterReturnedAt,
+      actualReturnAt: reservation.actualReturnAt,
+    },
+    role,
+  )
+  const bilateralAction = bilateral.kind === 'action' ? bilateral : null
   const withCharge = hoursUntil(reservation.dateInit) <= 48
 
   const handleClose = () => {
@@ -116,15 +155,15 @@ export default function ReservationDetailModal({
   }
 
   const runAction = async () => {
-    if (busy) return
-    const current = step
-    const callback = current === 'cancel' ? onCancel : onMarkPickedUp
-    if (!callback) return
+    if (busy || !step) return
+    if (!onAction) return
 
     setBusy(true)
     try {
-      await callback(reservation)
-      setFeedback(current === 'cancel' ? 'Reserva cancelada.' : 'Reserva marcada como retirada.')
+      await onAction(step, reservation)
+      setFeedback(
+        step === 'cancel' ? 'Reserva cancelada.' : (BILATERAL_META[step]?.done ?? 'Acción completada.'),
+      )
       setStep(null)
     } catch (err) {
       toast.error(err?.message || 'No se pudo completar la acción.')
@@ -138,7 +177,7 @@ export default function ReservationDetailModal({
       ? withCharge
         ? 'Faltan menos de 48 horas para el alquiler, por lo que esta cancelación tiene cargo. ¿Querés continuar?'
         : '¿Seguro que querés cancelar esta reserva?'
-      : '¿Confirmás que entregaste el producto al inquilino?'
+      : (BILATERAL_META[step]?.confirm ?? '')
 
   return (
     <div className="bvrd-overlay" onClick={handleClose}>
@@ -242,25 +281,27 @@ export default function ReservationDetailModal({
                 disabled={busy}
               >
                 {busy ? (
-                  <i className="fas fa-spinner fa-spin" aria-hidden="true" />
+                  <>
+                    <i className="fas fa-spinner fa-spin" aria-hidden="true" /> Procesando…
+                  </>
                 ) : step === 'cancel' ? (
                   'Sí, cancelar'
                 ) : (
-                  'Confirmar entrega'
+                  BILATERAL_META[step]?.button ?? 'Confirmar'
                 )}
               </button>
             </div>
           </div>
-        ) : canCancel || canHandoff ? (
+        ) : canCancel || bilateralAction ? (
           <div className="bvrd-modal-actions">
             {canCancel ? (
               <button type="button" className="bvrd-btn-danger-link" onClick={() => setStep('cancel')}>
                 <i className="fas fa-ban" aria-hidden="true" /> Cancelar reserva
               </button>
             ) : null}
-            {canHandoff ? (
-              <button type="button" className="bvrd-btn bvrd-btn--primary" onClick={() => setStep('handoff')}>
-                Marcar como retirado
+            {bilateralAction ? (
+              <button type="button" className="bvrd-btn bvrd-btn--primary" onClick={() => setStep(bilateralAction.key)}>
+                {bilateralAction.label}
               </button>
             ) : null}
           </div>

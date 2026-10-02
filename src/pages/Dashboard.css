@@ -726,6 +726,8 @@
 
 .reserva-actions {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -780,6 +782,24 @@
 
 .reserva-btn--detail:hover {
   background: var(--color-concrete-surface);
+}
+
+.reserva-btn--rate {
+  color: var(--color-dark);
+  background: transparent;
+  border: 1px solid var(--color-primary);
+}
+
+.reserva-btn--rate:hover {
+  background: var(--color-concrete-surface);
+}
+
+.reserva-wait {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: var(--color-concrete);
 }
 
 /* ── Paginación de "Mis reservas" ── */

@@ -60,6 +60,12 @@ export function mapReservationToDetail(reservation, options = {}) {
   return {
     id: reservation.id,
     statusCode: reservation.status,
+    // Marcas del flujo bilateral (el modal deriva la acción visible con
+    // `getReservationStep` según rol + estado + timestamps).
+    actualHandoffAt: reservation.actualHandoffAt ?? null,
+    renterReceivedAt: reservation.renterReceivedAt ?? null,
+    renterReturnedAt: reservation.renterReturnedAt ?? null,
+    actualReturnAt: reservation.actualReturnAt ?? null,
     category: product.category || 'Alquiler',
     title: product.title || 'Producto',
     image: productDetail?.imageUrl ?? product.imageUrl ?? null,
