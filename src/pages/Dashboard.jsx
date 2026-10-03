@@ -18,6 +18,7 @@ import {
 } from '../services/reservations.service.js'
 import { submitUserRating, fetchMyUserRating } from '../services/user-ratings.service.js'
 import { getReservationStep, getRatingView, mergeReservationUpdate, selectAgendaReservations } from '../utils/reservation-actions.js'
+import { simulateDepositRefund } from '../utils/refund-simulation.js'
 import { uploadAvatar, updateProfile } from '../services/profile.service.js'
 import EmptyState from '../components/EmptyState/EmptyState.jsx'
 import Skeleton from '../components/Skeleton/Skeleton.jsx'
@@ -388,6 +389,10 @@ function Dashboard() {
       if (confirm.type === 'deleteProduct') {
         await deleteProduct(confirm.id)
         toast.success('Producto eliminado.')
+      } else if (confirm.type === 'confirmReturn') {
+        await runReservationAction(confirm.type, confirm.id)
+        // El dueño confirmó la devolución: se simula el reembolso del depósito.
+        simulateDepositRefund('return')
       } else {
         await runReservationAction(confirm.type, confirm.id)
         toast.success('Acción completada.')
@@ -481,10 +486,14 @@ function Dashboard() {
     if (key === 'cancel') {
       const updated = await cancelReservation(detail.id)
       patchReservation(updated)
+      // Cancelación aceptada por el backend: se simula el reembolso.
+      simulateDepositRefund('cancel')
       return
     }
     const updated = await runReservationAction(key, detail.id)
     patchReservation(updated)
+    // Recepción final confirmada: se libera (simulado) el depósito al inquilino.
+    if (key === 'confirmReturn') simulateDepositRefund('return')
   }
 
   // ── Edición de perfil (PATCH /user/data-user) ──

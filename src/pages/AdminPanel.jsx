@@ -18,6 +18,7 @@ import {
   fetchReservationsByUser,
   adminCancelReservation,
 } from '../services/admin.service.js'
+import { simulateDepositRefund } from '../utils/refund-simulation.js'
 import './AdminPanel.css'
 
 const springReveal = { type: 'spring', stiffness: 260, damping: 26 }
@@ -636,7 +637,8 @@ function ReservasSection() {
     setCancellingId(id)
     try {
       await applyCancel(id)
-      toast.success('Reserva cancelada')
+      // Reembolso simulado (dos toasts): progreso 5s y luego confirmación.
+      simulateDepositRefund('cancel')
     } catch (err) {
       toast.error(err.message || 'Error al cancelar')
     } finally {
@@ -662,6 +664,14 @@ function ReservasSection() {
   }
 
   // Acción desde el modal de detalle (la confirmación vive en el modal).
+  // El modal emite `onAction(key, reservation)`; el admin solo gestiona
+  // 'cancel' (viewer="admin" no ofrece pasos bilaterales).
+  const handleDetailAction = async (key, current) => {
+    if (key !== 'cancel') return
+    await handleDetailCancel(current)
+    simulateDepositRefund('cancel')
+  }
+
   const handleDetailCancel = async (current) => {
     await applyCancel(current.id)
     try {
@@ -782,7 +792,7 @@ function ReservasSection() {
           setDetailOpen(false)
           setDetail(null)
         }}
-        onCancel={handleDetailCancel}
+        onAction={handleDetailAction}
       />
     </motion.div>
   )

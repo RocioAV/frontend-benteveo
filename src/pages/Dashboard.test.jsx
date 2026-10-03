@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import Dashboard from './Dashboard.jsx'
+import { fetchReservationDetail } from '../components/modals/reservationDetail.map.js'
 
 const {
   fetchProductsMock,
@@ -16,6 +17,8 @@ const {
   refreshUserMock,
   toastSuccessMock,
   toastErrorMock,
+  toastInfoMock,
+  cancelReservationMock,
 } = vi.hoisted(() => ({
   fetchProductsMock: vi.fn(),
   fetchFavoritesMock: vi.fn(),
@@ -28,6 +31,8 @@ const {
   refreshUserMock: vi.fn(),
   toastSuccessMock: vi.fn(),
   toastErrorMock: vi.fn(),
+  toastInfoMock: vi.fn(),
+  cancelReservationMock: vi.fn(),
 }))
 
 vi.mock('../services/products.service.js', () => ({
@@ -53,12 +58,19 @@ vi.mock('../services/user-ratings.service.js', () => ({
 vi.mock('../services/reservations.service.js', () => ({
   fetchMyReservations: fetchMyReservationsMock,
   fetchReservationsAsOwner: fetchReservationsAsOwnerMock,
-  cancelReservation: vi.fn(),
+  cancelReservation: cancelReservationMock,
   confirmReservation: vi.fn(),
   handoffReservation: vi.fn(),
   confirmHandoffReceipt: vi.fn(),
   returnReservation: vi.fn(),
   confirmReturnReceipt: vi.fn(),
+}))
+
+// El detalle de la reserva se mapea con un fetch propio: para el caso del
+// reembolso simulado se devuelve un detalle ya mapeado.
+vi.mock('../components/modals/reservationDetail.map.js', () => ({
+  fetchReservationDetail: vi.fn(),
+  mapReservationToDetail: vi.fn(),
 }))
 
 vi.mock('../services/profile.service.js', () => ({
@@ -74,7 +86,7 @@ vi.mock('react-toastify', () => ({
   toast: {
     success: toastSuccessMock,
     error: toastErrorMock,
-    info: vi.fn(),
+    info: toastInfoMock,
   },
 }))
 
@@ -270,5 +282,97 @@ describe('Dashboard — edición de perfil', () => {
     await waitFor(() =>
       expect(screen.queryByRole('button', { name: /guardando/i })).not.toBeInTheDocument(),
     )
+  })
+})
+
+describe('Dashboard — reembolso simulado al cancelar', () => {
+  const reserva = {
+    id: 'res-1',
+    status: 'CONFIRMED',
+    createdAt: '2026-09-20T10:00:00.000Z',
+    dateInit: '2026-12-10T12:00:00.000Z',
+    dateEnd: '2026-12-12T12:00:00.000Z',
+    user: { name: 'Inquilino Uno' },
+    product: { id: 'prod-1', title: 'Taladro', pricePerDay: 5000, imageUrl: null },
+  }
+
+  const detalleMapeado = {
+    id: 'res-1',
+    statusCode: 'CONFIRMED',
+    status: 'Confirmada',
+    title: 'Taladro',
+    category: 'Herramientas',
+    image: null,
+    pickup: '10 dic',
+    dropoff: '12 dic',
+    duration: '2 días de alquiler',
+    client: 'Inquilino Uno',
+    owner: 'Dueño Uno',
+    contact: '—',
+    pickupLocation: '—',
+    deposit: '$10.000 (reembolsable)',
+    total: '$20.000',
+    note: '',
+    actualHandoffAt: null,
+    renterReceivedAt: null,
+    renterReturnedAt: null,
+    actualReturnAt: null,
+  }
+
+  beforeEach(() => {
+    fetchProductsMock.mockReset()
+    fetchFavoritesMock.mockReset()
+    fetchMyReservationsMock.mockReset()
+    fetchReservationsAsOwnerMock.mockReset()
+    fetchMyUserRatingMock.mockReset()
+    useAuthMock.mockReset()
+    useFavoritesMock.mockReset()
+    refreshUserMock.mockReset()
+    toastSuccessMock.mockReset()
+    toastErrorMock.mockReset()
+    toastInfoMock.mockReset()
+    cancelReservationMock.mockReset()
+
+    fetchProductsMock.mockResolvedValue([])
+    fetchFavoritesMock.mockResolvedValue([])
+    fetchMyReservationsMock.mockResolvedValue([reserva])
+    fetchReservationsAsOwnerMock.mockResolvedValue([])
+    fetchMyUserRatingMock.mockResolvedValue({ rated: false })
+    useAuthMock.mockReturnValue({
+      user: baseUser,
+      userId: baseUser.id,
+      logout: vi.fn(),
+      refreshUser: refreshUserMock,
+    })
+    useFavoritesMock.mockReturnValue({ favoriteIds: [], isFavorite: () => false })
+    refreshUserMock.mockResolvedValue(undefined)
+    vi.mocked(fetchReservationDetail).mockReset()
+    vi.mocked(fetchReservationDetail).mockResolvedValue(detalleMapeado)
+    cancelReservationMock.mockResolvedValue({ ...reserva, status: 'CANCELLED' })
+  })
+
+  it('cancelar desde el detalle dispara los dos toasts del reembolso', async () => {
+    const user = userEvent.setup()
+    render(
+      <MemoryRouter initialEntries={['/dashboard?tab=reservas']}>
+        <Dashboard />
+      </MemoryRouter>,
+    )
+
+    await user.click(await screen.findByRole('button', { name: /detalle/i }))
+    await user.click(await screen.findByRole('button', { name: /cancelar reserva/i }))
+    await user.click(await screen.findByRole('button', { name: /sí, cancelar/i }))
+
+    await waitFor(() => expect(cancelReservationMock).toHaveBeenCalledWith('res-1'))
+
+    // Toast 1: progreso durante 5s.
+    expect(toastInfoMock).toHaveBeenCalledWith(
+      expect.stringMatching(/procesando el reembolso del depósito/i),
+      expect.objectContaining({ autoClose: 5000 }),
+    )
+    // El modal refleja la cancelación de forma inline.
+    expect(await screen.findByText(/reserva cancelada\./i)).toBeInTheDocument()
+    // La reserva pasa a CANCELLED en la lista (badge de la card).
+    expect(await screen.findByText('Cancelada')).toBeInTheDocument()
   })
 })
