@@ -130,11 +130,30 @@ describe('ReservationDetailModal — modo seguimiento readOnly (Mis reservas)', 
     )
 
     await user.click(await screen.findByRole('button', { name: /cancelar reserva/i }))
-    await user.click(await screen.findByRole('button', { name: /sí, cancelar/i }))
+    // Sin recargo: la confirmación es siempre la misma.
+    expect(await screen.findByText('¿Seguro que querés cancelar esta reserva?')).toBeInTheDocument()
+    expect(screen.queryByText(/48 horas|cargo/i)).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /sí, cancelar/i }))
 
     expect(onAction).toHaveBeenCalledTimes(1)
     expect(onAction).toHaveBeenCalledWith('cancel', expect.objectContaining({ id: 'res-1' }))
     expect(await screen.findByText(/reserva cancelada/i)).toBeInTheDocument()
+  })
+
+  it('una reserva en curso no ofrece Cancelar reserva', async () => {
+    render(
+      <ReservationDetailModal
+        isOpen
+        reservation={detail({ statusCode: 'ACTIVE', status: 'En curso' })}
+        viewer="renter"
+        readOnly
+        onClose={vi.fn()}
+        onAction={vi.fn()}
+      />,
+    )
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /cancelar reserva/i })).not.toBeInTheDocument()
   })
 
   it('oculta la recepción del inquilino accionable en modo seguimiento', async () => {

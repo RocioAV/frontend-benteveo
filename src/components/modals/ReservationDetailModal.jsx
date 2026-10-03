@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import Skeleton from '../Skeleton/Skeleton.jsx'
-import { getReservationStep } from '../../utils/reservation-actions.js'
+import { getReservationStep, CANCELLABLE_STATUSES } from '../../utils/reservation-actions.js'
 import './ReservationDetailModal.css'
 
 // Ilustración de placeholder dibujada en SVG (se usa cuando la reserva
@@ -44,19 +44,6 @@ function Row({ label, value, className = '' }) {
   )
 }
 
-// Horas hasta el inicio del alquiler (∞ si no hay fecha válida).
-function hoursUntil(iso) {
-  if (!iso) return Infinity
-  try {
-    return (new Date(iso).getTime() - Date.now()) / (1000 * 60 * 60)
-  } catch {
-    return Infinity
-  }
-}
-
-// Estados desde los que el backend permite cancelar (PENDING/CONFIRMED/ACTIVE).
-const CANCELLABLE_STATUSES = ['PENDING', 'CONFIRMED', 'ACTIVE']
-
 // Textos de confirmación y feedback por paso bilateral (solo-lectura: el backend
 // autoriza cada transición; el modal solo ofrece el paso que corresponde al rol).
 const BILATERAL_META = {
@@ -87,8 +74,8 @@ const BILATERAL_META = {
 // `viewer`: 'renter' | 'owner' | 'admin' — controla qué acciones se muestran
 //   (el backend es quien finalmente autoriza cada transición).
 // `readOnly`: modo seguimiento/historial — oculta las acciones bilaterales
-//   de entrega/devolución aunque la reserva sea accionable. `cancel` sigue
-//   disponible bajo su regla actual (gestión previa, no bilateral).
+//   de entrega/devolución aunque la reserva sea accionable. `cancel` solo se
+//   ofrece mientras la reserva no esté en curso (PENDING/CONFIRMED).
 // `onAction`: callback async único `onAction(key, reservation)` con
 //   key ∈ 'cancel' | 'handoff' | 'confirmHandoff' | 'return' | 'confirmReturn';
 //   el modal espera su promesa (éxito → feedback + badge actualizado por la
@@ -154,7 +141,6 @@ export default function ReservationDetailModal({
     role,
   )
   const bilateralAction = !readOnly && bilateral.kind === 'action' ? bilateral : null
-  const withCharge = hoursUntil(reservation.dateInit) <= 48
 
   const handleClose = () => {
     onClose?.()
@@ -181,9 +167,7 @@ export default function ReservationDetailModal({
 
   const confirmMessage =
     step === 'cancel'
-      ? withCharge
-        ? 'Faltan menos de 48 horas para el alquiler, por lo que esta cancelación tiene cargo. ¿Querés continuar?'
-        : '¿Seguro que querés cancelar esta reserva?'
+      ? '¿Seguro que querés cancelar esta reserva?'
       : (BILATERAL_META[step]?.confirm ?? '')
 
   return (

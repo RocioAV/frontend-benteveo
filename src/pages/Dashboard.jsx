@@ -139,10 +139,6 @@ function rentalDays(reservation) {
   return Number.isFinite(days) && days > 0 ? days : 1
 }
 
-function hoursUntil(dateInit) {
-  return (new Date(dateInit) - new Date()) / (1000 * 60 * 60)
-}
-
 function otherParty(reservation, role) {
   if (role === 'owner') return reservation.user?.name || 'Inquilino'
   return 'Propietario'
@@ -373,18 +369,6 @@ function Dashboard() {
     }
   }
 
-  const requestCancelReservation = (reservation) => {
-    const withCharge = hoursUntil(reservation.dateInit) <= 48
-    setConfirm({
-      type: 'cancelReservation',
-      id: reservation.id,
-      title: 'Cancelar reserva',
-      message: withCharge
-        ? 'Faltan menos de 48 horas para el alquiler, por lo que esta cancelación tiene cargo. ¿Querés continuar?'
-        : '¿Seguro que querés cancelar esta reserva?',
-    })
-  }
-
   const requestReservationAction = (key, reservation) => {
     const meta = RESERVATION_ACTION_META[key]
     if (!meta) return
@@ -398,9 +382,6 @@ function Dashboard() {
       if (confirm.type === 'deleteProduct') {
         await deleteProduct(confirm.id)
         toast.success('Producto eliminado.')
-      } else if (confirm.type === 'cancelReservation') {
-        await cancelReservation(confirm.id)
-        toast.success('Reserva cancelada.')
       } else {
         await runReservationAction(confirm.type, confirm.id)
         toast.success('Acción completada.')
@@ -581,7 +562,6 @@ function Dashboard() {
           renter={renterReservations}
           owner={ownerReservations}
           userName={name}
-          onCancel={requestCancelReservation}
           onChat={openChat}
           ratingState={ratingState}
           onDetailAction={runDetailAction}
@@ -595,8 +575,10 @@ function Dashboard() {
           renterReservations={renterReservations}
           ownerReservations={ownerReservations}
           ownerNames={ownerNames}
+          userName={name}
           onChat={openChat}
           onReservationAction={requestReservationAction}
+          onDetailAction={runDetailAction}
           onRate={openUserRating}
           ratingState={ratingState}
         />
@@ -1040,8 +1022,10 @@ export function AgendaList({
   renterReservations = [],
   ownerReservations = [],
   ownerNames = {},
+  userName,
   onChat,
   onReservationAction,
+  onDetailAction,
   onRate,
   ratingState = {},
 }) {
@@ -1051,6 +1035,50 @@ export function AgendaList({
   // `selectAgendaReservations` ya ordena por fecha operativa; una COMPLETED
   // que pase a `rated` sale de la lista sin otro cambio.
   const items = selectAgendaReservations(source, role, ratingState)
+
+  // Detalle de la reserva: mismo flujo que Mis reservas, pero sin `readOnly`
+  // (Agenda es el lugar de coordinación: el modal ofrece las acciones
+  // bilaterales y el cancelar mientras la reserva no esté en curso).
+  const [detailOpen, setDetailOpen] = useState(false)
+  const [detail, setDetail] = useState(null)
+  const detailClientRef = useRef('')
+
+  const clientNameFor = (reservation) =>
+    role === 'renter' ? userName : otherParty(reservation, 'owner')
+
+  const openDetail = async (reservation, clientName) => {
+    detailClientRef.current = clientName
+    setDetailOpen(true)
+    setDetail(null)
+    try {
+      const mapped = await fetchReservationDetail(reservation.id, {
+        statusLabels: STATUS_LABELS,
+        clientName,
+      })
+      setDetail(mapped)
+    } catch (err) {
+      toast.error(err?.message || 'No pudimos cargar el detalle de la reserva.')
+      setDetailOpen(false)
+    }
+  }
+
+  const refreshDetail = async (current) => {
+    try {
+      const mapped = await fetchReservationDetail(current.id, {
+        statusLabels: STATUS_LABELS,
+        clientName: detailClientRef.current,
+      })
+      setDetail(mapped)
+    } catch {
+      // Si el refetch falla, el modal conserva el snapshot actual.
+    }
+  }
+
+  const handleDetailAction = async (key, current) => {
+    if (!onDetailAction) return
+    await onDetailAction(key, current)
+    await refreshDetail(current)
+  }
 
   const renderAgendaStep = (reservation, other) => {
     const step = getReservationStep(reservation, role)
@@ -1179,6 +1207,16 @@ export function AgendaList({
                 <div className="agenda-actions">
                   <motion.button
                     type="button"
+                    className="reserva-btn reserva-btn--detail"
+                    whileTap={{ scale: 0.96 }}
+                    transition={springLatch}
+                    onClick={() => openDetail(reservation, clientNameFor(reservation))}
+                    aria-label={`Ver detalle de la reserva de ${other}`}
+                  >
+                    <i className="fas fa-eye" aria-hidden="true" /> Detalle
+                  </motion.button>
+                  <motion.button
+                    type="button"
                     className="agenda-chat"
                     whileTap={{ scale: 0.96 }}
                     transition={springLatch}
@@ -1193,19 +1231,31 @@ export function AgendaList({
           })}
         </ol>
       )}
+
+      <ReservationDetailModal
+        key={detail?.id ?? 'agenda-detail'}
+        isOpen={detailOpen}
+        reservation={detail}
+        viewer={role}
+        onClose={() => {
+          setDetailOpen(false)
+          setDetail(null)
+        }}
+        onAction={handleDetailAction}
+      />
     </section>
   )
 }
 
 // Mis reservas como seguimiento/historial: tabs inquilino/dueño, estado,
-// fechas, precio, contraparte, imagen, Detalle, Chat y Cancelar. Sin acciones
+// fechas, precio, contraparte, imagen, Detalle y Chat. Cancelar vive dentro
+// del detalle (solo mientras la reserva no esté en curso). Sin acciones
 // bilaterales ni calificación interactiva (viven en Agenda). Solo conserva el
 // hecho histórico `Ya calificaste (N/5)` y mensajes no interactivos de espera.
 export function ReservasList({
   renter,
   owner,
   userName,
-  onCancel,
   onChat,
   ratingState = {},
   onDetailAction,
@@ -1329,8 +1379,6 @@ export function ReservasList({
             const other = otherParty(reservation, tab)
             const days = rentalDays(reservation)
             const role = tab === 'renter' ? 'renter' : 'owner'
-            const canCancel = ACTIVE_STATUSES.includes(status) && hoursUntil(reservation.dateInit) > 48
-            const needsCharge = ACTIVE_STATUSES.includes(status) && hoursUntil(reservation.dateInit) <= 48
 
             return (
               <motion.article
@@ -1379,16 +1427,6 @@ export function ReservasList({
                       >
                         <i className="fas fa-eye" aria-hidden="true" /> Detalle
                       </motion.button>
-                      {needsCharge ? (
-                        <span className="reserva-charge-note">
-                          <i className="fas fa-triangle-exclamation" aria-hidden="true" /> Cancelación con cargo
-                        </span>
-                      ) : null}
-                      {canCancel ? (
-                        <button type="button" className="reserva-btn reserva-btn--ghost" onClick={() => onCancel(reservation)}>
-                          <i className="fas fa-xmark" aria-hidden="true" /> Cancelar
-                        </button>
-                      ) : null}
                       {renderTrackingStatus(reservation, role)}
                       <motion.button type="button" className="reserva-btn reserva-btn--primary" whileTap={{ scale: 0.96 }} transition={springLatch} onClick={() => onChat(reservation.id)}>
                         <i className="fas fa-comment" aria-hidden="true" /> Chatear

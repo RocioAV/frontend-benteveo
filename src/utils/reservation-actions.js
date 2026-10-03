@@ -15,6 +15,10 @@
 
 export const RESERVATION_ACTION_KEYS = ['handoff', 'confirmHandoff', 'return', 'confirmReturn']
 
+// Estados desde los que se puede cancelar: nunca una reserva ya en curso.
+// El backend es quien valida de última instancia.
+export const CANCELLABLE_STATUSES = ['PENDING', 'CONFIRMED']
+
 // Estado de calificación entre usuarios por reserva COMPLETED:
 //   'checking' — desconocido o verificando (nunca se ofrece Calificar a ciegas)
 //   'unrated'  — verificado: puede calificar

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AgendaList, ReservasList } from './Dashboard.jsx'
 import { fetchReservationDetail } from '../components/modals/reservationDetail.map.js'
@@ -51,41 +51,40 @@ function renderList(ui) {
   return render(ui)
 }
 
+function mappedDetail(overrides = {}) {
+  return {
+    id: 'res-1',
+    statusCode: 'CONFIRMED',
+    status: 'Confirmada',
+    actualHandoffAt: null,
+    renterReceivedAt: null,
+    renterReturnedAt: null,
+    actualReturnAt: null,
+    category: 'Herramientas',
+    title: 'Taladro',
+    image: null,
+    pickup: '10 dic',
+    dropoff: '12 dic',
+    dateInit: '2026-12-10T12:00:00.000Z',
+    duration: '2 días de alquiler',
+    client: 'Inquilino Uno',
+    owner: 'Dueño Uno',
+    contact: '—',
+    pickupLocation: '—',
+    deposit: '$10.000 (reembolsable)',
+    total: '$20.000',
+    note: '',
+    ...overrides,
+  }
+}
+
 describe('ReservasList — seguimiento/historial (Bloque 3)', () => {
   function trackingProps(overrides = {}) {
     return {
       userName: 'Usuario',
-      onCancel: vi.fn(),
       onChat: vi.fn(),
       ratingState: {},
       onDetailAction: vi.fn(),
-      ...overrides,
-    }
-  }
-
-  function mappedDetail(overrides = {}) {
-    return {
-      id: 'res-1',
-      statusCode: 'CONFIRMED',
-      status: 'Confirmada',
-      actualHandoffAt: null,
-      renterReceivedAt: null,
-      renterReturnedAt: null,
-      actualReturnAt: null,
-      category: 'Herramientas',
-      title: 'Taladro',
-      image: null,
-      pickup: '10 dic',
-      dropoff: '12 dic',
-      dateInit: '2026-12-10T12:00:00.000Z',
-      duration: '2 días de alquiler',
-      client: 'Inquilino Uno',
-      owner: 'Dueño Uno',
-      contact: '—',
-      pickupLocation: '—',
-      deposit: '$10.000 (reembolsable)',
-      total: '$20.000',
-      note: '',
       ...overrides,
     }
   }
@@ -242,8 +241,7 @@ describe('ReservasList — seguimiento/historial (Bloque 3)', () => {
     expect(screen.queryByText(/no pudimos verificar tu calificación/i)).not.toBeInTheDocument()
   })
 
-  it('conserva Detalle, Chat y Cancelar bajo su regla actual', async () => {
-    const onCancel = vi.fn()
+  it('conserva Detalle y Chat; Cancelar vive dentro del detalle', async () => {
     const onChat = vi.fn()
     const user = userEvent.setup()
     fetchDetailMock.mockResolvedValue(mappedDetail())
@@ -251,7 +249,7 @@ describe('ReservasList — seguimiento/historial (Bloque 3)', () => {
       <ReservasList
         renter={[reservation()]}
         owner={[]}
-        {...trackingProps({ onCancel, onChat })}
+        {...trackingProps({ onChat })}
       />,
     )
 
@@ -259,12 +257,13 @@ describe('ReservasList — seguimiento/historial (Bloque 3)', () => {
     await user.click(screen.getByRole('button', { name: /chatear/i }))
     expect(onChat).toHaveBeenCalledWith('res-1')
 
-    await user.click(screen.getByRole('button', { name: /cancelar/i }))
-    expect(onCancel).toHaveBeenCalledWith(expect.objectContaining({ id: 'res-1' }))
+    // La tarjeta ya no ofrece Cancelar: se hace desde el detalle.
+    expect(screen.queryByRole('button', { name: /^cancelar/i })).not.toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /detalle/i }))
     expect(await screen.findByRole('dialog')).toBeInTheDocument()
     expect(fetchDetailMock).toHaveBeenCalledWith('res-1', expect.anything())
+    expect(await screen.findByRole('button', { name: /cancelar reserva/i })).toBeInTheDocument()
   })
 
   it('detalle desde Mis reservas no expone acciones operativas aunque sea accionable', async () => {
@@ -548,5 +547,36 @@ describe('AgendaList — Agenda operativa por rol', () => {
 
     await user.click(screen.getByRole('button', { name: /hablar con/i }))
     expect(onChat).toHaveBeenCalledWith('chat-1')
+  })
+
+  it('Detalle abre el modal con acciones bilaterales y cancelar', async () => {
+    const onDetailAction = vi.fn().mockResolvedValue({ id: 'res-1', status: 'CONFIRMED' })
+    const user = userEvent.setup()
+    fetchDetailMock.mockResolvedValue(mappedDetail())
+    renderList(
+      <AgendaList
+        {...agendaProps({
+          onDetailAction,
+          userName: 'María',
+          ownerReservations: [
+            reservation({ product: { ...reservation().product, title: 'Sierra dueño' } }),
+          ],
+        })}
+      />,
+    )
+
+    await user.click(screen.getByRole('tab', { name: /como dueño/i }))
+    await user.click(screen.getByRole('button', { name: /ver detalle de la reserva/i }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(fetchDetailMock).toHaveBeenCalledWith('res-1', expect.anything())
+    // En Agenda el detalle no es readOnly: ofrece la acción bilateral…
+    expect(within(dialog).getByRole('button', { name: /marcar como entregado/i })).toBeInTheDocument()
+    // …y cancelar mientras la reserva no esté en curso.
+    await user.click(within(dialog).getByRole('button', { name: /cancelar reserva/i }))
+    await user.click(within(dialog).getByRole('button', { name: /sí, cancelar/i }))
+
+    await waitFor(() => expect(onDetailAction).toHaveBeenCalledTimes(1))
+    expect(onDetailAction).toHaveBeenCalledWith('cancel', expect.objectContaining({ id: 'res-1' }))
   })
 })
