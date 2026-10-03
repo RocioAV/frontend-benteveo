@@ -206,15 +206,15 @@ describe('selectAgendaReservations — Agenda operativa', () => {
     expect(selectAgendaReservations(list, 'renter', {}, NOW).map((r) => r.id)).toEqual(['res-1'])
   })
 
-  it('CONFIRMED vencida pero operativamente abierta no se esconde', () => {
+  it('CONFIRMED vencida se oculta aunque siga operativamente abierta', () => {
     const list = [
       agendaReservation({ dateInit: '2026-09-01T12:00:00.000Z', dateEnd: '2026-09-03T12:00:00.000Z' }),
     ]
-    expect(selectAgendaReservations(list, 'owner', {}, NOW).map((r) => r.id)).toEqual(['res-1'])
-    expect(selectAgendaReservations(list, 'renter', {}, NOW).map((r) => r.id)).toEqual(['res-1'])
+    expect(selectAgendaReservations(list, 'owner', {}, NOW)).toEqual([])
+    expect(selectAgendaReservations(list, 'renter', {}, NOW)).toEqual([])
   })
 
-  it('ACTIVE vencida todavía accionable sigue visible', () => {
+  it('ACTIVE vencida se oculta aunque todavía sea accionable', () => {
     const list = [
       agendaReservation({
         status: 'ACTIVE',
@@ -222,8 +222,21 @@ describe('selectAgendaReservations — Agenda operativa', () => {
         dateEnd: '2026-09-03T12:00:00.000Z',
       }),
     ]
-    expect(selectAgendaReservations(list, 'renter', {}, NOW).map((r) => r.id)).toEqual(['res-1'])
-    expect(selectAgendaReservations(list, 'owner', {}, NOW).map((r) => r.id)).toEqual(['res-1'])
+    expect(selectAgendaReservations(list, 'renter', {}, NOW)).toEqual([])
+    expect(selectAgendaReservations(list, 'owner', {}, NOW)).toEqual([])
+  })
+
+  it('COMPLETED vencida sin calificar sigue visible', () => {
+    const list = [
+      agendaReservation({
+        id: 'done-past',
+        status: 'COMPLETED',
+        dateInit: '2026-09-01T12:00:00.000Z',
+        dateEnd: '2026-09-03T12:00:00.000Z',
+      }),
+    ]
+    expect(selectAgendaReservations(list, 'owner', {}, NOW).map((r) => r.id)).toEqual(['done-past'])
+    expect(selectAgendaReservations(list, 'renter', {}, NOW).map((r) => r.id)).toEqual(['done-past'])
   })
 
   it('COMPLETED sin calificar visible; ya calificada excluida', () => {

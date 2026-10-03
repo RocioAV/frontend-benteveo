@@ -32,6 +32,7 @@ const {
 
 vi.mock('../services/products.service.js', () => ({
   fetchProducts: fetchProductsMock,
+  fetchPublicProfile: vi.fn().mockResolvedValue(null),
   deleteProduct: vi.fn(),
   toggleAvailability: vi.fn(),
 }))

@@ -79,12 +79,22 @@ function agendaSortTime(reservation) {
   return Number.isNaN(time) ? Number.POSITIVE_INFINITY : time
 }
 
+// Fin del alquiler ya pasado: la reserva venció y Agenda deja de mostrarla
+// aunque el flujo siga abierto (CONFIRMED/ACTIVE sin confirmar).
+function isOverdue(reservation, today) {
+  const raw = reservation.dateEnd || reservation.dateInit
+  const day = raw ? startOfDay(raw) : null
+  return Boolean(day && today && day < today)
+}
+
 // Selección pura de reservas visibles en Agenda por rol.
 // - CONFIRMED/ACTIVE: visibles mientras `getReservationStep` exprese
-//   acción o espera operativa (incluso vencidas si siguen abiertas). Sin paso
-//   operativo solo se conserva la CONFIRMED con fecha relevante no anterior a hoy.
+//   acción o espera operativa, salvo que el alquiler ya haya vencido
+//   (`dateEnd` anterior a hoy): esas se ocultan. Sin paso operativo solo se
+//   conserva la CONFIRMED con fecha relevante no anterior a hoy.
 // - COMPLETED: visible mientras `getRatingView` no sea `rated` (checking,
-//   unrated, retry y desconocido se conservan para no esconder prematuro).
+//   unrated, retry y desconocido se conservan para no esconder prematuro),
+//   aunque el alquiler haya vencido: es el único punto de entrada a calificar.
 // - PENDING, CANCELLED y COMPLETED ya calificada quedan excluidas.
 // - `now` es inyectable para pruebas; el orden es determinista por fecha
 //   operativa ascendente con desempate por id.
@@ -106,6 +116,7 @@ export function selectAgendaReservations(reservations, role, ratingState = {}, n
     }
 
     if (status === 'CONFIRMED' || status === 'ACTIVE') {
+      if (isOverdue(reservation, today)) continue
       const step = getReservationStep(reservation, role)
       if (step.kind === 'action' || step.kind === 'wait') {
         visible.push(reservation)

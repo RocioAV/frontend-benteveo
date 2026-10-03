@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, MotionConfig, AnimatePresence } from 'motion/react'
 import { toast } from 'react-toastify'
 import { useAuth } from '../context/useAuth'
-import { fetchProducts, deleteProduct, toggleAvailability } from '../services/products.service.js'
+import { fetchProducts, fetchPublicProfile, deleteProduct, toggleAvailability } from '../services/products.service.js'
 import { fetchFavorites } from '../services/favorites.service.js'
 import { useFavorites } from '../context/useFavorites'
 import ProductCard from '../components/ProductCard/ProductCard.jsx'
@@ -263,6 +263,38 @@ function Dashboard() {
             if (prev[id]?.status === 'rated') return prev
             return { ...prev, [id]: { status: 'error', score: null } }
           })
+        })
+    }
+    return () => {
+      cancelled = true
+    }
+  }, [data])
+
+  // Nombres reales de los dueños en las reservas donde sos inquilino: la
+  // respuesta de /reservations no los incluye, así que se piden una sola vez
+  // por ownerId (GET /user/:id) y se cachean para la sesión. Sin nombre,
+  // Agenda muestra el fallback "Propietario".
+  const [ownerNames, setOwnerNames] = useState({})
+  const ownerNamesRequestedRef = useRef(new Set())
+  useEffect(() => {
+    if (!data) return undefined
+    let cancelled = false
+    const missing = []
+    for (const r of data.renterReservations) {
+      const ownerId = r?.product?.ownerId
+      if (ownerId && !ownerNamesRequestedRef.current.has(ownerId)) missing.push(ownerId)
+    }
+    if (missing.length === 0) return undefined
+    for (const id of missing) ownerNamesRequestedRef.current.add(id)
+    for (const id of missing) {
+      fetchPublicProfile(id)
+        .then((profile) => {
+          if (cancelled || !profile?.name) return
+          setOwnerNames((prev) => (prev[id] === profile.name ? prev : { ...prev, [id]: profile.name }))
+        })
+        .catch(() => {
+          // Se libera el ID para reintentar en la próxima carga de datos.
+          ownerNamesRequestedRef.current.delete(id)
         })
     }
     return () => {
@@ -562,6 +594,7 @@ function Dashboard() {
         <AgendaList
           renterReservations={renterReservations}
           ownerReservations={ownerReservations}
+          ownerNames={ownerNames}
           onChat={openChat}
           onReservationAction={requestReservationAction}
           onRate={openUserRating}
@@ -1006,6 +1039,7 @@ function Dashboard() {
 export function AgendaList({
   renterReservations = [],
   ownerReservations = [],
+  ownerNames = {},
   onChat,
   onReservationAction,
   onRate,
@@ -1124,10 +1158,14 @@ export function AgendaList({
                   <span className="agenda-month">{monthOf(reservation.dateInit)}</span>
                 </div>
                 <div className="agenda-body">
-                  <p className="agenda-name">{other}</p>
-                  <p className="agenda-meta">
+                  <p className="agenda-name">
                     <strong>{product?.title || 'Producto'}</strong>
+                    <span className="agenda-owner">
+                      {' · '}Propietario:{' '}
+                      {role === 'owner' ? 'Vos' : ownerNames[product?.ownerId] || 'Propietario'}
+                    </span>
                   </p>
+                  {role === 'owner' && <p className="agenda-meta">Inquilino: {other}</p>}
                   <p className="agenda-times">
                     <span>
                       <i className="fas fa-box-open" aria-hidden="true" /> Entrega: {formatDateTime(reservation.dateInit)}

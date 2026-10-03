@@ -401,7 +401,7 @@ describe('AgendaList — Agenda operativa por rol', () => {
     expect(screen.getByText(/pendientes como dueño/i)).toBeInTheDocument()
   })
 
-  it('CONFIRMED futura y CONFIRMED vencida pendiente siguen visibles con espera', () => {
+  it('CONFIRMED futura visible con espera; vencida oculta', () => {
     renderList(
       <AgendaList
         {...agendaProps({
@@ -419,17 +419,14 @@ describe('AgendaList — Agenda operativa por rol', () => {
     )
 
     expect(screen.getByText('Futura')).toBeInTheDocument()
-    expect(screen.getByText('Vencida abierta')).toBeInTheDocument()
-    expect(screen.getAllByText(/esperando que el dueño marque la entrega/i).length).toBeGreaterThanOrEqual(2)
+    expect(screen.queryByText('Vencida abierta')).not.toBeInTheDocument()
+    expect(screen.getAllByText(/esperando que el dueño marque la entrega/i)).toHaveLength(1)
   })
 
-  it('ACTIVE vencida todavía accionable ofrece Marcar como devuelto al inquilino', async () => {
-    const onReservationAction = vi.fn()
-    const user = userEvent.setup()
+  it('ACTIVE vencida no aparece en Agenda', () => {
     renderList(
       <AgendaList
         {...agendaProps({
-          onReservationAction,
           renterReservations: [
             reservation({
               id: 'active-vencida',
@@ -443,11 +440,35 @@ describe('AgendaList — Agenda operativa por rol', () => {
       />,
     )
 
-    expect(screen.getByText('Activa vencida')).toBeInTheDocument()
+    expect(screen.queryByText('Activa vencida')).not.toBeInTheDocument()
+    expect(screen.getByText(/no tenés entregas/i)).toBeInTheDocument()
+  })
+
+  it('ACTIVE accionable ofrece Marcar como devuelto al inquilino', async () => {
+    const onReservationAction = vi.fn()
+    const user = userEvent.setup()
+    renderList(
+      <AgendaList
+        {...agendaProps({
+          onReservationAction,
+          renterReservations: [
+            reservation({
+              id: 'active-pendiente',
+              status: 'ACTIVE',
+              dateInit: '2099-01-10T12:00:00.000Z',
+              dateEnd: '2099-01-12T12:00:00.000Z',
+              product: { ...reservation().product, title: 'Activa pendiente' },
+            }),
+          ],
+        })}
+      />,
+    )
+
+    expect(screen.getByText('Activa pendiente')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: /marcar como devuelto/i }))
     expect(onReservationAction).toHaveBeenCalledWith(
       'return',
-      expect.objectContaining({ id: 'active-vencida' }),
+      expect.objectContaining({ id: 'active-pendiente' }),
     )
   })
 
