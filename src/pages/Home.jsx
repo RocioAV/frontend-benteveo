@@ -1,16 +1,21 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, MotionConfig } from 'motion/react'
-import products from '../data/products.json'
-import { isWithinRange } from '../utils/products.js'
+import productsJson from '../data/products.json'
+import { getProducts } from '../services/product.service.js'
 import ProductCard from '../components/ProductCard/ProductCard.jsx'
 import './Home.css'
 
-const nearbyProducts = products.filter((product) => isWithinRange(product.distance))
-const duplicated = [...nearbyProducts, ...nearbyProducts, ...nearbyProducts]
-const topRated = [...products]
-  .sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0))
-  .slice(0, 4)
+const PLACEHOLDER_IMG = '/images/placeholder.svg'
+
+// Si la imagen no carga (URL rota, sin fotos, red caída), se muestra el
+// placeholder local una sola vez: `onerror = null` evita el bucle de reintentos.
+function handleImageError(event) {
+  const img = event.currentTarget
+  img.onerror = null
+  if (img.src.endsWith(PLACEHOLDER_IMG)) return
+  img.src = PLACEHOLDER_IMG
+}
 
 // Springs (DESIGN.md §3 — gramática mecánico-líquida)
 const springReveal = { type: 'spring', stiffness: 260, damping: 26 }
@@ -40,6 +45,59 @@ function Home() {
   const [offset, setOffset] = useState(0)
   const pausedRef = useRef(false)
 
+  // 'loading' | 'ready' | 'error' — el respaldo a products.json se aplica en
+  // el catch y cuando la API devuelve una lista vacía.
+  const [loadState, setLoadState] = useState('loading')
+  const [products, setProducts] = useState([])
+
+  useEffect(() => {
+    let cancelled = false
+    getProducts()
+      .then((data) => {
+        if (cancelled) return
+        if (Array.isArray(data) && data.length > 0) {
+          setProducts(data)
+        } else {
+          setProducts(productsJson) // API vacía → respaldo local
+        }
+        setLoadState('ready')
+      })
+      .catch(() => {
+        if (cancelled) return
+        setProducts(productsJson) // API caída → respaldo local
+        setLoadState('error')
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  // `distance` hoy es aleatorio (generateDistance), así que filtrar por ella
+  // descartaría productos al azar: se usan todos los productos.
+  const nearbyProducts = useMemo(() => products, [products])
+  const duplicated = useMemo(
+    () => [...nearbyProducts, ...nearbyProducts, ...nearbyProducts],
+    [nearbyProducts],
+  )
+  const topRated = useMemo(
+    () =>
+      [...products]
+        .sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0))
+        .slice(0, 4),
+    [products],
+  )
+
+  // La home no se queda en blanco: si la API falla o viene vacía se usó el
+  // respaldo local. Solo queda vacío si también el JSON local no tiene datos.
+  const hasProducts = products.length > 0
+  const statusMessage =
+    loadState === 'loading'
+      ? 'Cargando productos…'
+      : loadState === 'error'
+        ? 'No pudimos conectar con el servidor. Mostrando productos de ejemplo.'
+        : 'Todavía no hay productos disponibles.'
+  const showStatus = loadState === 'loading' || !hasProducts
+
   useEffect(() => {
     const reduce =
       typeof window.matchMedia === 'function' &&
@@ -59,8 +117,9 @@ function Home() {
       const cards = trackRef.current.children
       const totalCards = nearbyProducts.length
       let width = 0
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < Math.min(5, totalCards); i++) {
         const card = cards[i]
+        if (!card) break
         width += card.offsetWidth
         if (i < totalCards - 1) {
           width += parseFloat(getComputedStyle(trackRef.current).gap) || 24
@@ -72,7 +131,7 @@ function Home() {
     calcOffset()
     window.addEventListener('resize', calcOffset)
     return () => window.removeEventListener('resize', calcOffset)
-  }, [])
+  }, [nearbyProducts])
 
   return (
     <div className="w-full">
@@ -121,6 +180,7 @@ function Home() {
           </div>
 
           <div className="tool-wall">
+            {hasProducts ? (
             <div
               ref={trackRef}
               className="carousel-track"
@@ -134,6 +194,7 @@ function Home() {
                     alt={product.title}
                     loading="lazy"
                     decoding="async"
+                    onError={handleImageError}
                   />
                   <div className="carousel-card-body">
                     <p className="carousel-card-title">{product.title}</p>
@@ -152,6 +213,15 @@ function Home() {
                 </div>
               ))}
             </div>
+            ) : (
+              <p
+                className="text-center text-[var(--color-concrete)] py-10"
+                role="status"
+                aria-live="polite"
+              >
+                {statusMessage}
+              </p>
+            )}
           </div>
         </section>
       </MotionConfig>
@@ -250,11 +320,21 @@ function Home() {
           <h2 className="section-title">Los favoritos de los clientes</h2>
           <p className="section-sub">Lo más alquilado y mejor calificado de tu barrio.</p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {topRated.map((product, i) => (
-              <ProductCard key={product.id} product={product} index={i} />
-            ))}
-          </div>
+          {showStatus ? (
+            <p
+              className="text-center text-[var(--color-concrete)] py-10"
+              role="status"
+              aria-live="polite"
+            >
+              {statusMessage}
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {topRated.map((product, i) => (
+                <ProductCard key={product.id} product={product} index={i} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -263,15 +343,27 @@ function Home() {
         <div className="featured-container">
           <h2 className="section-title">Productos destacados</h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {nearbyProducts.slice(0, 8).map((product, i) => (
-              <ProductCard key={product.id} product={product} index={i} />
-            ))}
-          </div>
+          {showStatus ? (
+            <p
+              className="text-center text-[var(--color-concrete)] py-10"
+              role="status"
+              aria-live="polite"
+            >
+              {statusMessage}
+            </p>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {nearbyProducts.slice(0, 8).map((product, i) => (
+                  <ProductCard key={product.id} product={product} index={i} />
+                ))}
+              </div>
 
-          <div className="text-center mt-12">
-            <Link to="/explorar" className="featured-more">Ver todos los productos</Link>
-          </div>
+              <div className="text-center mt-12">
+                <Link to="/explorar" className="featured-more">Ver todos los productos</Link>
+              </div>
+            </>
+          )}
         </div>
       </section>
 

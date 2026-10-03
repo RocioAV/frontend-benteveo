@@ -23,7 +23,18 @@ function ProductCard({ product, index = 0 }) {
       <Link to={`/detalle/${product.id}`} className={styles.card}>
         <div className={styles.media}>
           {product.imageUrl ? (
-            <img src={product.imageUrl} alt={product.title} loading="lazy" decoding="async" />
+            <img
+              src={product.imageUrl}
+              alt={product.title}
+              loading="lazy"
+              decoding="async"
+              onError={(event) => {
+                // Evita bucle: solo se intenta una vez y siempre al placeholder local.
+                const img = event.currentTarget
+                img.onerror = null
+                img.src = '/images/placeholder.svg'
+              }}
+            />
           ) : (
             <div className={styles.mediaPlaceholder}>
               <i className="fa-solid fa-toolbox" aria-hidden="true" />
