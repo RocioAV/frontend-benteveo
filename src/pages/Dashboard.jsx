@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, MotionConfig, AnimatePresence } from 'motion/react'
 import { toast } from 'react-toastify'
@@ -93,6 +93,12 @@ function runReservationAction(key, id) {
 const MS_PER_DAY = 1000 * 60 * 60 * 24
 const HISTORY_LIMIT = 6
 const RESERVAS_PAGE_SIZE = 10
+
+// Meses del filtro de Mis reservas (locale fijo, igual que formatDate).
+const FILTER_MONTHS = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+]
 
 function getInitial(name) {
   const trimmed = (name || '').trim()
@@ -1262,6 +1268,8 @@ export function ReservasList({
 }) {
   const [tab, setTab] = useState('renter')
   const [page, setPage] = useState(1)
+  const [filterMonth, setFilterMonth] = useState('') // '' = todos los meses
+  const [filterYear, setFilterYear] = useState('') // '' = todos los años
   const [detailOpen, setDetailOpen] = useState(false)
   const [detail, setDetail] = useState(null)
   const detailClientRef = useRef('')
@@ -1271,10 +1279,54 @@ export function ReservasList({
     if (id === tab) return
     setTab(id)
     setPage(1)
+    // Cada tab trae listas y años distintos: se limpia el filtro para no
+    // mostrar un estado vacío por una selección que ya no aplica.
+    setFilterMonth('')
+    setFilterYear('')
   }
 
+  const handleMonthChange = (e) => {
+    setFilterMonth(e.target.value)
+    setPage(1)
+  }
+
+  const handleYearChange = (e) => {
+    setFilterYear(e.target.value)
+    setPage(1)
+  }
+
+  const clearFilters = () => {
+    setFilterMonth('')
+    setFilterYear('')
+    setPage(1)
+  }
+
+  // Años presentes en los datos (para el select), más reciente primero.
+  const availableYears = useMemo(() => {
+    const years = new Set()
+    for (const reservation of [...(renter ?? []), ...(owner ?? [])]) {
+      const date = new Date(reservation.dateInit)
+      if (!Number.isNaN(date.getTime())) years.add(date.getFullYear())
+    }
+    return [...years].sort((a, b) => b - a)
+  }, [renter, owner])
+
+  // Filtro por mes/año de inicio (`dateInit`) en fecha local: es la misma
+  // fecha que muestra la card, así "10 dic" cae en diciembre.
+  const matchesFilter = (reservation) => {
+    if (!filterMonth && !filterYear) return true
+    const date = new Date(reservation.dateInit)
+    if (Number.isNaN(date.getTime())) return false
+    if (filterMonth && date.getMonth() + 1 !== Number(filterMonth)) return false
+    if (filterYear && date.getFullYear() !== Number(filterYear)) return false
+    return true
+  }
+
+  // El filtro se aplica antes del orden y de la paginación.
+  const filtered = list.filter(matchesFilter)
+
   // Más reciente primero (createdAt desc — el backend también lo ordena así).
-  const sorted = [...list].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  const sorted = [...filtered].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   const totalPages = Math.max(1, Math.ceil(sorted.length / RESERVAS_PAGE_SIZE))
   const currentPage = Math.min(page, totalPages)
   const pageItems = sorted.slice(
@@ -1363,6 +1415,38 @@ export function ReservasList({
         </button>
       </div>
 
+      {list.length > 0 && (
+        <div className="reservas-filtros" role="group" aria-label="Filtrar por mes y año">
+          <label className="reservas-filtros-campo" htmlFor="reservas-filtro-mes">
+            Mes
+            <select id="reservas-filtro-mes" value={filterMonth} onChange={handleMonthChange}>
+              <option value="">Todos los meses</option>
+              {FILTER_MONTHS.map((month, index) => (
+                <option key={month} value={index + 1}>
+                  {month}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="reservas-filtros-campo" htmlFor="reservas-filtro-anio">
+            Año
+            <select id="reservas-filtro-anio" value={filterYear} onChange={handleYearChange}>
+              <option value="">Todos los años</option>
+              {availableYears.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </label>
+          {(filterMonth || filterYear) && (
+            <button type="button" className="reservas-filtros-limpiar" onClick={clearFilters}>
+              <i className="fas fa-xmark" aria-hidden="true" /> Limpiar
+            </button>
+          )}
+        </div>
+      )}
+
       {list.length === 0 ? (
         <EmptyState
           message={
@@ -1370,6 +1454,16 @@ export function ReservasList({
               ? 'Todavía no alquilaste nada.'
               : 'Todavía no tenés reservas en tus productos.'
           }
+        />
+      ) : filtered.length === 0 ? (
+        <EmptyState
+          message={
+            filterMonth
+              ? 'No tenés reservas en ese mes.'
+              : 'No tenés reservas en ese año.'
+          }
+          actionLabel="Limpiar filtro"
+          onAction={clearFilters}
         />
       ) : (
         <div className="reservas-list">

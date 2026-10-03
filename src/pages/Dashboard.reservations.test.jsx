@@ -339,6 +339,137 @@ describe('ReservasList — seguimiento/historial (Bloque 3)', () => {
   })
 })
 
+describe('ReservasList — filtro por mes y año', () => {
+  function trackingProps(overrides = {}) {
+    return {
+      userName: 'Usuario',
+      onChat: vi.fn(),
+      ratingState: {},
+      onDetailAction: vi.fn(),
+      ...overrides,
+    }
+  }
+
+  function renterWith(title, dateInit, overrides = {}) {
+    return reservation({
+      dateInit,
+      dateEnd: dateInit,
+      product: { ...reservation().product, title },
+      ...overrides,
+    })
+  }
+
+  it('por defecto no filtra y muestra todas las reservas', () => {
+    renderList(
+      <ReservasList
+        renter={[
+          renterWith('Reserva diciembre', '2026-12-10T12:00:00.000Z', { id: 'dec' }),
+          renterWith('Reserva noviembre', '2026-11-10T12:00:00.000Z', { id: 'nov' }),
+        ]}
+        owner={[]}
+        {...trackingProps()}
+      />,
+    )
+
+    expect(screen.getByRole('group', { name: /filtrar por mes y año/i })).toBeInTheDocument()
+    expect(screen.getByText('Reserva diciembre')).toBeInTheDocument()
+    expect(screen.getByText('Reserva noviembre')).toBeInTheDocument()
+  })
+
+  it('filtra por mes de inicio (dateInit) manteniendo el año', async () => {
+    const user = userEvent.setup()
+    renderList(
+      <ReservasList
+        renter={[
+          renterWith('Reserva diciembre', '2026-12-10T12:00:00.000Z', { id: 'dec' }),
+          renterWith('Reserva noviembre', '2026-11-10T12:00:00.000Z', { id: 'nov' }),
+        ]}
+        owner={[]}
+        {...trackingProps()}
+      />,
+    )
+
+    await user.selectOptions(screen.getByRole('combobox', { name: /^mes$/i }), '11')
+
+    expect(screen.getByText('Reserva noviembre')).toBeInTheDocument()
+    expect(screen.queryByText('Reserva diciembre')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /limpiar/i })).toBeInTheDocument()
+  })
+
+  it('filtra por año y limpia los filtros desde el botón', async () => {
+    const user = userEvent.setup()
+    renderList(
+      <ReservasList
+        renter={[
+          renterWith('Reserva 2026', '2026-12-10T12:00:00.000Z', { id: 'a' }),
+          renterWith('Reserva 2025', '2025-12-10T12:00:00.000Z', { id: 'b' }),
+        ]}
+        owner={[]}
+        {...trackingProps()}
+      />,
+    )
+
+    const yearSelect = screen.getByRole('combobox', { name: /^año$/i })
+    expect(within(yearSelect).getByRole('option', { name: '2026' })).toBeInTheDocument()
+    expect(within(yearSelect).getByRole('option', { name: '2025' })).toBeInTheDocument()
+
+    await user.selectOptions(yearSelect, '2025')
+    expect(screen.getByText('Reserva 2025')).toBeInTheDocument()
+    expect(screen.queryByText('Reserva 2026')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /limpiar/i }))
+    expect(screen.getByText('Reserva 2026')).toBeInTheDocument()
+    expect(screen.getByText('Reserva 2025')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /limpiar/i })).not.toBeInTheDocument()
+  })
+
+  it('sin resultados en el mes ofrece limpiar el filtro y restaura la lista', async () => {
+    const user = userEvent.setup()
+    renderList(
+      <ReservasList
+        renter={[renterWith('Reserva diciembre', '2026-12-10T12:00:00.000Z', { id: 'dec' })]}
+        owner={[]}
+        {...trackingProps()}
+      />,
+    )
+
+    await user.selectOptions(screen.getByRole('combobox', { name: /^mes$/i }), '5')
+
+    expect(screen.getByText(/no tenés reservas en ese mes/i)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /limpiar filtro/i }))
+    expect(screen.getByText('Reserva diciembre')).toBeInTheDocument()
+  })
+
+  it('cambiar el filtro resetea la paginación a la página 1', async () => {
+    const user = userEvent.setup()
+    const diciembre = Array.from({ length: 12 }, (_, i) =>
+      renterWith(`Diciembre ${i}`, '2026-12-10T12:00:00.000Z', {
+        id: `dec-${i}`,
+        createdAt: new Date(Date.UTC(2026, 10, 30 - i)).toISOString(),
+      }),
+    )
+    const noviembre = renterWith('Noviembre 1', '2026-11-05T12:00:00.000Z', {
+      id: 'nov-1',
+      createdAt: new Date(Date.UTC(2026, 10, 1)).toISOString(),
+    })
+
+    renderList(
+      <ReservasList renter={[...diciembre, noviembre]} owner={[]} {...trackingProps()} />,
+    )
+
+    await user.click(screen.getByRole('button', { name: /siguiente/i }))
+    expect(screen.getByText(/página 2 de 2/i)).toBeInTheDocument()
+
+    await user.selectOptions(screen.getByRole('combobox', { name: /^mes$/i }), '11')
+    expect(screen.getByText('Noviembre 1')).toBeInTheDocument()
+    expect(screen.queryByText(/página/i)).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /^limpiar$/i }))
+    expect(screen.getByText(/página 1 de 2/i)).toBeInTheDocument()
+  })
+})
+
 describe('AgendaList — Agenda operativa por rol', () => {
   function agendaProps(overrides = {}) {
     return {
