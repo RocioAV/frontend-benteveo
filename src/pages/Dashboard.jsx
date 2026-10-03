@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, MotionConfig, AnimatePresence } from 'motion/react'
 import { toast } from 'react-toastify'
 import { useAuth } from '../context/useAuth'
-import { fetchProducts, deleteProduct, toggleAvailability } from '../services/products.service.js'
+import { fetchProducts, fetchPublicProfile, deleteProduct, toggleAvailability } from '../services/products.service.js'
 import { fetchFavorites } from '../services/favorites.service.js'
 import { useFavorites } from '../context/useFavorites'
 import ProductCard from '../components/ProductCard/ProductCard.jsx'
@@ -17,7 +17,8 @@ import {
   confirmReturnReceipt,
 } from '../services/reservations.service.js'
 import { submitUserRating, fetchMyUserRating } from '../services/user-ratings.service.js'
-import { getReservationStep, getRatingView, mergeReservationUpdate } from '../utils/reservation-actions.js'
+import { getReservationStep, getRatingView, mergeReservationUpdate, selectAgendaReservations } from '../utils/reservation-actions.js'
+import { simulateDepositRefund } from '../utils/refund-simulation.js'
 import { uploadAvatar, updateProfile } from '../services/profile.service.js'
 import EmptyState from '../components/EmptyState/EmptyState.jsx'
 import Skeleton from '../components/Skeleton/Skeleton.jsx'
@@ -94,6 +95,12 @@ const MS_PER_DAY = 1000 * 60 * 60 * 24
 const HISTORY_LIMIT = 6
 const RESERVAS_PAGE_SIZE = 10
 
+// Meses del filtro de Mis reservas (locale fijo, igual que formatDate).
+const FILTER_MONTHS = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+]
+
 function getInitial(name) {
   const trimmed = (name || '').trim()
   return trimmed ? trimmed.charAt(0).toUpperCase() : 'B'
@@ -135,12 +142,8 @@ function monthOf(iso) {
 function rentalDays(reservation) {
   const start = new Date(reservation.dateInit)
   const end = new Date(reservation.dateEnd)
-  const days = Math.round((end - start) / MS_PER_DAY) + 1
+  const days = Math.ceil((end - start) / MS_PER_DAY)
   return Number.isFinite(days) && days > 0 ? days : 1
-}
-
-function hoursUntil(dateInit) {
-  return (new Date(dateInit) - new Date()) / (1000 * 60 * 60)
 }
 
 function otherParty(reservation, role) {
@@ -270,6 +273,38 @@ function Dashboard() {
     }
   }, [data])
 
+  // Nombres reales de los dueños en las reservas donde sos inquilino: la
+  // respuesta de /reservations no los incluye, así que se piden una sola vez
+  // por ownerId (GET /user/:id) y se cachean para la sesión. Sin nombre,
+  // Agenda muestra el fallback "Propietario".
+  const [ownerNames, setOwnerNames] = useState({})
+  const ownerNamesRequestedRef = useRef(new Set())
+  useEffect(() => {
+    if (!data) return undefined
+    let cancelled = false
+    const missing = []
+    for (const r of data.renterReservations) {
+      const ownerId = r?.product?.ownerId
+      if (ownerId && !ownerNamesRequestedRef.current.has(ownerId)) missing.push(ownerId)
+    }
+    if (missing.length === 0) return undefined
+    for (const id of missing) ownerNamesRequestedRef.current.add(id)
+    for (const id of missing) {
+      fetchPublicProfile(id)
+        .then((profile) => {
+          if (cancelled || !profile?.name) return
+          setOwnerNames((prev) => (prev[id] === profile.name ? prev : { ...prev, [id]: profile.name }))
+        })
+        .catch(() => {
+          // Se libera el ID para reintentar en la próxima carga de datos.
+          ownerNamesRequestedRef.current.delete(id)
+        })
+    }
+    return () => {
+      cancelled = true
+    }
+  }, [data])
+
   const goToSection = (id) => {
     setSearchParams(id === 'perfil' ? {} : { tab: id }, { replace: true })
   }
@@ -341,18 +376,6 @@ function Dashboard() {
     }
   }
 
-  const requestCancelReservation = (reservation) => {
-    const withCharge = hoursUntil(reservation.dateInit) <= 48
-    setConfirm({
-      type: 'cancelReservation',
-      id: reservation.id,
-      title: 'Cancelar reserva',
-      message: withCharge
-        ? 'Faltan menos de 48 horas para el alquiler, por lo que esta cancelación tiene cargo. ¿Querés continuar?'
-        : '¿Seguro que querés cancelar esta reserva?',
-    })
-  }
-
   const requestReservationAction = (key, reservation) => {
     const meta = RESERVATION_ACTION_META[key]
     if (!meta) return
@@ -366,9 +389,10 @@ function Dashboard() {
       if (confirm.type === 'deleteProduct') {
         await deleteProduct(confirm.id)
         toast.success('Producto eliminado.')
-      } else if (confirm.type === 'cancelReservation') {
-        await cancelReservation(confirm.id)
-        toast.success('Reserva cancelada.')
+      } else if (confirm.type === 'confirmReturn') {
+        await runReservationAction(confirm.type, confirm.id)
+        // El dueño confirmó la devolución: se simula el reembolso del depósito.
+        simulateDepositRefund('return')
       } else {
         await runReservationAction(confirm.type, confirm.id)
         toast.success('Acción completada.')
@@ -462,10 +486,14 @@ function Dashboard() {
     if (key === 'cancel') {
       const updated = await cancelReservation(detail.id)
       patchReservation(updated)
+      // Cancelación aceptada por el backend: se simula el reembolso.
+      simulateDepositRefund('cancel')
       return
     }
     const updated = await runReservationAction(key, detail.id)
     patchReservation(updated)
+    // Recepción final confirmada: se libera (simulado) el depósito al inquilino.
+    if (key === 'confirmReturn') simulateDepositRefund('return')
   }
 
   // ── Edición de perfil (PATCH /user/data-user) ──
@@ -549,10 +577,7 @@ function Dashboard() {
           renter={renterReservations}
           owner={ownerReservations}
           userName={name}
-          onCancel={requestCancelReservation}
           onChat={openChat}
-          onReservationAction={requestReservationAction}
-          onRate={openUserRating}
           ratingState={ratingState}
           onDetailAction={runDetailAction}
         />
@@ -560,7 +585,19 @@ function Dashboard() {
     }
 
     if (activeSection === 'agenda') {
-      return <AgendaList reservations={ownerReservations} onChat={openChat} onReservationAction={requestReservationAction} />
+      return (
+        <AgendaList
+          renterReservations={renterReservations}
+          ownerReservations={ownerReservations}
+          ownerNames={ownerNames}
+          userName={name}
+          onChat={openChat}
+          onReservationAction={requestReservationAction}
+          onDetailAction={runDetailAction}
+          onRate={openUserRating}
+          ratingState={ratingState}
+        />
+      )
     }
 
     if (activeSection === 'publicaciones') {
@@ -894,22 +931,13 @@ function Dashboard() {
   return (
     <MotionConfig reducedMotion="user">
       <div className="dashboard">
-        <main className="dashboard-main">{renderSection()}</main>
-
         <motion.aside
           className="dashboard-nav"
-          initial={{ opacity: 0, x: 16 }}
+          initial={{ opacity: 0, x: -16 }}
           animate={{ opacity: 1, x: 0 }}
           transition={springReveal}
         >
           <div className="dashboard-nav-user">
-            {displayAvatar ? (
-              <img className="dashboard-nav-avatar" src={displayAvatar} alt="" />
-            ) : (
-              <span className="dashboard-nav-avatar dashboard-nav-avatar--initial" aria-hidden="true">
-                {initial}
-              </span>
-            )}
             <div className="dashboard-nav-meta">
               <p className="dashboard-nav-name">{name}</p>
               <p className="dashboard-nav-email">{email}</p>
@@ -946,6 +974,8 @@ function Dashboard() {
             <span>Cerrar sesión</span>
           </motion.button>
         </motion.aside>
+
+        <main className="dashboard-main">{renderSection()}</main>
       </div>
 
       <AnimatePresence>
@@ -998,10 +1028,120 @@ function Dashboard() {
   )
 }
 
-// Agenda: personas que reservaron tus productos, en cronograma ordenado por fecha,
-// con hora de entrega y devolución (12:00 mediodía).
-export function AgendaList({ reservations, onChat, onReservationAction }) {
-  const sorted = [...reservations].sort((a, b) => new Date(a.dateInit) - new Date(b.dateInit))
+// Agenda operativa: solo lo que requiere acción, espera o calificación.
+// Tabs por rol (mismo patrón que Mis reservas), selección y orden mediante
+// `selectAgendaReservations`. Las acciones/esperas salen de
+// `getReservationStep` y la calificación de `getRatingView`, sin duplicar la
+// máquina de estados.
+export function AgendaList({
+  renterReservations = [],
+  ownerReservations = [],
+  ownerNames = {},
+  userName,
+  onChat,
+  onReservationAction,
+  onDetailAction,
+  onRate,
+  ratingState = {},
+}) {
+  const [tab, setTab] = useState('renter')
+  const role = tab === 'owner' ? 'owner' : 'renter'
+  const source = role === 'owner' ? ownerReservations : renterReservations
+  // `selectAgendaReservations` ya ordena por fecha operativa; una COMPLETED
+  // que pase a `rated` sale de la lista sin otro cambio.
+  const items = selectAgendaReservations(source, role, ratingState)
+
+  // Detalle de la reserva: mismo flujo que Mis reservas, pero sin `readOnly`
+  // (Agenda es el lugar de coordinación: el modal ofrece las acciones
+  // bilaterales y el cancelar mientras la reserva no esté en curso).
+  const [detailOpen, setDetailOpen] = useState(false)
+  const [detail, setDetail] = useState(null)
+  const detailClientRef = useRef('')
+
+  const clientNameFor = (reservation) =>
+    role === 'renter' ? userName : otherParty(reservation, 'owner')
+
+  const openDetail = async (reservation, clientName) => {
+    detailClientRef.current = clientName
+    setDetailOpen(true)
+    setDetail(null)
+    try {
+      const mapped = await fetchReservationDetail(reservation.id, {
+        statusLabels: STATUS_LABELS,
+        clientName,
+      })
+      setDetail(mapped)
+    } catch (err) {
+      toast.error(err?.message || 'No pudimos cargar el detalle de la reserva.')
+      setDetailOpen(false)
+    }
+  }
+
+  const refreshDetail = async (current) => {
+    try {
+      const mapped = await fetchReservationDetail(current.id, {
+        statusLabels: STATUS_LABELS,
+        clientName: detailClientRef.current,
+      })
+      setDetail(mapped)
+    } catch {
+      // Si el refetch falla, el modal conserva el snapshot actual.
+    }
+  }
+
+  const handleDetailAction = async (key, current) => {
+    if (!onDetailAction) return
+    await onDetailAction(key, current)
+    await refreshDetail(current)
+  }
+
+  const renderAgendaStep = (reservation, other) => {
+    const step = getReservationStep(reservation, role)
+    if (step.kind === 'action') {
+      return (
+        <motion.button
+          type="button"
+          className="reserva-btn reserva-btn--owner"
+          whileTap={{ scale: 0.96 }}
+          transition={springLatch}
+          onClick={() => onReservationAction?.(step.key, reservation)}
+        >
+          <i className="fas fa-check" aria-hidden="true" /> {step.label}
+        </motion.button>
+      )
+    }
+    if (step.kind === 'wait') {
+      return <span className="reserva-wait">{step.message}</span>
+    }
+    if (step.kind === 'rate') {
+      const view = getRatingView(ratingState, reservation.id)
+      if (view.kind === 'rated') return null
+      if (view.kind === 'rate' || view.kind === 'retry') {
+        return (
+          <>
+            <motion.button
+              type="button"
+              className="reserva-btn reserva-btn--rate"
+              whileTap={{ scale: 0.96 }}
+              transition={springLatch}
+              onClick={() => onRate?.(reservation, other)}
+            >
+              <i className="fas fa-star" aria-hidden="true" /> Calificar
+            </motion.button>
+            {view.kind === 'retry' ? (
+              <span className="reserva-wait">No pudimos verificar tu calificación.</span>
+            ) : null}
+          </>
+        )
+      }
+      return (
+        <button type="button" className="reserva-btn reserva-btn--rate" disabled>
+          Verificando…
+        </button>
+      )
+    }
+    return null
+  }
 
   return (
     <section aria-labelledby="agenda-titulo">
@@ -1010,23 +1150,44 @@ export function AgendaList({ reservations, onChat, onReservationAction }) {
           Agenda
         </motion.h1>
         <p className="dashboard-sub">
-          Reservas confirmadas y en curso, ordenadas por fecha. Entrega y devolución a las {PICKUP_TIME}.
+          Entregas, devoluciones y calificaciones pendientes, ordenadas por fecha. Entrega y devolución a las {PICKUP_TIME}.
         </p>
       </header>
 
-      {reservations.length === 0 ? (
-        <EmptyState message="Todavía nadie reservó tus productos." />
-      ) : sorted.length === 0 ? (
-        <EmptyState message="No hay reservas confirmadas ni en curso." />
+      <div className="reservas-tabs" role="tablist" aria-label="Agenda por rol">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'renter'}
+          className={tab === 'renter' ? 'reservas-tab reservas-tab--active' : 'reservas-tab'}
+          onClick={() => setTab('renter')}
+        >
+          Como inquilino
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'owner'}
+          className={tab === 'owner' ? 'reservas-tab reservas-tab--active' : 'reservas-tab'}
+          onClick={() => setTab('owner')}
+        >
+          Como dueño
+        </button>
+      </div>
+
+      {items.length === 0 ? (
+        <EmptyState
+          message={
+            role === 'renter'
+              ? 'No tenés entregas, devoluciones ni calificaciones pendientes como inquilino.'
+              : 'No tenés entregas, recepciones ni calificaciones pendientes como dueño.'
+          }
+        />
       ) : (
         <ol className="agenda-list">
-          {sorted.map((reservation, i) => {
-            const renterName = otherParty(reservation, 'owner')
+          {items.map((reservation, i) => {
+            const other = otherParty(reservation, role)
             const product = reservation.product
-            const step = getReservationStep(reservation, 'owner')
-            const ownerAction = step.kind === 'action'
-              ? { key: step.key, label: step.label, icon: 'fa-check' }
-              : null
             return (
               <motion.li
                 key={reservation.id}
@@ -1040,10 +1201,14 @@ export function AgendaList({ reservations, onChat, onReservationAction }) {
                   <span className="agenda-month">{monthOf(reservation.dateInit)}</span>
                 </div>
                 <div className="agenda-body">
-                  <p className="agenda-name">{renterName}</p>
-                  <p className="agenda-meta">
+                  <p className="agenda-name">
                     <strong>{product?.title || 'Producto'}</strong>
+                    <span className="agenda-owner">
+                      {' · '}Propietario:{' '}
+                      {role === 'owner' ? 'Vos' : ownerNames[product?.ownerId] || 'Propietario'}
+                    </span>
                   </p>
+                  {role === 'owner' && <p className="agenda-meta">Inquilino: {other}</p>}
                   <p className="agenda-times">
                     <span>
                       <i className="fas fa-box-open" aria-hidden="true" /> Entrega: {formatDateTime(reservation.dateInit)}
@@ -1052,26 +1217,26 @@ export function AgendaList({ reservations, onChat, onReservationAction }) {
                       <i className="fas fa-box-archive" aria-hidden="true" /> Devolución: {formatDateTime(reservation.dateEnd)}
                     </span>
                   </p>
+                  <div className="agenda-step">{renderAgendaStep(reservation, other)}</div>
                 </div>
                 <div className="agenda-actions">
-                  {ownerAction ? (
-                    <motion.button
-                      type="button"
-                      className="reserva-btn reserva-btn--owner"
-                      whileTap={{ scale: 0.96 }}
-                      transition={springLatch}
-                      onClick={() => onReservationAction?.(ownerAction.key, reservation)}
-                    >
-                      <i className={`fas ${ownerAction.icon}`} aria-hidden="true" /> {ownerAction.label}
-                    </motion.button>
-                  ) : null}
+                  <motion.button
+                    type="button"
+                    className="reserva-btn reserva-btn--detail"
+                    whileTap={{ scale: 0.96 }}
+                    transition={springLatch}
+                    onClick={() => openDetail(reservation, clientNameFor(reservation))}
+                    aria-label={`Ver detalle de la reserva de ${other}`}
+                  >
+                    <i className="fas fa-eye" aria-hidden="true" /> Detalle
+                  </motion.button>
                   <motion.button
                     type="button"
                     className="agenda-chat"
                     whileTap={{ scale: 0.96 }}
                     transition={springLatch}
                     onClick={() => onChat(reservation.id)}
-                    aria-label={`Hablar con ${renterName}`}
+                    aria-label={`Hablar con ${other}`}
                   >
                     <i className="fas fa-comment" aria-hidden="true" /> Hablar
                   </motion.button>
@@ -1081,24 +1246,39 @@ export function AgendaList({ reservations, onChat, onReservationAction }) {
           })}
         </ol>
       )}
+
+      <ReservationDetailModal
+        key={detail?.id ?? 'agenda-detail'}
+        isOpen={detailOpen}
+        reservation={detail}
+        viewer={role}
+        onClose={() => {
+          setDetailOpen(false)
+          setDetail(null)
+        }}
+        onAction={handleDetailAction}
+      />
     </section>
   )
 }
 
-// Sub-sección de reservas: tabs inquilino/dueño + acciones según estado + chatear.
+// Mis reservas como seguimiento/historial: tabs inquilino/dueño, estado,
+// fechas, precio, contraparte, imagen, Detalle y Chat. Cancelar vive dentro
+// del detalle (solo mientras la reserva no esté en curso). Sin acciones
+// bilaterales ni calificación interactiva (viven en Agenda). Solo conserva el
+// hecho histórico `Ya calificaste (N/5)` y mensajes no interactivos de espera.
 export function ReservasList({
   renter,
   owner,
   userName,
-  onCancel,
   onChat,
-  onReservationAction,
-  onRate,
   ratingState = {},
   onDetailAction,
 }) {
   const [tab, setTab] = useState('renter')
   const [page, setPage] = useState(1)
+  const [filterMonth, setFilterMonth] = useState('') // '' = todos los meses
+  const [filterYear, setFilterYear] = useState('') // '' = todos los años
   const [detailOpen, setDetailOpen] = useState(false)
   const [detail, setDetail] = useState(null)
   const detailClientRef = useRef('')
@@ -1108,10 +1288,54 @@ export function ReservasList({
     if (id === tab) return
     setTab(id)
     setPage(1)
+    // Cada tab trae listas y años distintos: se limpia el filtro para no
+    // mostrar un estado vacío por una selección que ya no aplica.
+    setFilterMonth('')
+    setFilterYear('')
   }
 
+  const handleMonthChange = (e) => {
+    setFilterMonth(e.target.value)
+    setPage(1)
+  }
+
+  const handleYearChange = (e) => {
+    setFilterYear(e.target.value)
+    setPage(1)
+  }
+
+  const clearFilters = () => {
+    setFilterMonth('')
+    setFilterYear('')
+    setPage(1)
+  }
+
+  // Años presentes en los datos (para el select), más reciente primero.
+  const availableYears = useMemo(() => {
+    const years = new Set()
+    for (const reservation of [...(renter ?? []), ...(owner ?? [])]) {
+      const date = new Date(reservation.dateInit)
+      if (!Number.isNaN(date.getTime())) years.add(date.getFullYear())
+    }
+    return [...years].sort((a, b) => b - a)
+  }, [renter, owner])
+
+  // Filtro por mes/año de inicio (`dateInit`) en fecha local: es la misma
+  // fecha que muestra la card, así "10 dic" cae en diciembre.
+  const matchesFilter = (reservation) => {
+    if (!filterMonth && !filterYear) return true
+    const date = new Date(reservation.dateInit)
+    if (Number.isNaN(date.getTime())) return false
+    if (filterMonth && date.getMonth() + 1 !== Number(filterMonth)) return false
+    if (filterYear && date.getFullYear() !== Number(filterYear)) return false
+    return true
+  }
+
+  // El filtro se aplica antes del orden y de la paginación.
+  const filtered = list.filter(matchesFilter)
+
   // Más reciente primero (createdAt desc — el backend también lo ordena así).
-  const sorted = [...list].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  const sorted = [...filtered].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   const totalPages = Math.max(1, Math.ceil(sorted.length / RESERVAS_PAGE_SIZE))
   const currentPage = Math.min(page, totalPages)
   const pageItems = sorted.slice(
@@ -1152,26 +1376,20 @@ export function ReservasList({
     }
   }
 
+  // Detalle en modo seguimiento: solo propaga `cancel` (gestión previa, no
+  // bilateral). Cualquier clave bilateral se ignora aunque el modal la
+  // enviara: la coordinación vive en Agenda.
   const handleDetailAction = async (key, current) => {
+    if (key !== 'cancel') return
     await onDetailAction(key, current)
     await refreshDetail(current)
   }
 
-  // Renderiza la acción bilateral / espera / calificación de una tarjeta según
-  // rol (tab) + estado + timestamps. Nunca muestra acciones del otro rol.
-  const renderStep = (reservation, role, other) => {
+  // Solo seguimiento/historial: mensajes no interactivos de espera y hecho
+  // histórico de calificación. Nunca botones bilaterales, `Calificar`,
+  // `Verificando…` ni reintentos (viven en Agenda).
+  const renderTrackingStatus = (reservation, role) => {
     const step = getReservationStep(reservation, role)
-    if (step.kind === 'action') {
-      return (
-        <button
-          type="button"
-          className="reserva-btn reserva-btn--owner"
-          onClick={() => onReservationAction?.(step.key, reservation)}
-        >
-          <i className="fas fa-check" aria-hidden="true" /> {step.label}
-        </button>
-      )
-    }
     if (step.kind === 'wait') {
       return <span className="reserva-wait">{step.message}</span>
     }
@@ -1184,36 +1402,6 @@ export function ReservasList({
           </span>
         )
       }
-      if (view.kind === 'rate') {
-        return (
-          <button
-            type="button"
-            className="reserva-btn reserva-btn--rate"
-            onClick={() => onRate?.(reservation, other)}
-          >
-            <i className="fas fa-star" aria-hidden="true" /> Calificar
-          </button>
-        )
-      }
-      if (view.kind === 'retry') {
-        return (
-          <>
-            <button
-              type="button"
-              className="reserva-btn reserva-btn--rate"
-              onClick={() => onRate?.(reservation, other)}
-            >
-              <i className="fas fa-star" aria-hidden="true" /> Calificar
-            </button>
-            <span className="reserva-wait">No pudimos verificar tu calificación.</span>
-          </>
-        )
-      }
-      return (
-        <button type="button" className="reserva-btn reserva-btn--rate" disabled>
-          Verificando…
-        </button>
-      )
     }
     return null
   }
@@ -1224,7 +1412,7 @@ export function ReservasList({
         <motion.h1 id="reservas-titulo" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={springReveal}>
           Mis reservas
         </motion.h1>
-        <p className="dashboard-sub">Coordiná entregas y devoluciones (a las {PICKUP_TIME}) y hablá con la otra parte.</p>
+        <p className="dashboard-sub">Seguimiento e historial de tus reservas. La coordinación de entregas y devoluciones se hace desde Agenda.</p>
       </header>
 
       <div className="reservas-tabs" role="tablist" aria-label="Tipo de reserva">
@@ -1236,6 +1424,38 @@ export function ReservasList({
         </button>
       </div>
 
+      {list.length > 0 && (
+        <div className="reservas-filtros" role="group" aria-label="Filtrar por mes y año">
+          <label className="reservas-filtros-campo" htmlFor="reservas-filtro-mes">
+            Mes
+            <select id="reservas-filtro-mes" value={filterMonth} onChange={handleMonthChange}>
+              <option value="">Todos los meses</option>
+              {FILTER_MONTHS.map((month, index) => (
+                <option key={month} value={index + 1}>
+                  {month}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="reservas-filtros-campo" htmlFor="reservas-filtro-anio">
+            Año
+            <select id="reservas-filtro-anio" value={filterYear} onChange={handleYearChange}>
+              <option value="">Todos los años</option>
+              {availableYears.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </label>
+          {(filterMonth || filterYear) && (
+            <button type="button" className="reservas-filtros-limpiar" onClick={clearFilters}>
+              <i className="fas fa-xmark" aria-hidden="true" /> Limpiar
+            </button>
+          )}
+        </div>
+      )}
+
       {list.length === 0 ? (
         <EmptyState
           message={
@@ -1243,6 +1463,16 @@ export function ReservasList({
               ? 'Todavía no alquilaste nada.'
               : 'Todavía no tenés reservas en tus productos.'
           }
+        />
+      ) : filtered.length === 0 ? (
+        <EmptyState
+          message={
+            filterMonth
+              ? 'No tenés reservas en ese mes.'
+              : 'No tenés reservas en ese año.'
+          }
+          actionLabel="Limpiar filtro"
+          onAction={clearFilters}
         />
       ) : (
         <div className="reservas-list">
@@ -1252,8 +1482,6 @@ export function ReservasList({
             const other = otherParty(reservation, tab)
             const days = rentalDays(reservation)
             const role = tab === 'renter' ? 'renter' : 'owner'
-            const canCancel = ACTIVE_STATUSES.includes(status) && hoursUntil(reservation.dateInit) > 48
-            const needsCharge = ACTIVE_STATUSES.includes(status) && hoursUntil(reservation.dateInit) <= 48
 
             return (
               <motion.article
@@ -1302,17 +1530,7 @@ export function ReservasList({
                       >
                         <i className="fas fa-eye" aria-hidden="true" /> Detalle
                       </motion.button>
-                      {needsCharge ? (
-                        <span className="reserva-charge-note">
-                          <i className="fas fa-triangle-exclamation" aria-hidden="true" /> Cancelación con cargo
-                        </span>
-                      ) : null}
-                      {canCancel ? (
-                        <button type="button" className="reserva-btn reserva-btn--ghost" onClick={() => onCancel(reservation)}>
-                          <i className="fas fa-xmark" aria-hidden="true" /> Cancelar
-                        </button>
-                      ) : null}
-                      {renderStep(reservation, role, other)}
+                      {renderTrackingStatus(reservation, role)}
                       <motion.button type="button" className="reserva-btn reserva-btn--primary" whileTap={{ scale: 0.96 }} transition={springLatch} onClick={() => onChat(reservation.id)}>
                         <i className="fas fa-comment" aria-hidden="true" /> Chatear
                       </motion.button>
@@ -1354,6 +1572,7 @@ export function ReservasList({
         isOpen={detailOpen}
         reservation={detail}
         viewer={tab === 'renter' ? 'renter' : 'owner'}
+        readOnly
         onClose={() => {
           setDetailOpen(false)
           setDetail(null)

@@ -39,7 +39,7 @@
   flex-direction: column;
   gap: 18px;
   background: var(--color-surface);
-  border-left: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
   border-radius: 0;
   padding: 20px 16px;
   box-shadow: var(--shadow-sm);
@@ -51,25 +51,6 @@
   gap: 12px;
   padding-bottom: 16px;
   border-bottom: 1px solid var(--color-border);
-}
-
-.dashboard-nav-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-full);
-  object-fit: cover;
-  flex-shrink: 0;
-}
-
-.dashboard-nav-avatar--initial {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-primary);
-  color: var(--color-dark);
-  font-family: var(--font-title);
-  font-weight: 800;
-  font-size: 1.25rem;
 }
 
 .dashboard-nav-meta {
@@ -562,6 +543,63 @@
   border-color: var(--color-primary);
 }
 
+.reservas-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.reservas-filtros-campo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-concrete);
+}
+
+.reservas-filtros-campo select {
+  padding: 8px 14px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--color-dark);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.reservas-filtros-campo select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(242, 183, 5, 0.25);
+}
+
+.reservas-filtros-limpiar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-concrete);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.reservas-filtros-limpiar:hover {
+  background: var(--color-concrete-surface);
+  color: var(--color-dark);
+}
+
 .reservas-list,
 .publicaciones-list,
 .conversaciones-list {
@@ -666,15 +704,6 @@
 .reserva-badge--cancelled {
   background: var(--color-error);
   color: var(--color-surface);
-}
-
-.reserva-charge-note {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--color-error);
 }
 
 .reserva-meta {
@@ -1052,6 +1081,13 @@
   font-size: 0.95rem;
 }
 
+.agenda-owner {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.85rem;
+  color: var(--color-concrete);
+}
+
 .agenda-meta {
   margin: 4px 0 0;
   font-size: 0.82rem;
@@ -1254,6 +1290,7 @@
     height: auto;
     gap: 14px;
     border-left: none;
+    border-right: none;
     border-bottom: 1px solid var(--color-border);
   }
 

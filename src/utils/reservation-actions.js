@@ -15,6 +15,10 @@
 
 export const RESERVATION_ACTION_KEYS = ['handoff', 'confirmHandoff', 'return', 'confirmReturn']
 
+// Estados desde los que se puede cancelar: nunca una reserva ya en curso.
+// El backend es quien valida de última instancia.
+export const CANCELLABLE_STATUSES = ['PENDING', 'CONFIRMED']
+
 // Estado de calificación entre usuarios por reserva COMPLETED:
 //   'checking' — desconocido o verificando (nunca se ofrece Calificar a ciegas)
 //   'unrated'  — verificado: puede calificar
@@ -53,6 +57,92 @@ export function mergeReservationUpdate(reservation, updated) {
     if (updated[key] !== undefined) fields[key] = updated[key]
   }
   return { ...reservation, ...fields }
+}
+
+// Fecha operativa más pertinente para Agenda: la entrega (dateInit) en
+// CONFIRMED y la devolución (dateEnd) en ACTIVE/COMPLETED.
+function agendaRelevantIso(reservation) {
+  if (!reservation) return null
+  if (reservation.status === 'ACTIVE' || reservation.status === 'COMPLETED') {
+    return reservation.dateEnd || reservation.dateInit || null
+  }
+  return reservation.dateInit || reservation.dateEnd || null
+}
+
+function startOfDay(value) {
+  const d = value instanceof Date ? new Date(value) : new Date(value)
+  if (Number.isNaN(d.getTime())) return null
+  d.setHours(0, 0, 0, 0)
+  return d
+}
+
+function agendaSortTime(reservation) {
+  const raw = agendaRelevantIso(reservation)
+  if (!raw) return Number.POSITIVE_INFINITY
+  const time = new Date(raw).getTime()
+  return Number.isNaN(time) ? Number.POSITIVE_INFINITY : time
+}
+
+// Fin del alquiler ya pasado: la reserva venció y Agenda deja de mostrarla
+// aunque el flujo siga abierto (CONFIRMED/ACTIVE sin confirmar).
+function isOverdue(reservation, today) {
+  const raw = reservation.dateEnd || reservation.dateInit
+  const day = raw ? startOfDay(raw) : null
+  return Boolean(day && today && day < today)
+}
+
+// Selección pura de reservas visibles en Agenda por rol.
+// - CONFIRMED/ACTIVE: visibles mientras `getReservationStep` exprese
+//   acción o espera operativa, salvo que el alquiler ya haya vencido
+//   (`dateEnd` anterior a hoy): esas se ocultan. Sin paso operativo solo se
+//   conserva la CONFIRMED con fecha relevante no anterior a hoy.
+// - COMPLETED: visible mientras `getRatingView` no sea `rated` (checking,
+//   unrated, retry y desconocido se conservan para no esconder prematuro),
+//   aunque el alquiler haya vencido: es el único punto de entrada a calificar.
+// - PENDING, CANCELLED y COMPLETED ya calificada quedan excluidas.
+// - `now` es inyectable para pruebas; el orden es determinista por fecha
+//   operativa ascendente con desempate por id.
+export function selectAgendaReservations(reservations, role, ratingState = {}, now = new Date()) {
+  if (!Array.isArray(reservations)) return []
+  if (role !== 'owner' && role !== 'renter') return []
+  const today = startOfDay(now) ?? startOfDay(new Date())
+
+  const visible = []
+  for (const reservation of reservations) {
+    if (!reservation) continue
+    const status = reservation.status
+    if (status === 'PENDING' || status === 'CANCELLED') continue
+
+    if (status === 'COMPLETED') {
+      if (getRatingView(ratingState, reservation.id).kind === 'rated') continue
+      visible.push(reservation)
+      continue
+    }
+
+    if (status === 'CONFIRMED' || status === 'ACTIVE') {
+      if (isOverdue(reservation, today)) continue
+      const step = getReservationStep(reservation, role)
+      if (step.kind === 'action' || step.kind === 'wait') {
+        visible.push(reservation)
+        continue
+      }
+      if (status === 'ACTIVE') {
+        visible.push(reservation)
+        continue
+      }
+      const relevant = agendaRelevantIso(reservation)
+      const day = relevant ? startOfDay(relevant) : null
+      if (day && today && day >= today) visible.push(reservation)
+      continue
+    }
+  }
+
+  visible.sort((a, b) => {
+    const diff = agendaSortTime(a) - agendaSortTime(b)
+    if (diff !== 0) return diff
+    return String(a?.id ?? '').localeCompare(String(b?.id ?? ''))
+  })
+  return visible
 }
 
 export function getReservationStep(reservation, role) {

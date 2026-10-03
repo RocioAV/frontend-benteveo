@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { getReservationStep, getRatingView, mergeReservationUpdate } from './reservation-actions'
+import { getReservationStep, getRatingView, mergeReservationUpdate, selectAgendaReservations } from './reservation-actions'
 
 function reservation(overrides = {}) {
   return {
@@ -171,5 +171,99 @@ describe('getRatingView — modelo de estado de calificación', () => {
     expect(getRatingView({ 'res-1': { status: 'error', score: null } }, 'res-1')).toEqual({
       kind: 'retry',
     })
+  })
+})
+
+describe('selectAgendaReservations — Agenda operativa', () => {
+  const NOW = new Date('2026-10-02T12:00:00.000Z')
+
+  function agendaReservation(overrides = {}) {
+    return {
+      id: 'res-1',
+      status: 'CONFIRMED',
+      actualHandoffAt: null,
+      renterReceivedAt: null,
+      renterReturnedAt: null,
+      actualReturnAt: null,
+      dateInit: '2026-10-10T12:00:00.000Z',
+      dateEnd: '2026-10-12T12:00:00.000Z',
+      ...overrides,
+    }
+  }
+
+  it('excluye PENDING y CANCELLED aunque tengan fecha futura', () => {
+    const list = [
+      agendaReservation({ id: 'p', status: 'PENDING' }),
+      agendaReservation({ id: 'c', status: 'CANCELLED' }),
+    ]
+    expect(selectAgendaReservations(list, 'owner', {}, NOW)).toEqual([])
+    expect(selectAgendaReservations(list, 'renter', {}, NOW)).toEqual([])
+  })
+
+  it('CONFIRMED futura con paso operativo queda visible para ambos roles', () => {
+    const list = [agendaReservation()]
+    expect(selectAgendaReservations(list, 'owner', {}, NOW).map((r) => r.id)).toEqual(['res-1'])
+    expect(selectAgendaReservations(list, 'renter', {}, NOW).map((r) => r.id)).toEqual(['res-1'])
+  })
+
+  it('CONFIRMED vencida se oculta aunque siga operativamente abierta', () => {
+    const list = [
+      agendaReservation({ dateInit: '2026-09-01T12:00:00.000Z', dateEnd: '2026-09-03T12:00:00.000Z' }),
+    ]
+    expect(selectAgendaReservations(list, 'owner', {}, NOW)).toEqual([])
+    expect(selectAgendaReservations(list, 'renter', {}, NOW)).toEqual([])
+  })
+
+  it('ACTIVE vencida se oculta aunque todavía sea accionable', () => {
+    const list = [
+      agendaReservation({
+        status: 'ACTIVE',
+        dateInit: '2026-09-01T12:00:00.000Z',
+        dateEnd: '2026-09-03T12:00:00.000Z',
+      }),
+    ]
+    expect(selectAgendaReservations(list, 'renter', {}, NOW)).toEqual([])
+    expect(selectAgendaReservations(list, 'owner', {}, NOW)).toEqual([])
+  })
+
+  it('COMPLETED vencida sin calificar sigue visible', () => {
+    const list = [
+      agendaReservation({
+        id: 'done-past',
+        status: 'COMPLETED',
+        dateInit: '2026-09-01T12:00:00.000Z',
+        dateEnd: '2026-09-03T12:00:00.000Z',
+      }),
+    ]
+    expect(selectAgendaReservations(list, 'owner', {}, NOW).map((r) => r.id)).toEqual(['done-past'])
+    expect(selectAgendaReservations(list, 'renter', {}, NOW).map((r) => r.id)).toEqual(['done-past'])
+  })
+
+  it('COMPLETED sin calificar visible; ya calificada excluida', () => {
+    const completed = agendaReservation({ id: 'done', status: 'COMPLETED' })
+    expect(selectAgendaReservations([completed], 'owner', {}, NOW).map((r) => r.id)).toEqual(['done'])
+    expect(
+      selectAgendaReservations([completed], 'owner', { done: { status: 'unrated', score: null } }, NOW).map((r) => r.id),
+    ).toEqual(['done'])
+    expect(
+      selectAgendaReservations([completed], 'owner', { done: { status: 'error', score: null } }, NOW).map((r) => r.id),
+    ).toEqual(['done'])
+    expect(
+      selectAgendaReservations([completed], 'owner', { done: { status: 'rated', score: 5 } }, NOW),
+    ).toEqual([])
+  })
+
+  it('ordena por fecha operativa con desempate por id', () => {
+    const list = [
+      agendaReservation({ id: 'b', dateInit: '2026-10-20T12:00:00.000Z', dateEnd: '2026-10-22T12:00:00.000Z' }),
+      agendaReservation({ id: 'a', dateInit: '2026-10-10T12:00:00.000Z', dateEnd: '2026-10-12T12:00:00.000Z' }),
+      agendaReservation({ id: 'c', status: 'ACTIVE', dateInit: '2026-09-01T12:00:00.000Z', dateEnd: '2026-10-11T12:00:00.000Z' }),
+    ]
+    expect(selectAgendaReservations(list, 'owner', {}, NOW).map((r) => r.id)).toEqual(['a', 'c', 'b'])
+  })
+
+  it('rol inválido o lista inválida devuelven vacío', () => {
+    expect(selectAgendaReservations([agendaReservation()], 'admin', {}, NOW)).toEqual([])
+    expect(selectAgendaReservations(null, 'owner', {}, NOW)).toEqual([])
   })
 })
