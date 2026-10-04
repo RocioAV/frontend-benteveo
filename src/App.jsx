@@ -57,7 +57,6 @@ function App() {
             <Route path="/pago-pendiente" element={<PagoPendiente />} />
             <Route path="*" element={<NotFound />} />
           </Route>
-          <ChatBot />
           {/* Autenticación: sin header/footer, solo botón de volver */}
           <Route path="/publicar" element={<RequireAuth><Publicar /></RequireAuth>} />
           <Route path="/publicaciones/:id/editar" element={<RequireAuth><EditarPublicacion /></RequireAuth>} />
@@ -65,6 +64,7 @@ function App() {
           <Route path="/register" element={<Registro />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
         </Routes>
+        <ChatBot />
       </Suspense>
     </>
   )
