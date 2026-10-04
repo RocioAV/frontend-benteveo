@@ -187,7 +187,11 @@ function Home() {
               style={{ '--scroll-offset': `-${offset}px` }}
             >
               {duplicated.map((product, index) => (
-                <div className="carousel-card" key={`${product.id}-${index}`}>
+                <Link
+                  className="carousel-card"
+                  to={`/detalle/${product.id}`}
+                  key={`${product.id}-${index}`}
+                >
                   <img
                     className="carousel-card-img"
                     src={product.imageUrl}
@@ -203,14 +207,14 @@ function Home() {
                         ${product.pricePerDay.toLocaleString('es-AR')}
                         <span>/día</span>
                       </span>
-                      {product.rating != null && (
+                      {Number(product.rating) > 0 && (
                         <span className="carousel-card-rating">
                           <i className="fa-solid fa-star" aria-hidden="true" /> {Number(product.rating).toFixed(1)}
                         </span>
                       )}
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
             ) : (

@@ -56,7 +56,7 @@ function ProductCard({ product, index = 0 }) {
               <span className={styles.price}>${product.pricePerDay.toLocaleString('es-AR')}</span>
               <span className={styles.per}>/día</span>
             </div>
-            {product.rating != null && (
+            {Number(product.rating) > 0 && (
               <div className={styles.rating}>
                 <i className="fa-solid fa-star" aria-hidden="true" />
                 <span>{Number(product.rating).toFixed(1)}</span>

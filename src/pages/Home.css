@@ -70,6 +70,9 @@
   justify-content: center;
   align-items: center;
   overflow: hidden;
+  /* Bordes difuminados: 40px de caída a cada lado */
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 40px, #000 calc(100% - 40px), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 40px, #000 calc(100% - 40px), transparent 100%);
 }
 
 @media (min-width: 768px) {
@@ -108,6 +111,10 @@
   box-shadow: none;
   transition: transform var(--duration-base) var(--ease-out-quint);
   cursor: pointer;
+  /* Es un <Link>: conserva el aspecto de div */
+  display: block;
+  text-decoration: none;
+  color: inherit;
 }
 
 .carousel-card:hover {
@@ -117,7 +124,8 @@
 .carousel-card-img {
   width: 100%;
   height: 170px;
-  object-fit: cover;
+  object-fit: contain;
+  background: var(--color-surface);
   display: block;
 }
 
