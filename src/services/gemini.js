@@ -53,6 +53,8 @@ export async function getGeminiResponse(mensaje, historial = []) {
   })
 
   try {
+    // Auth via ?key= (metodo verificado 200 con las keys AQ. de este proyecto).
+    // Nunca enviar ?key= y header x-goog-api-key a la vez (da 401).
     const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
