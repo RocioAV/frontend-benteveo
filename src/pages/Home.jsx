@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, MotionConfig } from 'motion/react'
 import productsJson from '../data/products.json'
@@ -21,6 +21,8 @@ function handleImageError(event) {
 const springReveal = { type: 'spring', stiffness: 260, damping: 26 }
 const springLatch = { type: 'spring', stiffness: 400, damping: 28 }
 
+const CAROUSEL_MAX = 12
+
 const METHOD_STEPS = [
   {
     icon: 'fa-location-dot',
@@ -39,10 +41,47 @@ const METHOD_STEPS = [
   },
 ]
 
+// Tarjeta del carrusel hero. Los clones del bucle continuo no son
+// enfocables ni anunciados: aria-hidden + tabIndex -1.
+function renderCarouselCard(product, isClone = false) {
+  return (
+    <Link
+      className="carousel-card"
+      to={`/detalle/${product.id}`}
+      key={isClone ? `${product.id}-clone` : product.id}
+      aria-hidden={isClone ? 'true' : undefined}
+      tabIndex={isClone ? -1 : undefined}
+    >
+      <img
+        className="carousel-card-img"
+        src={product.imageUrl}
+        alt={product.title}
+        loading="lazy"
+        decoding="async"
+        onError={handleImageError}
+      />
+      <div className="carousel-card-body">
+        <p className="carousel-card-title">{product.title}</p>
+        <div className="carousel-card-meta">
+          <span className="carousel-card-price">
+            ${product.pricePerDay.toLocaleString('es-AR')}
+            <span>/día</span>
+          </span>
+          {Number(product.rating) > 0 && (
+            <span className="carousel-card-rating">
+              <i className="fa-solid fa-star" aria-hidden="true" /> {Number(product.rating).toFixed(1)}
+            </span>
+          )}
+        </div>
+      </div>
+    </Link>
+  )
+}
+
 function Home() {
   const [activeStep, setActiveStep] = useState(0)
-  const trackRef = useRef(null)
-  const [offset, setOffset] = useState(0)
+  const wallRef = useRef(null)
+  const viewportRef = useRef(null)
   const pausedRef = useRef(false)
 
   // 'loading' | 'ready' | 'error' — el respaldo a products.json se aplica en
@@ -75,10 +114,17 @@ function Home() {
   // `distance` hoy es aleatorio (generateDistance), así que filtrar por ella
   // descartaría productos al azar: se usan todos los productos.
   const nearbyProducts = useMemo(() => products, [products])
-  const duplicated = useMemo(
-    () => [...nearbyProducts, ...nearbyProducts, ...nearbyProducts],
-    [nearbyProducts],
+
+  // El carrusel del hero renderiza cada producto UNA sola vez: máximo
+  // CAROUSEL_MAX elementos, ordenados por rating descendente.
+  const carouselProducts = useMemo(
+    () =>
+      [...products]
+        .sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0))
+        .slice(0, CAROUSEL_MAX),
+    [products],
   )
+
   const topRated = useMemo(
     () =>
       [...products]
@@ -111,27 +157,38 @@ function Home() {
     return () => clearInterval(timer)
   }, [])
 
-  useEffect(() => {
-    const calcOffset = () => {
-      if (!trackRef.current) return
-      const cards = trackRef.current.children
-      const totalCards = nearbyProducts.length
-      let width = 0
-      for (let i = 0; i < Math.min(5, totalCards); i++) {
-        const card = cards[i]
-        if (!card) break
-        width += card.offsetWidth
-        if (i < totalCards - 1) {
-          width += parseFloat(getComputedStyle(trackRef.current).gap) || 24
-        }
-      }
-      setOffset(width)
+  // La ventana muestra sólo tarjetas COMPLETAS: `n` tarjetas + sus gaps,
+  // alineadas a la derecha dentro de `.tool-wall`. ResizeObserver recalcula
+  // cuando cambia el espacio disponible (y con él, el ancho de tarjeta).
+  // useLayoutEffect: el ancho debe fijarse ANTES del primer paint para que no
+  // se vea un frame con el track completo sin alinear.
+  useLayoutEffect(() => {
+    if (!hasProducts) return
+    const wall = wallRef.current
+    const viewport = viewportRef.current
+    if (!wall || !viewport) return
+
+    const fitVisibleCards = () => {
+      const card = viewport.querySelector('.carousel-card')
+      const track = viewport.querySelector('.carousel-track')
+      if (!card || !track) return
+      const cardWidth = card.offsetWidth
+      const gap = parseFloat(getComputedStyle(track).gap) || 24
+      const count = Math.max(1, Math.floor((wall.clientWidth + gap) / (cardWidth + gap)))
+      viewport.style.width = `${count * cardWidth + (count - 1) * gap}px`
     }
 
-    calcOffset()
-    window.addEventListener('resize', calcOffset)
-    return () => window.removeEventListener('resize', calcOffset)
-  }, [nearbyProducts])
+    fitVisibleCards()
+
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', fitVisibleCards)
+      return () => window.removeEventListener('resize', fitVisibleCards)
+    }
+
+    const observer = new ResizeObserver(fitVisibleCards)
+    observer.observe(wall)
+    return () => observer.disconnect()
+  }, [hasProducts])
 
   return (
     <div className="w-full">
@@ -179,44 +236,14 @@ function Home() {
             </motion.div>
           </div>
 
-          <div className="tool-wall">
+          <div className="tool-wall" ref={wallRef}>
             {hasProducts ? (
-            <div
-              ref={trackRef}
-              className="carousel-track"
-              style={{ '--scroll-offset': `-${offset}px` }}
-            >
-              {duplicated.map((product, index) => (
-                <Link
-                  className="carousel-card"
-                  to={`/detalle/${product.id}`}
-                  key={`${product.id}-${index}`}
-                >
-                  <img
-                    className="carousel-card-img"
-                    src={product.imageUrl}
-                    alt={product.title}
-                    loading="lazy"
-                    decoding="async"
-                    onError={handleImageError}
-                  />
-                  <div className="carousel-card-body">
-                    <p className="carousel-card-title">{product.title}</p>
-                    <div className="carousel-card-meta">
-                      <span className="carousel-card-price">
-                        ${product.pricePerDay.toLocaleString('es-AR')}
-                        <span>/día</span>
-                      </span>
-                      {Number(product.rating) > 0 && (
-                        <span className="carousel-card-rating">
-                          <i className="fa-solid fa-star" aria-hidden="true" /> {Number(product.rating).toFixed(1)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
+              <div className="carousel-viewport" ref={viewportRef}>
+                <div className="carousel-track">
+                  {carouselProducts.map((product) => renderCarouselCard(product))}
+                  {carouselProducts.map((product) => renderCarouselCard(product, true))}
+                </div>
+              </div>
             ) : (
               <p
                 className="text-center text-[var(--color-concrete)] py-10"
