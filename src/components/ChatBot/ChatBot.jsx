@@ -36,6 +36,11 @@ const respuestas = {
   reputacion: 'Despues de cada alquiler, podes calificar al dueño y viceversa. Esto genera confianza en la comunidad.',
   precio: 'Los precios los define cada dueño por dia. Podes ver el precio en la ficha de cada producto.',
   verificacion: 'Para verificar tu identidad, subi una foto de tu DNI o una selfie desde tu perfil. Es obligatorio para alquilar.',
+  registro: 'Para registrarte, completa nombre, email, DNI, telefono y contraseña (minimo 8 caracteres con mayuscula, minuscula, numero y simbolo). Despues verifica tu identidad para poder alquilar.',
+  perfil: 'En Mi perfil del Dashboard editas nombre, telefono y foto, y ves tu estado de verificacion y reputacion. Completalo para generar confianza.',
+  entrega: 'Todo se gestiona en Agenda: el dueño marca entregado y vos confirmas recepcion. Cada boton aparece solo cuando es tu turno.',
+  devolucion: 'Al terminar, marca devuelto como inquilino y el dueño confirma la recepcion final. Ahi la reserva pasa a Completada y se libera el deposito en garantia.',
+  calificar: 'Calificar es clave: solo en Agenda con la reserva Completada, una vez por alquiler. Tu promedio se muestra en tu ficha y te consigue mas alquileres.',
   delivery: 'La entrega a domicilio la define el dueño. Podes ver las opciones de entrega en cada producto.',
   minimo: 'El minimo de alquiler son 2 dias. Esto esta indicado en cada ficha de producto.',
   mision: 'Benteveo es una plataforma de alquiler hiperlocal que conecta vecinos para compartir objetos. Nuestra mision es reducir el consumo y fortalecer la comunidad.',
@@ -44,11 +49,11 @@ const respuestas = {
   email: 'Nuestro email de soporte es soporte@benteveo.com. Respondemos en menos de 24 horas.',
   whatsapp: 'Nuestro WhatsApp de soporte es +54 11 1234-5678. Atendemos de lunes a viernes de 9 a 18 horas.',
   ayuda: 'Podes escribirme cualquier pregunta sobre la plataforma. Estoy aqui para ayudarte!',
-  default: 'No estoy seguro de entender tu pregunta. Podes preguntarme sobre alquileres, publicaciones, pagos, reservas, garantias, o contactar nuestro soporte.'
+  default: 'No estoy seguro de entender tu pregunta. Podes preguntarme sobre registro, perfil, alquileres, publicaciones, pagos, entregas, devoluciones, calificaciones o garantias.'
 }
 
 function getRespuestaLocal(mensaje) {
-  const msg = mensaje.toLowerCase()
+  const msg = mensaje.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 
   for (const [clave, respuesta] of Object.entries(respuestas)) {
     if (msg.includes(clave)) {
