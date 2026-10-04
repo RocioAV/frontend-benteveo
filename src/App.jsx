@@ -4,6 +4,7 @@ import { Routes, Route } from 'react-router-dom'
 import Layout from './layouts/Layout.jsx'
 import ScrollToTop from './components/ScrollToTop.jsx'
 import RequireAuth from './components/RequireAuth.jsx'
+import ChatBot from './components/ChatBot/ChatBot.jsx'
 
 // Code-splitting por ruta: cada página se descarga bajo demanda,
 // reduciendo el tamaño del chunk inicial.
@@ -63,6 +64,7 @@ function App() {
           <Route path="/register" element={<Registro />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
         </Routes>
+        <ChatBot />
       </Suspense>
     </>
   )
