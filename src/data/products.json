@@ -1,0 +1,3695 @@
+[
+  {
+    "id": 1,
+    "ownerId": 1,
+    "title": "Máquina de coser",
+    "description": "Máquina de coser disponible para alquiler.",
+    "pricePerDay": 4500,
+    "pricePerMonth": 90000,
+    "deposit": 15000,
+    "category": "Electrodomésticos",
+    "region": "Buenos Aires",
+    "city": "Lanús",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "/images/maquina-de-coser.webp",
+    "isAvailable": true,
+    "rating": 4.8,
+    "reviewCount": 18,
+    "completedRentals": 32,
+    "distance": "2.3 km",
+    "owner": {
+      "name": "Carlos García",
+      "initials": "CG",
+      "verified": true,
+      "memberSince": 2022
+    },
+    "policies": "Depósito mínimo requerido al momento de la reserva. El producto debe devolverse en las mismas condiciones. Se permite hasta 24 horas de gracia para cancelaciones sin cargo.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "María L.",
+        "initials": "ML",
+        "rating": 5,
+        "date": "15 Jun 2025",
+        "comment": "Excelente máquina, funciona perfecto. Muy recomendable."
+      },
+      {
+        "id": 2,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "02 May 2025",
+        "comment": "La usé para un proyecto de costura y quedé muy conforme."
+      },
+      {
+        "id": 3,
+        "author": "Ana R.",
+        "initials": "AR",
+        "rating": 4,
+        "date": "18 Abr 2025",
+        "comment": "Muy buena máquina, solo tardé un poco en entender el manual."
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "ownerId": 2,
+    "title": "Taladro eléctrico",
+    "description": "Taladro eléctrico disponible para trabajos en el hogar.",
+    "pricePerDay": 3000,
+    "pricePerMonth": 60000,
+    "deposit": 10000,
+    "category": "Herramientas",
+    "region": "Buenos Aires",
+    "city": "Mar del Plata",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "/images/taladro.webp",
+    "isAvailable": true,
+    "rating": 4.9,
+    "reviewCount": 24,
+    "completedRentals": 45,
+    "distance": "1.2 km",
+    "owner": {
+      "name": "Carlos García",
+      "initials": "CG",
+      "verified": true,
+      "memberSince": 2023
+    },
+    "policies": "Depósito mínimo requerido al momento de la reserva. El producto debe devolverse en las mismas condiciones. Se permite hasta 24 horas de gracia para cancelaciones sin cargo.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Pedro M.",
+        "initials": "PM",
+        "rating": 5,
+        "date": "20 Jun 2025",
+        "comment": "Muy potente y fácil de usar. Lo usé para arreglar la casa."
+      },
+      {
+        "id": 2,
+        "author": "Laura S.",
+        "initials": "LS",
+        "rating": 5,
+        "date": "10 May 2025",
+        "comment": "Excelente taladro, viene con todo lo necesario."
+      },
+      {
+        "id": 3,
+        "author": "Roberto G.",
+        "initials": "RG",
+        "rating": 5,
+        "date": "28 Abr 2025",
+        "comment": "Recomendable 100%. Muy buen estado."
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "ownerId": 3,
+    "title": "Escalera extensible",
+    "description": "Escalera práctica para tareas de mantenimiento y reparaciones.",
+    "pricePerDay": 2500,
+    "pricePerMonth": 50000,
+    "deposit": 8000,
+    "category": "Herramientas",
+    "region": "Buenos Aires",
+    "city": "Lomas de Zamora",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "/images/escalera.webp",
+    "isAvailable": true,
+    "rating": 4.7,
+    "reviewCount": 15,
+    "completedRentals": 28,
+    "distance": "3.5 km",
+    "owner": {
+      "name": "María López",
+      "initials": "ML",
+      "verified": true,
+      "memberSince": 2022
+    },
+    "policies": "Depósito mínimo requerido al momento de la reserva. El producto debe devolverse en las mismas condiciones. Se permite hasta 24 horas de gracia para cancelaciones sin cargo.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Diego F.",
+        "initials": "DF",
+        "rating": 5,
+        "date": "12 Jun 2025",
+        "comment": "Muy práctica y liviana. La usé para pintar la casa."
+      },
+      {
+        "id": 2,
+        "author": "Sofía A.",
+        "initials": "SA",
+        "rating": 4,
+        "date": "01 May 2025",
+        "comment": "Buena escalera, cumple con su función."
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "ownerId": 4,
+    "title": "Carpa de camping",
+    "description": "Carpa para actividades al aire libre y escapadas de camping.",
+    "pricePerDay": 4000,
+    "pricePerMonth": 80000,
+    "deposit": 12000,
+    "category": "Aire libre",
+    "region": "Buenos Aires",
+    "city": "Mar del Plata",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "/images/carpa.webp",
+    "isAvailable": true,
+    "rating": 4.6,
+    "reviewCount": 20,
+    "completedRentals": 38,
+    "distance": "5.1 km",
+    "owner": {
+      "name": "Lucas Martínez",
+      "initials": "LM",
+      "verified": true,
+      "memberSince": 2021
+    },
+    "policies": "Depósito mínimo requerido al momento de la reserva. El producto debe devolverse en las mismas condiciones. Se permite hasta 24 horas de gracia para cancelaciones sin cargo.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Martín R.",
+        "initials": "MR",
+        "rating": 5,
+        "date": "05 Jun 2025",
+        "comment": "Carpita muy buena, resistente y fácil de armar."
+      },
+      {
+        "id": 2,
+        "author": "Valentina C.",
+        "initials": "VC",
+        "rating": 4,
+        "date": "20 May 2025",
+        "comment": "Pasamos una noche genial. Impermeable de verdad."
+      },
+      {
+        "id": 3,
+        "author": "Andrés B.",
+        "initials": "AB",
+        "rating": 5,
+        "date": "08 May 2025",
+        "comment": "Excelente relación precio-calidad."
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "ownerId": 5,
+    "title": "Bicicleta mountain bike",
+    "description": "Bicicleta MTB para recorrer senderos y paseos al aire libre.",
+    "pricePerDay": 3500,
+    "pricePerMonth": 70000,
+    "deposit": 20000,
+    "category": "Aire libre",
+    "region": "Córdoba",
+    "city": "Villa Carlos Paz",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/mountain-bike?lock=5",
+    "isAvailable": true,
+    "rating": 4.8,
+    "reviewCount": 22,
+    "completedRentals": 40,
+    "distance": "8.0 km",
+    "owner": {
+      "name": "Fernando Díaz",
+      "initials": "FD",
+      "verified": true,
+      "memberSince": 2022
+    },
+    "policies": "Depósito mínimo requerido al momento de la reserva. El producto debe devolverse en las mismas condiciones. Se permite hasta 24 horas de gracia para cancelaciones sin cargo.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Camila V.",
+        "initials": "CV",
+        "rating": 5,
+        "date": "18 Jun 2025",
+        "comment": "Bici en muy buen estado, pasé un día increíble."
+      },
+      {
+        "id": 2,
+        "author": "Lucas H.",
+        "initials": "LH",
+        "rating": 5,
+        "date": "05 Jun 2025",
+        "comment": "Muy buena bicicleta, liviana y resistente."
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "ownerId": 6,
+    "title": "Consola de video",
+    "description": "Consola de última generación con 2 mandos incluidos.",
+    "pricePerDay": 5000,
+    "pricePerMonth": 100000,
+    "deposit": 25000,
+    "category": "Electrónica",
+    "region": "Buenos Aires",
+    "city": "CABA",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/video-game-console?lock=6",
+    "isAvailable": true,
+    "rating": 4.9,
+    "reviewCount": 30,
+    "completedRentals": 55,
+    "distance": "0.8 km",
+    "owner": {
+      "name": "Martín Ruiz",
+      "initials": "MR",
+      "verified": true,
+      "memberSince": 2021
+    },
+    "policies": "Depósito mínimo requerido al momento de la reserva. El producto debe devolverse en las mismas condiciones. Se permite hasta 24 horas de gracia para cancelaciones sin cargo.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "22 Jun 2025",
+        "comment": "¡Una bomba! La pasamos increíble con los pibes."
+      },
+      {
+        "id": 2,
+        "author": "Julia P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "12 Jun 2025",
+        "comment": "Consola en perfecto estado, muy recomendable."
+      },
+      {
+        "id": 3,
+        "author": "Mateo S.",
+        "initials": "MS",
+        "rating": 5,
+        "date": "01 Jun 2025",
+        "comment": "Vinieron con todos los juegos y mandos. Todo perfecto."
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "ownerId": 7,
+    "title": "Horno microondas",
+    "description": "Microondas digital para uso temporal en eventos o mudanzas.",
+    "pricePerDay": 2000,
+    "pricePerMonth": 40000,
+    "deposit": 8000,
+    "category": "Electrodomésticos",
+    "region": "Buenos Aires",
+    "city": "Avellaneda",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/microwave-oven?lock=7",
+    "isAvailable": true,
+    "rating": 4.5,
+    "reviewCount": 12,
+    "completedRentals": 20,
+    "distance": "4.0 km",
+    "owner": {
+      "name": "Roberto Sánchez",
+      "initials": "RS",
+      "verified": true,
+      "memberSince": 2023
+    },
+    "policies": "Depósito mínimo requerido al momento de la reserva. El producto debe devolverse en las mismas condiciones. Se permite hasta 24 horas de gracia para cancelaciones sin cargo.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Gabriela F.",
+        "initials": "GF",
+        "rating": 5,
+        "date": "10 Jun 2025",
+        "comment": "Perfecto para mi mudanza, funcionó de maravilla."
+      },
+      {
+        "id": 2,
+        "author": "Pablo E.",
+        "initials": "PE",
+        "rating": 4,
+        "date": "25 May 2025",
+        "comment": "Buen microondas, cumple con todo."
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "ownerId": 8,
+    "title": "Silla de oficina ergonómica",
+    "description": "Silla ergonómica con soporte lumbar y ajuste de altura.",
+    "pricePerDay": 1500,
+    "pricePerMonth": 30000,
+    "deposit": 5000,
+    "category": "Muebles",
+    "region": "Buenos Aires",
+    "city": "Quilmes",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/office-chair?lock=8",
+    "isAvailable": true,
+    "rating": 4.7,
+    "reviewCount": 16,
+    "completedRentals": 25,
+    "distance": "6.2 km",
+    "owner": {
+      "name": "Luciana Gómez",
+      "initials": "LG",
+      "verified": true,
+      "memberSince": 2022
+    },
+    "policies": "Depósito mínimo requerido al momento de la reserva. El producto debe devolverse en las mismas condiciones. Se permite hasta 24 horas de gracia para cancelaciones sin cargo.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Fernando A.",
+        "initials": "FA",
+        "rating": 5,
+        "date": "08 Jun 2025",
+        "comment": "Muy cómoda, la uso todos los días para trabajar."
+      },
+      {
+        "id": 2,
+        "author": "Carolina M.",
+        "initials": "CM",
+        "rating": 4,
+        "date": "22 May 2025",
+        "comment": "Buena silla, el soporte lumbar se nota."
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "ownerId": 9,
+    "title": "Proyector portátil",
+    "description": "Proyector HD con cable HDMI para noches de cine en casa.",
+    "pricePerDay": 3000,
+    "pricePerMonth": 60000,
+    "deposit": 15000,
+    "category": "Electrónica",
+    "region": "Buenos Aires",
+    "city": "La Plata",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/projector?lock=9",
+    "isAvailable": true,
+    "rating": 4.6,
+    "reviewCount": 19,
+    "completedRentals": 35,
+    "distance": "7.5 km",
+    "owner": {
+      "name": "Alejandro Vargas",
+      "initials": "AV",
+      "verified": true,
+      "memberSince": 2022
+    },
+    "policies": "Depósito mínimo requerido al momento de la reserva. El producto debe devolverse en las mismas condiciones. Se permite hasta 24 horas de gracia para cancelaciones sin cargo.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Isabel R.",
+        "initials": "IR",
+        "rating": 5,
+        "date": "14 Jun 2025",
+        "comment": "¡Hicimos cine en el patio! Imagen excelente."
+      },
+      {
+        "id": 2,
+        "author": "Tomás L.",
+        "initials": "TL",
+        "rating": 4,
+        "date": "02 Jun 2025",
+        "comment": "Muy buen proyector, fácil de configurar."
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "ownerId": 10,
+    "title": "Heladera portátil",
+    "description": "Heladera eléctrica portátil ideal para viajes y camping.",
+    "pricePerDay": 2500,
+    "pricePerMonth": 50000,
+    "deposit": 10000,
+    "category": "Electrodomésticos",
+    "region": "Buenos Aires",
+    "city": "Tigre",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/cooler-box?lock=10",
+    "isAvailable": true,
+    "rating": 4.8,
+    "reviewCount": 21,
+    "completedRentals": 30,
+    "distance": "9.0 km",
+    "owner": {
+      "name": "Patricia Romero",
+      "initials": "PR",
+      "verified": true,
+      "memberSince": 2023
+    },
+    "policies": "Depósito mínimo requerido al momento de la reserva. El producto debe devolverse en las mismas condiciones. Se permite hasta 24 horas de gracia para cancelaciones sin cargo.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Gustavo N.",
+        "initials": "GN",
+        "rating": 5,
+        "date": "16 Jun 2025",
+        "comment": "La llevé a un camping y funcionó perfecto."
+      },
+      {
+        "id": 2,
+        "author": "Laura B.",
+        "initials": "LB",
+        "rating": 5,
+        "date": "04 Jun 2025",
+        "comment": "Muy práctica, enfría de verdad."
+      },
+      {
+        "id": 3,
+        "author": "Sergio C.",
+        "initials": "SC",
+        "rating": 4,
+        "date": "20 May 2025",
+        "comment": "Buena heladera portátil, la recomiendo."
+      }
+    ]
+  },
+  {
+    "id": 11,
+    "ownerId": 11,
+    "title": "Metegol",
+    "description": "Metegol disponible para cumpleaños, reuniones y celebraciones.",
+    "pricePerDay": 10000,
+    "pricePerMonth": 200000,
+    "deposit": 30000,
+    "category": "Cumpleaños y celebraciones",
+    "region": "Buenos Aires",
+    "city": "La Plata",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "/images/metegol.webp",
+    "isAvailable": true,
+    "distance": "3,2 km",
+    "rating": 4.7,
+    "reviewCount": 4,
+    "completedRentals": 41,
+    "owner": {
+      "name": "Ana Quiroga",
+      "initials": "AQ",
+      "memberSince": "2020"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      },
+      {
+        "id": 4,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "25 Abr 2025",
+        "comment": "Excelente estado, funciona perfecto. Muy recomendable."
+      }
+    ]
+  },
+  {
+    "id": 12,
+    "ownerId": 12,
+    "title": "Cortadora de césped",
+    "description": "Cortadora de césped disponible para el mantenimiento de jardines.",
+    "pricePerDay": 14000,
+    "pricePerMonth": 280000,
+    "deposit": 40000,
+    "category": "Jardinería",
+    "region": "Buenos Aires",
+    "city": "San Isidro",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "/images/cortadora-de-cesped.webp",
+    "isAvailable": true,
+    "distance": "2,6 km",
+    "rating": 4.6,
+    "reviewCount": 2,
+    "completedRentals": 44,
+    "owner": {
+      "name": "Martín Rossi",
+      "initials": "MR",
+      "memberSince": "2021"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      }
+    ]
+  },
+  {
+    "id": 13,
+    "ownerId": 13,
+    "title": "Aspiradora multiuso",
+    "description": "Aspiradora multiuso disponible para la limpieza del hogar.",
+    "pricePerDay": 12000,
+    "pricePerMonth": 240000,
+    "deposit": 35000,
+    "category": "Electrodomésticos",
+    "region": "Buenos Aires",
+    "city": "Avellaneda",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "/images/aspiradora-multiuso.webp",
+    "isAvailable": true,
+    "distance": "1,9 km",
+    "rating": 4.5,
+    "reviewCount": 3,
+    "completedRentals": 47,
+    "owner": {
+      "name": "Lucía Sosa",
+      "initials": "LS",
+      "memberSince": "2022"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      }
+    ]
+  },
+  {
+    "id": 14,
+    "ownerId": 14,
+    "title": "Conservadora portátil",
+    "description": "Conservadora portátil disponible para paseos, camping y actividades al aire libre.",
+    "pricePerDay": 7000,
+    "pricePerMonth": 140000,
+    "deposit": 20000,
+    "category": "Aire libre",
+    "region": "Buenos Aires",
+    "city": "Tigre",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "/images/conservadora-portatil.webp",
+    "isAvailable": true,
+    "distance": "4,1 km",
+    "rating": 4.8,
+    "reviewCount": 4,
+    "completedRentals": 10,
+    "owner": {
+      "name": "Nicolás Torres",
+      "initials": "NT",
+      "memberSince": "2023"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      },
+      {
+        "id": 4,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "25 Abr 2025",
+        "comment": "Excelente estado, funciona perfecto. Muy recomendable."
+      }
+    ]
+  },
+  {
+    "id": 15,
+    "ownerId": 15,
+    "title": "Cama elástica",
+    "description": "Cama elástica con red de protección disponible para cumpleaños y celebraciones.",
+    "pricePerDay": 20000,
+    "pricePerMonth": 400000,
+    "deposit": 60000,
+    "category": "Cumpleaños y celebraciones",
+    "region": "Buenos Aires",
+    "city": "Quilmes",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "/images/cama-elastica.webp",
+    "isAvailable": true,
+    "distance": "3,8 km",
+    "rating": 4.9,
+    "reviewCount": 2,
+    "completedRentals": 13,
+    "owner": {
+      "name": "Julia Paz",
+      "initials": "JP",
+      "memberSince": "2019"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      }
+    ]
+  },
+  {
+    "id": 16,
+    "ownerId": 16,
+    "title": "Bordeadora eléctrica",
+    "description": "Bordeadora eléctrica disponible para el mantenimiento de jardines.",
+    "pricePerDay": 11000,
+    "pricePerMonth": 220000,
+    "deposit": 30000,
+    "category": "Jardinería",
+    "region": "Buenos Aires",
+    "city": "Morón",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "/images/bordeadora-electrica.webp",
+    "isAvailable": true,
+    "distance": "2,2 km",
+    "rating": 4.4,
+    "reviewCount": 3,
+    "completedRentals": 16,
+    "owner": {
+      "name": "Marcos Giménez",
+      "initials": "MG",
+      "memberSince": "2020"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Lucía B.",
+        "initials": "LB",
+        "rating": 4,
+        "date": "10 Ene 2025",
+        "comment": "Lo usé para un proyecto y quedé conforme."
+      },
+      {
+        "id": 2,
+        "author": "Roberto G.",
+        "initials": "RG",
+        "rating": 4,
+        "date": "15 Feb 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 3,
+        "author": "Lucía B.",
+        "initials": "LB",
+        "rating": 4,
+        "date": "20 Mar 2025",
+        "comment": "Todo en orden, entrega puntual."
+      }
+    ]
+  },
+  {
+    "id": 17,
+    "ownerId": 17,
+    "title": "Amoladora angular",
+    "description": "Amoladora angular disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 7500,
+    "pricePerMonth": 150000,
+    "deposit": 15000,
+    "category": "Herramientas",
+    "region": "Buenos Aires",
+    "city": "Avellaneda",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/angle-grinder?lock=17",
+    "isAvailable": true,
+    "distance": "2,8 km",
+    "rating": 4.6,
+    "reviewCount": 4,
+    "completedRentals": 19,
+    "owner": {
+      "name": "Laura Méndez",
+      "initials": "LM",
+      "memberSince": "2021"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      },
+      {
+        "id": 4,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "25 Abr 2025",
+        "comment": "Excelente estado, funciona perfecto. Muy recomendable."
+      }
+    ]
+  },
+  {
+    "id": 18,
+    "ownerId": 18,
+    "title": "Sierra circular",
+    "description": "Sierra circular disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 11000,
+    "pricePerMonth": 220000,
+    "deposit": 22000,
+    "category": "Herramientas",
+    "region": "Buenos Aires",
+    "city": "CABA",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/circular-saw?lock=18",
+    "isAvailable": true,
+    "distance": "3,2 km",
+    "rating": 4.8,
+    "reviewCount": 2,
+    "completedRentals": 22,
+    "owner": {
+      "name": "Carlos Ruiz",
+      "initials": "CR",
+      "memberSince": "2022"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      }
+    ]
+  },
+  {
+    "id": 19,
+    "ownerId": 19,
+    "title": "Caladora eléctrica",
+    "description": "Caladora eléctrica disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 8200,
+    "pricePerMonth": 164000,
+    "deposit": 16400,
+    "category": "Herramientas",
+    "region": "Buenos Aires",
+    "city": "Quilmes",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/jigsaw?lock=19",
+    "isAvailable": true,
+    "distance": "4,1 km",
+    "rating": 4.5,
+    "reviewCount": 3,
+    "completedRentals": 25,
+    "owner": {
+      "name": "Sofía Álvarez",
+      "initials": "SA",
+      "memberSince": "2023"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      }
+    ]
+  },
+  {
+    "id": 20,
+    "ownerId": 20,
+    "title": "Lijadora orbital",
+    "description": "Lijadora orbital disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 6000,
+    "pricePerMonth": 120000,
+    "deposit": 12000,
+    "category": "Herramientas",
+    "region": "Buenos Aires",
+    "city": "Lanús",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/orbital-sander?lock=20",
+    "isAvailable": true,
+    "distance": "1,9 km",
+    "rating": 4.7,
+    "reviewCount": 4,
+    "completedRentals": 28,
+    "owner": {
+      "name": "Diego Fernández",
+      "initials": "DF",
+      "memberSince": "2019"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      },
+      {
+        "id": 4,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "25 Abr 2025",
+        "comment": "Excelente estado, funciona perfecto. Muy recomendable."
+      }
+    ]
+  },
+  {
+    "id": 21,
+    "ownerId": 21,
+    "title": "Atornillador inalámbrico",
+    "description": "Atornillador inalámbrico disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 5500,
+    "pricePerMonth": 110000,
+    "deposit": 11000,
+    "category": "Herramientas",
+    "region": "Buenos Aires",
+    "city": "San Isidro",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/cordless-screwdriver?lock=21",
+    "isAvailable": true,
+    "distance": "3,6 km",
+    "rating": 4.8,
+    "reviewCount": 2,
+    "completedRentals": 31,
+    "owner": {
+      "name": "Valentina Costa",
+      "initials": "VC",
+      "memberSince": "2020"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      }
+    ]
+  },
+  {
+    "id": 22,
+    "ownerId": 22,
+    "title": "Soldadora inverter",
+    "description": "Soldadora inverter disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 13000,
+    "pricePerMonth": 260000,
+    "deposit": 26000,
+    "category": "Herramientas",
+    "region": "Buenos Aires",
+    "city": "La Plata",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/welding-machine?lock=22",
+    "isAvailable": true,
+    "distance": "5,8 km",
+    "rating": 4.4,
+    "reviewCount": 3,
+    "completedRentals": 34,
+    "owner": {
+      "name": "Jorge Pérez",
+      "initials": "JP",
+      "memberSince": "2021"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Lucía B.",
+        "initials": "LB",
+        "rating": 4,
+        "date": "10 Ene 2025",
+        "comment": "Lo usé para un proyecto y quedé conforme."
+      },
+      {
+        "id": 2,
+        "author": "Roberto G.",
+        "initials": "RG",
+        "rating": 4,
+        "date": "15 Feb 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 3,
+        "author": "Lucía B.",
+        "initials": "LB",
+        "rating": 4,
+        "date": "20 Mar 2025",
+        "comment": "Todo en orden, entrega puntual."
+      }
+    ]
+  },
+  {
+    "id": 23,
+    "ownerId": 23,
+    "title": "Hidrolavadora",
+    "description": "Hidrolavadora disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 12000,
+    "pricePerMonth": 240000,
+    "deposit": 24000,
+    "category": "Herramientas",
+    "region": "Buenos Aires",
+    "city": "Tigre",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/pressure-washer?lock=23",
+    "isAvailable": true,
+    "distance": "4,7 km",
+    "rating": 4.9,
+    "reviewCount": 4,
+    "completedRentals": 37,
+    "owner": {
+      "name": "Camila Ríos",
+      "initials": "CR",
+      "memberSince": "2022"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      },
+      {
+        "id": 4,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "25 Abr 2025",
+        "comment": "Excelente estado, funciona perfecto. Muy recomendable."
+      }
+    ]
+  },
+  {
+    "id": 24,
+    "ownerId": 24,
+    "title": "Compresor de aire",
+    "description": "Compresor de aire disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 14000,
+    "pricePerMonth": 280000,
+    "deposit": 28000,
+    "category": "Herramientas",
+    "region": "Buenos Aires",
+    "city": "Morón",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/air-compressor?lock=24",
+    "isAvailable": true,
+    "distance": "6,3 km",
+    "rating": 4.5,
+    "reviewCount": 2,
+    "completedRentals": 40,
+    "owner": {
+      "name": "Andrés Molina",
+      "initials": "AM",
+      "memberSince": "2023"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      }
+    ]
+  },
+  {
+    "id": 25,
+    "ownerId": 25,
+    "title": "Rotomartillo",
+    "description": "Rotomartillo disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 9800,
+    "pricePerMonth": 196000,
+    "deposit": 19600,
+    "category": "Herramientas",
+    "region": "Buenos Aires",
+    "city": "CABA",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/rotary-hammer?lock=25",
+    "isAvailable": true,
+    "distance": "2,1 km",
+    "rating": 4.7,
+    "reviewCount": 3,
+    "completedRentals": 43,
+    "owner": {
+      "name": "Carolina Vega",
+      "initials": "CV",
+      "memberSince": "2019"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      }
+    ]
+  },
+  {
+    "id": 26,
+    "ownerId": 26,
+    "title": "Kit de herramientas",
+    "description": "Kit de herramientas disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 4500,
+    "pricePerMonth": 90000,
+    "deposit": 9000,
+    "category": "Herramientas",
+    "region": "Buenos Aires",
+    "city": "Avellaneda",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/toolbox?lock=26",
+    "isAvailable": true,
+    "distance": "1,5 km",
+    "rating": 4.9,
+    "reviewCount": 4,
+    "completedRentals": 46,
+    "owner": {
+      "name": "Pablo Escobar",
+      "initials": "PE",
+      "memberSince": "2020"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      },
+      {
+        "id": 4,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "25 Abr 2025",
+        "comment": "Excelente estado, funciona perfecto. Muy recomendable."
+      }
+    ]
+  },
+  {
+    "id": 27,
+    "ownerId": 27,
+    "title": "Pistola de pintar",
+    "description": "Pistola de pintar disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 7000,
+    "pricePerMonth": 140000,
+    "deposit": 14000,
+    "category": "Herramientas",
+    "region": "Buenos Aires",
+    "city": "Vicente López",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/paint-sprayer?lock=27",
+    "isAvailable": true,
+    "distance": "3,9 km",
+    "rating": 4.3,
+    "reviewCount": 2,
+    "completedRentals": 9,
+    "owner": {
+      "name": "Ana Quiroga",
+      "initials": "AQ",
+      "memberSince": "2021"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Lucía B.",
+        "initials": "LB",
+        "rating": 4,
+        "date": "10 Ene 2025",
+        "comment": "Lo usé para un proyecto y quedé conforme."
+      },
+      {
+        "id": 2,
+        "author": "Roberto G.",
+        "initials": "RG",
+        "rating": 4,
+        "date": "15 Feb 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      }
+    ]
+  },
+  {
+    "id": 28,
+    "ownerId": 28,
+    "title": "Garlopa eléctrica",
+    "description": "Garlopa eléctrica disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 8500,
+    "pricePerMonth": 170000,
+    "deposit": 17000,
+    "category": "Herramientas",
+    "region": "Buenos Aires",
+    "city": "Quilmes",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/electric-planer?lock=28",
+    "isAvailable": true,
+    "distance": "5,2 km",
+    "rating": 4.2,
+    "reviewCount": 3,
+    "completedRentals": 12,
+    "owner": {
+      "name": "Martín Rossi",
+      "initials": "MR",
+      "memberSince": "2022"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Lucía B.",
+        "initials": "LB",
+        "rating": 4,
+        "date": "10 Ene 2025",
+        "comment": "Lo usé para un proyecto y quedé conforme."
+      },
+      {
+        "id": 2,
+        "author": "Roberto G.",
+        "initials": "RG",
+        "rating": 4,
+        "date": "15 Feb 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 3,
+        "author": "Lucía B.",
+        "initials": "LB",
+        "rating": 4,
+        "date": "20 Mar 2025",
+        "comment": "Todo en orden, entrega puntual."
+      }
+    ]
+  },
+  {
+    "id": 29,
+    "ownerId": 29,
+    "title": "Licuadora industrial",
+    "description": "Licuadora industrial disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 6800,
+    "pricePerMonth": 136000,
+    "deposit": 13600,
+    "category": "Electrodomésticos",
+    "region": "Buenos Aires",
+    "city": "CABA",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/blender?lock=29",
+    "isAvailable": true,
+    "distance": "1,7 km",
+    "rating": 4.8,
+    "reviewCount": 4,
+    "completedRentals": 15,
+    "owner": {
+      "name": "Lucía Sosa",
+      "initials": "LS",
+      "memberSince": "2023"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      },
+      {
+        "id": 4,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "25 Abr 2025",
+        "comment": "Excelente estado, funciona perfecto. Muy recomendable."
+      }
+    ]
+  },
+  {
+    "id": 30,
+    "ownerId": 30,
+    "title": "Freidora de aire",
+    "description": "Freidora de aire disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 7900,
+    "pricePerMonth": 158000,
+    "deposit": 15800,
+    "category": "Electrodomésticos",
+    "region": "Buenos Aires",
+    "city": "Lomas de Zamora",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/air-fryer?lock=30",
+    "isAvailable": true,
+    "distance": "2,4 km",
+    "rating": 4.9,
+    "reviewCount": 2,
+    "completedRentals": 18,
+    "owner": {
+      "name": "Nicolás Torres",
+      "initials": "NT",
+      "memberSince": "2019"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      }
+    ]
+  },
+  {
+    "id": 31,
+    "ownerId": 31,
+    "title": "Cafetera espresso",
+    "description": "Cafetera espresso disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 9000,
+    "pricePerMonth": 180000,
+    "deposit": 18000,
+    "category": "Electrodomésticos",
+    "region": "Buenos Aires",
+    "city": "San Isidro",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/espresso-machine?lock=31",
+    "isAvailable": true,
+    "distance": "3,3 km",
+    "rating": 4.7,
+    "reviewCount": 3,
+    "completedRentals": 21,
+    "owner": {
+      "name": "Julia Paz",
+      "initials": "JP",
+      "memberSince": "2020"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      }
+    ]
+  },
+  {
+    "id": 32,
+    "ownerId": 32,
+    "title": "Heladera con freezer",
+    "description": "Heladera con freezer disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 15000,
+    "pricePerMonth": 300000,
+    "deposit": 30000,
+    "category": "Electrodomésticos",
+    "region": "Buenos Aires",
+    "city": "La Plata",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/refrigerator?lock=32",
+    "isAvailable": true,
+    "distance": "6,1 km",
+    "rating": 4.6,
+    "reviewCount": 4,
+    "completedRentals": 24,
+    "owner": {
+      "name": "Marcos Giménez",
+      "initials": "MG",
+      "memberSince": "2021"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      },
+      {
+        "id": 4,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "25 Abr 2025",
+        "comment": "Excelente estado, funciona perfecto. Muy recomendable."
+      }
+    ]
+  },
+  {
+    "id": 33,
+    "ownerId": 33,
+    "title": "Lavarropas",
+    "description": "Lavarropas disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 13000,
+    "pricePerMonth": 260000,
+    "deposit": 26000,
+    "category": "Electrodomésticos",
+    "region": "Buenos Aires",
+    "city": "Morón",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/washing-machine?lock=33",
+    "isAvailable": true,
+    "distance": "5,5 km",
+    "rating": 4.4,
+    "reviewCount": 2,
+    "completedRentals": 27,
+    "owner": {
+      "name": "Laura Méndez",
+      "initials": "LM",
+      "memberSince": "2022"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Lucía B.",
+        "initials": "LB",
+        "rating": 4,
+        "date": "10 Ene 2025",
+        "comment": "Lo usé para un proyecto y quedé conforme."
+      },
+      {
+        "id": 2,
+        "author": "Roberto G.",
+        "initials": "RG",
+        "rating": 4,
+        "date": "15 Feb 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      }
+    ]
+  },
+  {
+    "id": 34,
+    "ownerId": 34,
+    "title": "Plancha a vapor",
+    "description": "Plancha a vapor disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 5000,
+    "pricePerMonth": 100000,
+    "deposit": 10000,
+    "category": "Electrodomésticos",
+    "region": "Buenos Aires",
+    "city": "Lanús",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/clothes-iron?lock=34",
+    "isAvailable": true,
+    "distance": "1,3 km",
+    "rating": 4.5,
+    "reviewCount": 3,
+    "completedRentals": 30,
+    "owner": {
+      "name": "Carlos Ruiz",
+      "initials": "CR",
+      "memberSince": "2023"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      }
+    ]
+  },
+  {
+    "id": 35,
+    "ownerId": 35,
+    "title": "Batidora planetaria",
+    "description": "Batidora planetaria disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 7500,
+    "pricePerMonth": 150000,
+    "deposit": 15000,
+    "category": "Electrodomésticos",
+    "region": "Buenos Aires",
+    "city": "Tigre",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/stand-mixer?lock=35",
+    "isAvailable": true,
+    "distance": "4,2 km",
+    "rating": 4.8,
+    "reviewCount": 4,
+    "completedRentals": 33,
+    "owner": {
+      "name": "Sofía Álvarez",
+      "initials": "SA",
+      "memberSince": "2019"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      },
+      {
+        "id": 4,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "25 Abr 2025",
+        "comment": "Excelente estado, funciona perfecto. Muy recomendable."
+      }
+    ]
+  },
+  {
+    "id": 36,
+    "ownerId": 36,
+    "title": "Pava eléctrica",
+    "description": "Pava eléctrica disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 3200,
+    "pricePerMonth": 64000,
+    "deposit": 6400,
+    "category": "Electrodomésticos",
+    "region": "Buenos Aires",
+    "city": "Avellaneda",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/electric-kettle?lock=36",
+    "isAvailable": true,
+    "distance": "1,8 km",
+    "rating": 4.6,
+    "reviewCount": 2,
+    "completedRentals": 36,
+    "owner": {
+      "name": "Diego Fernández",
+      "initials": "DF",
+      "memberSince": "2020"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      }
+    ]
+  },
+  {
+    "id": 37,
+    "ownerId": 37,
+    "title": "Termotanque",
+    "description": "Termotanque disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 10000,
+    "pricePerMonth": 200000,
+    "deposit": 20000,
+    "category": "Electrodomésticos",
+    "region": "Buenos Aires",
+    "city": "Quilmes",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/water-heater?lock=37",
+    "isAvailable": true,
+    "distance": "5,9 km",
+    "rating": 4.3,
+    "reviewCount": 3,
+    "completedRentals": 39,
+    "owner": {
+      "name": "Valentina Costa",
+      "initials": "VC",
+      "memberSince": "2021"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Lucía B.",
+        "initials": "LB",
+        "rating": 4,
+        "date": "10 Ene 2025",
+        "comment": "Lo usé para un proyecto y quedé conforme."
+      },
+      {
+        "id": 2,
+        "author": "Roberto G.",
+        "initials": "RG",
+        "rating": 4,
+        "date": "15 Feb 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 3,
+        "author": "Lucía B.",
+        "initials": "LB",
+        "rating": 4,
+        "date": "20 Mar 2025",
+        "comment": "Todo en orden, entrega puntual."
+      }
+    ]
+  },
+  {
+    "id": 38,
+    "ownerId": 38,
+    "title": "Motosierra",
+    "description": "Motosierra disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 11500,
+    "pricePerMonth": 230000,
+    "deposit": 23000,
+    "category": "Jardinería",
+    "region": "Buenos Aires",
+    "city": "San Isidro",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/chainsaw?lock=38",
+    "isAvailable": true,
+    "distance": "3,7 km",
+    "rating": 4.5,
+    "reviewCount": 4,
+    "completedRentals": 42,
+    "owner": {
+      "name": "Jorge Pérez",
+      "initials": "JP",
+      "memberSince": "2022"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      },
+      {
+        "id": 4,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "25 Abr 2025",
+        "comment": "Excelente estado, funciona perfecto. Muy recomendable."
+      }
+    ]
+  },
+  {
+    "id": 39,
+    "ownerId": 39,
+    "title": "Desmalezadora",
+    "description": "Desmalezadora disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 9500,
+    "pricePerMonth": 190000,
+    "deposit": 19000,
+    "category": "Jardinería",
+    "region": "Buenos Aires",
+    "city": "Tigre",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/string-trimmer?lock=39",
+    "isAvailable": true,
+    "distance": "4,4 km",
+    "rating": 4.6,
+    "reviewCount": 2,
+    "completedRentals": 45,
+    "owner": {
+      "name": "Camila Ríos",
+      "initials": "CR",
+      "memberSince": "2023"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      }
+    ]
+  },
+  {
+    "id": 40,
+    "ownerId": 40,
+    "title": "Podadora de altura",
+    "description": "Podadora de altura disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 8900,
+    "pricePerMonth": 178000,
+    "deposit": 17800,
+    "category": "Jardinería",
+    "region": "Buenos Aires",
+    "city": "Vicente López",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/pole-saw?lock=40",
+    "isAvailable": true,
+    "distance": "5,1 km",
+    "rating": 4.3,
+    "reviewCount": 3,
+    "completedRentals": 8,
+    "owner": {
+      "name": "Andrés Molina",
+      "initials": "AM",
+      "memberSince": "2019"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Lucía B.",
+        "initials": "LB",
+        "rating": 4,
+        "date": "10 Ene 2025",
+        "comment": "Lo usé para un proyecto y quedé conforme."
+      },
+      {
+        "id": 2,
+        "author": "Roberto G.",
+        "initials": "RG",
+        "rating": 4,
+        "date": "15 Feb 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 3,
+        "author": "Lucía B.",
+        "initials": "LB",
+        "rating": 4,
+        "date": "20 Mar 2025",
+        "comment": "Todo en orden, entrega puntual."
+      }
+    ]
+  },
+  {
+    "id": 41,
+    "ownerId": 41,
+    "title": "Cortadora de pasto",
+    "description": "Cortadora de pasto disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 10500,
+    "pricePerMonth": 210000,
+    "deposit": 21000,
+    "category": "Jardinería",
+    "region": "Buenos Aires",
+    "city": "La Plata",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/lawn-mower?lock=41",
+    "isAvailable": true,
+    "distance": "6,7 km",
+    "rating": 4.7,
+    "reviewCount": 4,
+    "completedRentals": 11,
+    "owner": {
+      "name": "Carolina Vega",
+      "initials": "CV",
+      "memberSince": "2020"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      },
+      {
+        "id": 4,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "25 Abr 2025",
+        "comment": "Excelente estado, funciona perfecto. Muy recomendable."
+      }
+    ]
+  },
+  {
+    "id": 42,
+    "ownerId": 42,
+    "title": "Soplador de hojas",
+    "description": "Soplador de hojas disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 6200,
+    "pricePerMonth": 124000,
+    "deposit": 12400,
+    "category": "Jardinería",
+    "region": "Buenos Aires",
+    "city": "CABA",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/leaf-blower?lock=42",
+    "isAvailable": true,
+    "distance": "2,9 km",
+    "rating": 4.6,
+    "reviewCount": 2,
+    "completedRentals": 14,
+    "owner": {
+      "name": "Pablo Escobar",
+      "initials": "PE",
+      "memberSince": "2021"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      }
+    ]
+  },
+  {
+    "id": 43,
+    "ownerId": 43,
+    "title": "Carretilla",
+    "description": "Carretilla disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 2800,
+    "pricePerMonth": 56000,
+    "deposit": 5600,
+    "category": "Jardinería",
+    "region": "Buenos Aires",
+    "city": "Morón",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/wheelbarrow?lock=43",
+    "isAvailable": true,
+    "distance": "3,1 km",
+    "rating": 4.8,
+    "reviewCount": 3,
+    "completedRentals": 17,
+    "owner": {
+      "name": "Ana Quiroga",
+      "initials": "AQ",
+      "memberSince": "2022"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      }
+    ]
+  },
+  {
+    "id": 44,
+    "ownerId": 44,
+    "title": "Tijera de podar eléctrica",
+    "description": "Tijera de podar eléctrica disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 4800,
+    "pricePerMonth": 96000,
+    "deposit": 9600,
+    "category": "Jardinería",
+    "region": "Buenos Aires",
+    "city": "Lanús",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/hedge-trimmer?lock=44",
+    "isAvailable": true,
+    "distance": "1,6 km",
+    "rating": 4.5,
+    "reviewCount": 4,
+    "completedRentals": 20,
+    "owner": {
+      "name": "Martín Rossi",
+      "initials": "MR",
+      "memberSince": "2023"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      },
+      {
+        "id": 4,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "25 Abr 2025",
+        "comment": "Excelente estado, funciona perfecto. Muy recomendable."
+      }
+    ]
+  },
+  {
+    "id": 45,
+    "ownerId": 45,
+    "title": "Sistema de riego",
+    "description": "Sistema de riego disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 3900,
+    "pricePerMonth": 78000,
+    "deposit": 7800,
+    "category": "Jardinería",
+    "region": "Buenos Aires",
+    "city": "Avellaneda",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/sprinkler?lock=45",
+    "isAvailable": true,
+    "distance": "2,2 km",
+    "rating": 4.4,
+    "reviewCount": 2,
+    "completedRentals": 23,
+    "owner": {
+      "name": "Lucía Sosa",
+      "initials": "LS",
+      "memberSince": "2019"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Lucía B.",
+        "initials": "LB",
+        "rating": 4,
+        "date": "10 Ene 2025",
+        "comment": "Lo usé para un proyecto y quedé conforme."
+      },
+      {
+        "id": 2,
+        "author": "Roberto G.",
+        "initials": "RG",
+        "rating": 4,
+        "date": "15 Feb 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      }
+    ]
+  },
+  {
+    "id": 46,
+    "ownerId": 46,
+    "title": "Parrilla portátil",
+    "description": "Parrilla portátil disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 5500,
+    "pricePerMonth": 110000,
+    "deposit": 11000,
+    "category": "Aire libre",
+    "region": "Buenos Aires",
+    "city": "CABA",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/barbecue-grill?lock=46",
+    "isAvailable": true,
+    "distance": "1,4 km",
+    "rating": 4.9,
+    "reviewCount": 3,
+    "completedRentals": 26,
+    "owner": {
+      "name": "Nicolás Torres",
+      "initials": "NT",
+      "memberSince": "2020"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      }
+    ]
+  },
+  {
+    "id": 47,
+    "ownerId": 47,
+    "title": "Kayak doble",
+    "description": "Kayak doble disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 16000,
+    "pricePerMonth": 320000,
+    "deposit": 32000,
+    "category": "Aire libre",
+    "region": "Buenos Aires",
+    "city": "Tigre",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/kayak?lock=47",
+    "isAvailable": true,
+    "distance": "6,8 km",
+    "rating": 4.7,
+    "reviewCount": 4,
+    "completedRentals": 29,
+    "owner": {
+      "name": "Julia Paz",
+      "initials": "JP",
+      "memberSince": "2021"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      },
+      {
+        "id": 4,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "25 Abr 2025",
+        "comment": "Excelente estado, funciona perfecto. Muy recomendable."
+      }
+    ]
+  },
+  {
+    "id": 48,
+    "ownerId": 48,
+    "title": "Tabla de paddle",
+    "description": "Tabla de paddle disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 9800,
+    "pricePerMonth": 196000,
+    "deposit": 19600,
+    "category": "Aire libre",
+    "region": "Buenos Aires",
+    "city": "Vicente López",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/paddle-board?lock=48",
+    "isAvailable": true,
+    "distance": "4,6 km",
+    "rating": 4.6,
+    "reviewCount": 2,
+    "completedRentals": 32,
+    "owner": {
+      "name": "Marcos Giménez",
+      "initials": "MG",
+      "memberSince": "2022"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      }
+    ]
+  },
+  {
+    "id": 49,
+    "ownerId": 49,
+    "title": "Carpa para 6 personas",
+    "description": "Carpa para 6 personas disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 12000,
+    "pricePerMonth": 240000,
+    "deposit": 24000,
+    "category": "Aire libre",
+    "region": "Buenos Aires",
+    "city": "La Plata",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/camping-tent?lock=49",
+    "isAvailable": true,
+    "distance": "7,2 km",
+    "rating": 4.5,
+    "reviewCount": 3,
+    "completedRentals": 35,
+    "owner": {
+      "name": "Laura Méndez",
+      "initials": "LM",
+      "memberSince": "2023"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      }
+    ]
+  },
+  {
+    "id": 50,
+    "ownerId": 50,
+    "title": "Conservadora 100L",
+    "description": "Conservadora 100L disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 7000,
+    "pricePerMonth": 140000,
+    "deposit": 14000,
+    "category": "Aire libre",
+    "region": "Buenos Aires",
+    "city": "San Isidro",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/cooler?lock=50",
+    "isAvailable": true,
+    "distance": "3,8 km",
+    "rating": 4.8,
+    "reviewCount": 4,
+    "completedRentals": 38,
+    "owner": {
+      "name": "Carlos Ruiz",
+      "initials": "CR",
+      "memberSince": "2019"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      },
+      {
+        "id": 4,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "25 Abr 2025",
+        "comment": "Excelente estado, funciona perfecto. Muy recomendable."
+      }
+    ]
+  },
+  {
+    "id": 51,
+    "ownerId": 51,
+    "title": "Anafe a gas",
+    "description": "Anafe a gas disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 4200,
+    "pricePerMonth": 84000,
+    "deposit": 8400,
+    "category": "Aire libre",
+    "region": "Buenos Aires",
+    "city": "Quilmes",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/camping-stove?lock=51",
+    "isAvailable": true,
+    "distance": "2,7 km",
+    "rating": 4.6,
+    "reviewCount": 2,
+    "completedRentals": 41,
+    "owner": {
+      "name": "Sofía Álvarez",
+      "initials": "SA",
+      "memberSince": "2020"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      }
+    ]
+  },
+  {
+    "id": 52,
+    "ownerId": 52,
+    "title": "Bicicleta de paseo",
+    "description": "Bicicleta de paseo disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 6000,
+    "pricePerMonth": 120000,
+    "deposit": 12000,
+    "category": "Aire libre",
+    "region": "Buenos Aires",
+    "city": "CABA",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/bicycle?lock=52",
+    "isAvailable": true,
+    "distance": "1,9 km",
+    "rating": 4.9,
+    "reviewCount": 3,
+    "completedRentals": 44,
+    "owner": {
+      "name": "Diego Fernández",
+      "initials": "DF",
+      "memberSince": "2021"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      }
+    ]
+  },
+  {
+    "id": 53,
+    "ownerId": 53,
+    "title": "Sombrilla playera",
+    "description": "Sombrilla playera disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 2500,
+    "pricePerMonth": 50000,
+    "deposit": 5000,
+    "category": "Aire libre",
+    "region": "Buenos Aires",
+    "city": "Avellaneda",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/beach-umbrella?lock=53",
+    "isAvailable": true,
+    "distance": "1,1 km",
+    "rating": 4.5,
+    "reviewCount": 4,
+    "completedRentals": 47,
+    "owner": {
+      "name": "Valentina Costa",
+      "initials": "VC",
+      "memberSince": "2022"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      },
+      {
+        "id": 4,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "25 Abr 2025",
+        "comment": "Excelente estado, funciona perfecto. Muy recomendable."
+      }
+    ]
+  },
+  {
+    "id": 54,
+    "ownerId": 54,
+    "title": "Parlante portátil",
+    "description": "Parlante portátil disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 4800,
+    "pricePerMonth": 96000,
+    "deposit": 9600,
+    "category": "Electrónica",
+    "region": "Buenos Aires",
+    "city": "CABA",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/bluetooth-speaker?lock=54",
+    "isAvailable": true,
+    "distance": "1,6 km",
+    "rating": 4.8,
+    "reviewCount": 2,
+    "completedRentals": 10,
+    "owner": {
+      "name": "Jorge Pérez",
+      "initials": "JP",
+      "memberSince": "2023"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      }
+    ]
+  },
+  {
+    "id": 55,
+    "ownerId": 55,
+    "title": "Cámara réflex",
+    "description": "Cámara réflex disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 15000,
+    "pricePerMonth": 300000,
+    "deposit": 30000,
+    "category": "Electrónica",
+    "region": "Buenos Aires",
+    "city": "San Isidro",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/dslr-camera?lock=55",
+    "isAvailable": true,
+    "distance": "4,9 km",
+    "rating": 4.7,
+    "reviewCount": 3,
+    "completedRentals": 13,
+    "owner": {
+      "name": "Camila Ríos",
+      "initials": "CR",
+      "memberSince": "2019"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      }
+    ]
+  },
+  {
+    "id": 56,
+    "ownerId": 56,
+    "title": "Drone con cámara",
+    "description": "Drone con cámara disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 18000,
+    "pricePerMonth": 360000,
+    "deposit": 36000,
+    "category": "Electrónica",
+    "region": "Buenos Aires",
+    "city": "La Plata",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/drone?lock=56",
+    "isAvailable": true,
+    "distance": "7,5 km",
+    "rating": 4.5,
+    "reviewCount": 4,
+    "completedRentals": 16,
+    "owner": {
+      "name": "Andrés Molina",
+      "initials": "AM",
+      "memberSince": "2020"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      },
+      {
+        "id": 4,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "25 Abr 2025",
+        "comment": "Excelente estado, funciona perfecto. Muy recomendable."
+      }
+    ]
+  },
+  {
+    "id": 57,
+    "ownerId": 57,
+    "title": "Notebook",
+    "description": "Notebook disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 14000,
+    "pricePerMonth": 280000,
+    "deposit": 28000,
+    "category": "Electrónica",
+    "region": "Buenos Aires",
+    "city": "Morón",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/laptop?lock=57",
+    "isAvailable": true,
+    "distance": "5,6 km",
+    "rating": 4.6,
+    "reviewCount": 2,
+    "completedRentals": 19,
+    "owner": {
+      "name": "Carolina Vega",
+      "initials": "CV",
+      "memberSince": "2021"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      }
+    ]
+  },
+  {
+    "id": 58,
+    "ownerId": 58,
+    "title": "Proyector 4K",
+    "description": "Proyector 4K disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 16000,
+    "pricePerMonth": 320000,
+    "deposit": 32000,
+    "category": "Electrónica",
+    "region": "Buenos Aires",
+    "city": "Tigre",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/projector?lock=58",
+    "isAvailable": true,
+    "distance": "6,4 km",
+    "rating": 4.4,
+    "reviewCount": 3,
+    "completedRentals": 22,
+    "owner": {
+      "name": "Pablo Escobar",
+      "initials": "PE",
+      "memberSince": "2022"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Lucía B.",
+        "initials": "LB",
+        "rating": 4,
+        "date": "10 Ene 2025",
+        "comment": "Lo usé para un proyecto y quedé conforme."
+      },
+      {
+        "id": 2,
+        "author": "Roberto G.",
+        "initials": "RG",
+        "rating": 4,
+        "date": "15 Feb 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 3,
+        "author": "Lucía B.",
+        "initials": "LB",
+        "rating": 4,
+        "date": "20 Mar 2025",
+        "comment": "Todo en orden, entrega puntual."
+      }
+    ]
+  },
+  {
+    "id": 59,
+    "ownerId": 59,
+    "title": "Consola de videojuegos",
+    "description": "Consola de videojuegos disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 13500,
+    "pricePerMonth": 270000,
+    "deposit": 27000,
+    "category": "Electrónica",
+    "region": "Buenos Aires",
+    "city": "CABA",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/game-console?lock=59",
+    "isAvailable": true,
+    "distance": "2,3 km",
+    "rating": 4.8,
+    "reviewCount": 4,
+    "completedRentals": 25,
+    "owner": {
+      "name": "Ana Quiroga",
+      "initials": "AQ",
+      "memberSince": "2023"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      },
+      {
+        "id": 4,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "25 Abr 2025",
+        "comment": "Excelente estado, funciona perfecto. Muy recomendable."
+      }
+    ]
+  },
+  {
+    "id": 60,
+    "ownerId": 60,
+    "title": "Cámara deportiva",
+    "description": "Cámara deportiva disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 9000,
+    "pricePerMonth": 180000,
+    "deposit": 18000,
+    "category": "Electrónica",
+    "region": "Buenos Aires",
+    "city": "Vicente López",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/action-camera?lock=60",
+    "isAvailable": true,
+    "distance": "4,3 km",
+    "rating": 4.7,
+    "reviewCount": 2,
+    "completedRentals": 28,
+    "owner": {
+      "name": "Martín Rossi",
+      "initials": "MR",
+      "memberSince": "2019"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      }
+    ]
+  },
+  {
+    "id": 61,
+    "ownerId": 61,
+    "title": "Teclado musical",
+    "description": "Teclado musical disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 8500,
+    "pricePerMonth": 170000,
+    "deposit": 17000,
+    "category": "Electrónica",
+    "region": "Buenos Aires",
+    "city": "Lanús",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/musical-keyboard?lock=61",
+    "isAvailable": true,
+    "distance": "3,4 km",
+    "rating": 4.5,
+    "reviewCount": 3,
+    "completedRentals": 31,
+    "owner": {
+      "name": "Lucía Sosa",
+      "initials": "LS",
+      "memberSince": "2020"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      }
+    ]
+  },
+  {
+    "id": 62,
+    "ownerId": 62,
+    "title": "Sillón de 3 cuerpos",
+    "description": "Sillón de 3 cuerpos disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 11000,
+    "pricePerMonth": 220000,
+    "deposit": 22000,
+    "category": "Muebles",
+    "region": "Buenos Aires",
+    "city": "CABA",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/sofa?lock=62",
+    "isAvailable": true,
+    "distance": "2,5 km",
+    "rating": 4.7,
+    "reviewCount": 4,
+    "completedRentals": 34,
+    "owner": {
+      "name": "Nicolás Torres",
+      "initials": "NT",
+      "memberSince": "2021"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      },
+      {
+        "id": 4,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "25 Abr 2025",
+        "comment": "Excelente estado, funciona perfecto. Muy recomendable."
+      }
+    ]
+  },
+  {
+    "id": 63,
+    "ownerId": 63,
+    "title": "Mesa de comedor",
+    "description": "Mesa de comedor disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 9000,
+    "pricePerMonth": 180000,
+    "deposit": 18000,
+    "category": "Muebles",
+    "region": "Buenos Aires",
+    "city": "Avellaneda",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/dining-table?lock=63",
+    "isAvailable": true,
+    "distance": "3,6 km",
+    "rating": 4.5,
+    "reviewCount": 2,
+    "completedRentals": 37,
+    "owner": {
+      "name": "Julia Paz",
+      "initials": "JP",
+      "memberSince": "2022"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      }
+    ]
+  },
+  {
+    "id": 64,
+    "ownerId": 64,
+    "title": "Escritorio",
+    "description": "Escritorio disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 7000,
+    "pricePerMonth": 140000,
+    "deposit": 14000,
+    "category": "Muebles",
+    "region": "Buenos Aires",
+    "city": "Quilmes",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/desk?lock=64",
+    "isAvailable": true,
+    "distance": "4,8 km",
+    "rating": 4.6,
+    "reviewCount": 3,
+    "completedRentals": 40,
+    "owner": {
+      "name": "Marcos Giménez",
+      "initials": "MG",
+      "memberSince": "2023"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      }
+    ]
+  },
+  {
+    "id": 65,
+    "ownerId": 65,
+    "title": "Cama de dos plazas",
+    "description": "Cama de dos plazas disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 12000,
+    "pricePerMonth": 240000,
+    "deposit": 24000,
+    "category": "Muebles",
+    "region": "Buenos Aires",
+    "city": "La Plata",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/double-bed?lock=65",
+    "isAvailable": true,
+    "distance": "6,9 km",
+    "rating": 4.4,
+    "reviewCount": 4,
+    "completedRentals": 43,
+    "owner": {
+      "name": "Laura Méndez",
+      "initials": "LM",
+      "memberSince": "2019"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Lucía B.",
+        "initials": "LB",
+        "rating": 4,
+        "date": "10 Ene 2025",
+        "comment": "Lo usé para un proyecto y quedé conforme."
+      },
+      {
+        "id": 2,
+        "author": "Roberto G.",
+        "initials": "RG",
+        "rating": 4,
+        "date": "15 Feb 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 3,
+        "author": "Lucía B.",
+        "initials": "LB",
+        "rating": 4,
+        "date": "20 Mar 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 4,
+        "author": "Roberto G.",
+        "initials": "RG",
+        "rating": 4,
+        "date": "25 Abr 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      }
+    ]
+  },
+  {
+    "id": 66,
+    "ownerId": 66,
+    "title": "Biblioteca modular",
+    "description": "Biblioteca modular disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 6000,
+    "pricePerMonth": 120000,
+    "deposit": 12000,
+    "category": "Muebles",
+    "region": "Buenos Aires",
+    "city": "Morón",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/bookshelf?lock=66",
+    "isAvailable": true,
+    "distance": "5,3 km",
+    "rating": 4.3,
+    "reviewCount": 2,
+    "completedRentals": 46,
+    "owner": {
+      "name": "Carlos Ruiz",
+      "initials": "CR",
+      "memberSince": "2020"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Lucía B.",
+        "initials": "LB",
+        "rating": 4,
+        "date": "10 Ene 2025",
+        "comment": "Lo usé para un proyecto y quedé conforme."
+      },
+      {
+        "id": 2,
+        "author": "Roberto G.",
+        "initials": "RG",
+        "rating": 4,
+        "date": "15 Feb 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      }
+    ]
+  },
+  {
+    "id": 67,
+    "ownerId": 67,
+    "title": "Silla de escritorio",
+    "description": "Silla de escritorio disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 4500,
+    "pricePerMonth": 90000,
+    "deposit": 9000,
+    "category": "Muebles",
+    "region": "Buenos Aires",
+    "city": "San Isidro",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/office-chair?lock=67",
+    "isAvailable": true,
+    "distance": "3,9 km",
+    "rating": 4.8,
+    "reviewCount": 3,
+    "completedRentals": 9,
+    "owner": {
+      "name": "Sofía Álvarez",
+      "initials": "SA",
+      "memberSince": "2021"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      }
+    ]
+  },
+  {
+    "id": 68,
+    "ownerId": 68,
+    "title": "Inflable para niños",
+    "description": "Inflable para niños disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 14000,
+    "pricePerMonth": 280000,
+    "deposit": 28000,
+    "category": "Cumpleaños y celebraciones",
+    "region": "Buenos Aires",
+    "city": "CABA",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/bouncy-castle?lock=68",
+    "isAvailable": true,
+    "distance": "2,8 km",
+    "rating": 4.9,
+    "reviewCount": 4,
+    "completedRentals": 12,
+    "owner": {
+      "name": "Diego Fernández",
+      "initials": "DF",
+      "memberSince": "2022"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      },
+      {
+        "id": 4,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "25 Abr 2025",
+        "comment": "Excelente estado, funciona perfecto. Muy recomendable."
+      }
+    ]
+  },
+  {
+    "id": 69,
+    "ownerId": 69,
+    "title": "Máquina de pochoclo",
+    "description": "Máquina de pochoclo disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 6500,
+    "pricePerMonth": 130000,
+    "deposit": 13000,
+    "category": "Cumpleaños y celebraciones",
+    "region": "Buenos Aires",
+    "city": "Tigre",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/popcorn-machine?lock=69",
+    "isAvailable": true,
+    "distance": "4,5 km",
+    "rating": 4.8,
+    "reviewCount": 2,
+    "completedRentals": 15,
+    "owner": {
+      "name": "Valentina Costa",
+      "initials": "VC",
+      "memberSince": "2023"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      }
+    ]
+  },
+  {
+    "id": 70,
+    "ownerId": 70,
+    "title": "Equipo de sonido",
+    "description": "Equipo de sonido disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 10000,
+    "pricePerMonth": 200000,
+    "deposit": 20000,
+    "category": "Cumpleaños y celebraciones",
+    "region": "Buenos Aires",
+    "city": "Vicente López",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/loudspeaker?lock=70",
+    "isAvailable": true,
+    "distance": "5,7 km",
+    "rating": 4.6,
+    "reviewCount": 3,
+    "completedRentals": 18,
+    "owner": {
+      "name": "Jorge Pérez",
+      "initials": "JP",
+      "memberSince": "2019"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      }
+    ]
+  },
+  {
+    "id": 71,
+    "ownerId": 71,
+    "title": "Luces LED decorativas",
+    "description": "Luces LED decorativas disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 3800,
+    "pricePerMonth": 76000,
+    "deposit": 7600,
+    "category": "Cumpleaños y celebraciones",
+    "region": "Buenos Aires",
+    "city": "Lanús",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/string-lights?lock=71",
+    "isAvailable": true,
+    "distance": "2,1 km",
+    "rating": 4.5,
+    "reviewCount": 4,
+    "completedRentals": 21,
+    "owner": {
+      "name": "Camila Ríos",
+      "initials": "CR",
+      "memberSince": "2020"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      },
+      {
+        "id": 4,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "25 Abr 2025",
+        "comment": "Excelente estado, funciona perfecto. Muy recomendable."
+      }
+    ]
+  },
+  {
+    "id": 72,
+    "ownerId": 72,
+    "title": "Dispenser de bebidas",
+    "description": "Dispenser de bebidas disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 5200,
+    "pricePerMonth": 104000,
+    "deposit": 10400,
+    "category": "Cumpleaños y celebraciones",
+    "region": "Buenos Aires",
+    "city": "Avellaneda",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/beverage-dispenser?lock=72",
+    "isAvailable": true,
+    "distance": "3,2 km",
+    "rating": 4.4,
+    "reviewCount": 2,
+    "completedRentals": 24,
+    "owner": {
+      "name": "Andrés Molina",
+      "initials": "AM",
+      "memberSince": "2021"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Lucía B.",
+        "initials": "LB",
+        "rating": 4,
+        "date": "10 Ene 2025",
+        "comment": "Lo usé para un proyecto y quedé conforme."
+      },
+      {
+        "id": 2,
+        "author": "Roberto G.",
+        "initials": "RG",
+        "rating": 4,
+        "date": "15 Feb 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      }
+    ]
+  },
+  {
+    "id": 73,
+    "ownerId": 73,
+    "title": "Cabina de fotos",
+    "description": "Cabina de fotos disponible para alquiler. Ideal para uso ocasional, en muy buen estado y listo para usar.",
+    "pricePerDay": 15000,
+    "pricePerMonth": 300000,
+    "deposit": 30000,
+    "category": "Cumpleaños y celebraciones",
+    "region": "Buenos Aires",
+    "city": "San Isidro",
+    "deliveryMethod": "A coordinar",
+    "imageUrl": "https://loremflickr.com/600/450/photo-booth?lock=73",
+    "isAvailable": true,
+    "distance": "6,5 km",
+    "rating": 4.7,
+    "reviewCount": 3,
+    "completedRentals": 27,
+    "owner": {
+      "name": "Carolina Vega",
+      "initials": "CV",
+      "memberSince": "2022"
+    },
+    "policies": "Se alquila por día. Se entrega limpio y en funcionamiento. Cualquier daño debe reportarse al momento de la devolución.",
+    "reviews": [
+      {
+        "id": 1,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "10 Ene 2025",
+        "comment": "Recomendable 100%, en perfectas condiciones."
+      },
+      {
+        "id": 2,
+        "author": "Nicolás T.",
+        "initials": "NT",
+        "rating": 5,
+        "date": "15 Feb 2025",
+        "comment": "Todo en orden, entrega puntual."
+      },
+      {
+        "id": 3,
+        "author": "Juan P.",
+        "initials": "JP",
+        "rating": 5,
+        "date": "20 Mar 2025",
+        "comment": "Muy bueno, muy fácil de usar."
+      }
+    ]
+  }
+]
