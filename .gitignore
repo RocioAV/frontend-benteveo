@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 .env
+.env.local
+.env.*.local
+
+# Local AI tooling (skills, regenerable)
+.atl/
+.agents/
+.claude/
+.env
 
 # Editor directories and files
 .vscode/*

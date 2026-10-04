@@ -1,0 +1,603 @@
+import { Fragment, useEffect, useState } from 'react'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+import { motion, MotionConfig } from 'motion/react'
+import Reservation from './Reservation.jsx'
+import ProductCard from '../components/ProductCard/ProductCard.jsx'
+import Skeleton from '../components/Skeleton/Skeleton.jsx'
+import EmptyState from '../components/EmptyState/EmptyState.jsx'
+import ProductReviews from '../components/ProductReviews/ProductReviews.jsx'
+import { fetchProduct, fetchProducts, fetchPublicProfile } from '../services/products.service.js'
+import { useFavorites } from '../context/useFavorites'
+
+const springReveal = { type: 'spring', stiffness: 260, damping: 26 }
+const springLatch = { type: 'spring', stiffness: 400, damping: 28 }
+const springSoft = { type: 'spring', stiffness: 170, damping: 26 }
+
+function DetalleProducto() {
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const { isFavorite, toggleFavorite } = useFavorites()
+
+  const [product, setProduct] = useState(null) // null = cargando
+  const [owner, setOwner] = useState(null)
+  const [suggestions, setSuggestions] = useState([])
+  const [error, setError] = useState(false)
+  const [prevId, setPrevId] = useState(id)
+
+  const [activeTab, setActiveTab] = useState('descripcion')
+  const [activeImage, setActiveImage] = useState(0)
+
+  if (prevId !== id) {
+    setPrevId(id)
+    setProduct(null)
+    setError(false)
+    setOwner(null)
+    setSuggestions([])
+    setActiveTab('descripcion')
+    setActiveImage(0)
+  }
+
+  useEffect(() => {
+    let cancelled = false
+
+    fetchProduct(id)
+      .then((data) => {
+        if (cancelled) return
+        setProduct(data)
+        setError(false)
+        setOwner(null)
+        setSuggestions([])
+
+        if (data.ownerId) {
+          fetchPublicProfile(data.ownerId)
+            .then((profile) => {
+              if (!cancelled) setOwner(profile)
+            })
+            .catch(() => {
+              if (!cancelled) setOwner(null)
+            })
+        }
+
+        fetchProducts()
+          .then((list) => {
+            if (cancelled) return
+            setSuggestions(
+              list.filter((p) => p.category === data.category && p.id !== data.id).slice(0, 4)
+            )
+          })
+          .catch(() => {
+            if (!cancelled) setSuggestions([])
+          })
+      })
+      .catch(() => {
+        if (cancelled) return
+        setError(true)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [id])
+
+  if (error) {
+    return (
+      <MotionConfig reducedMotion="user">
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          <EmptyState
+            message="No pudimos cargar este producto. Puede que ya no esté disponible."
+            actionLabel="Volver al catálogo"
+            onAction={() => navigate('/explorar')}
+          />
+        </div>
+      </MotionConfig>
+    )
+  }
+
+  if (product === null) {
+    return (
+      <MotionConfig reducedMotion="user">
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          <Skeleton rows={6} />
+        </div>
+      </MotionConfig>
+    )
+  }
+
+  const images = Array.isArray(product.images) && product.images.length > 0
+    ? product.images
+    : (product.imageUrl ? [product.imageUrl] : [])
+  const hasMany = images.length > 1
+  const goPrev = () => setActiveImage((i) => (i - 1 + images.length) % images.length)
+  const goNext = () => setActiveImage((i) => (i + 1) % images.length)
+
+  const handleRated = ({ rating, reviewCount }) => {
+    setProduct((prev) => (prev ? { ...prev, rating, reviewCount } : prev))
+  }
+  const ownerName = owner?.name ?? 'Propietario'
+  // Perfil público (GET /user/:id): `avatar` plano + `averageRating`/`ratingCount`
+  // dinámicos. Se acepta `profile.avatar` como fallback de formas anteriores.
+  const ownerAvatar = owner?.avatar ?? owner?.profile?.avatar ?? null
+  const ownerAverageRating = typeof owner?.averageRating === 'number' ? owner.averageRating : null
+  const ownerRatingCount = typeof owner?.ratingCount === 'number' ? owner.ratingCount : 0
+  const ownerInitials = owner?.name
+    ? owner.name
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((w) => w[0])
+        .join('')
+        .toUpperCase()
+    : 'P'
+  const isVerified = owner?.isIdentityVerified ?? false
+  const memberSince = owner?.createdAt ? new Date(owner.createdAt).getFullYear() : null
+
+  const locationText = [product.city, product.region].filter(Boolean).join(', ')
+  const metaItems = []
+  if (product.rating != null) {
+    metaItems.push({
+      id: 'rating',
+      node: (
+        <div className="flex items-center gap-1.5">
+          <svg className="w-4 h-4 text-[var(--color-amber-400)]" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+          </svg>
+          <span className="font-bold text-[var(--color-dark)]">{Number(product.rating).toFixed(1)}</span>
+          <span>({product.reviewCount ?? 0} reseñas)</span>
+        </div>
+      ),
+    })
+  }
+  if (locationText) {
+    metaItems.push({
+      id: 'location',
+      node: (
+        <div className="flex items-center gap-1.5">
+          <svg className="w-4 h-4 text-[var(--color-concrete)]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+          </svg>
+          <span>
+            {locationText}
+            {product.distance != null ? ` · ${product.distance}` : ''}
+          </span>
+        </div>
+      ),
+    })
+  }
+  if (product.completedRentals > 0) {
+    metaItems.push({
+      id: 'rentals',
+      node: (
+        <div className="flex items-center gap-1.5">
+          <svg className="w-4 h-4 text-[var(--color-concrete)]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+          </svg>
+          <span>{product.completedRentals} alquileres completados</span>
+        </div>
+      ),
+    })
+  }
+
+  return (
+    <MotionConfig reducedMotion="user">
+      <div className="max-w-6xl mx-auto px-4 py-8">
+
+        <nav className="flex flex-wrap items-center gap-2 text-xs font-semibold mb-5" aria-label="Ruta de navegación">
+          <Link to="/" className="text-[var(--color-concrete)] hover:text-[var(--color-dark)] transition-colors">INICIO</Link>
+          <span className="text-[var(--color-border)]">›</span>
+          <Link to="/explorar" className="text-[var(--color-concrete)] hover:text-[var(--color-dark)] transition-colors">{product.category?.toUpperCase()}</Link>
+          <span className="text-[var(--color-border)]">›</span>
+          <span className="text-[var(--color-dark)]">{product.title}</span>
+        </nav>
+
+        <div className="flex flex-col lg:flex-row gap-8">
+
+          <div className="flex-1 min-w-0">
+
+            <motion.div
+              className="relative rounded-3xl overflow-hidden bg-[var(--color-concrete-surface)] mb-5"
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={springSoft}
+            >
+              <div
+                className="relative w-full aspect-[4/3] bg-[var(--color-surface)] overflow-hidden"
+                role="region"
+                aria-roledescription="carousel"
+                aria-label={`Galería de ${product.title}`}
+                tabIndex={hasMany ? 0 : -1}
+                onKeyDown={(e) => {
+                  if (!hasMany) return
+                  if (e.key === 'ArrowLeft') { e.preventDefault(); goPrev() }
+                  if (e.key === 'ArrowRight') { e.preventDefault(); goNext() }
+                }}
+              >
+                {images.length === 0 ? (
+                  <div className="w-full h-full flex items-center justify-center text-[var(--color-concrete)]">
+                    <i className="fas fa-toolbox text-5xl" aria-hidden="true" />
+                  </div>
+                ) : (
+                  <motion.img
+                    key={images[activeImage]}
+                    src={images[activeImage]}
+                    alt={`${product.title} — imagen ${activeImage + 1} de ${images.length}`}
+                    decoding="async"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={springSoft}
+                    className="w-full h-full object-contain"
+                    draggable={false}
+                    onTouchStart={(e) => { e.currentTarget.dataset.sx = String(e.touches[0].clientX) }}
+                    onTouchEnd={(e) => {
+                      const sx = Number(e.currentTarget.dataset.sx || 0)
+                      const dx = e.changedTouches[0].clientX - sx
+                      if (Math.abs(dx) > 50) { if (dx < 0) goNext(); else goPrev() }
+                    }}
+                  />
+                )}
+
+                {hasMany && (
+                  <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-[var(--color-dark)]/75 text-[var(--color-surface)] text-xs font-semibold">
+                    {activeImage + 1} / {images.length}
+                  </span>
+                )}
+
+                {hasMany && (
+                  <>
+                    <motion.button
+                      type="button"
+                      onClick={goPrev}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center shadow-[var(--shadow-sm)]"
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.96 }}
+                      transition={springLatch}
+                      aria-label="Imagen anterior"
+                    >
+                      <svg className="w-5 h-5 text-[var(--color-dark)]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                      </svg>
+                    </motion.button>
+                    <motion.button
+                      type="button"
+                      onClick={goNext}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center shadow-[var(--shadow-sm)]"
+                      whileHover={{ scale: 1.08 }}
+                      whileTap={{ scale: 0.96 }}
+                      transition={springLatch}
+                      aria-label="Imagen siguiente"
+                    >
+                      <svg className="w-5 h-5 text-[var(--color-dark)]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                      </svg>
+                    </motion.button>
+                  </>
+                )}
+
+                {hasMany && (
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--color-dark)]/20 backdrop-blur-sm">
+                    {images.map((_, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setActiveImage(i)}
+                        aria-label={`Ir a imagen ${i + 1} de ${images.length}`}
+                        aria-current={i === activeImage ? 'true' : undefined}
+                        className={`rounded-full transition-all ${i === activeImage ? 'w-6 h-2 bg-[var(--color-surface)]' : 'w-2 h-2 bg-[var(--color-surface)]/60 hover:bg-[var(--color-surface)]'}`}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                <span className="sr-only" aria-live="polite" aria-atomic="true">
+                  Imagen {activeImage + 1} de {images.length}
+                </span>
+              </div>
+
+              <div className="absolute bottom-4 right-4 flex gap-2">
+                <motion.button
+                  type="button"
+                  className={`w-9 h-9 rounded-full bg-[var(--color-surface)] border flex items-center justify-center shadow-[var(--shadow-sm)] ${
+                    isFavorite(product.id)
+                      ? 'border-[var(--color-error)] text-[var(--color-error)]'
+                      : 'border-[var(--color-border)] text-[var(--color-concrete)]'
+                  }`}
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.96 }}
+                  transition={springLatch}
+                  onClick={() => toggleFavorite(product.id)}
+                  aria-label={isFavorite(product.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+                  aria-pressed={isFavorite(product.id)}
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill={isFavorite(product.id) ? 'currentColor' : 'none'}
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                  </svg>
+                </motion.button>
+                <motion.button
+                  type="button"
+                  className="w-9 h-9 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)] flex items-center justify-center shadow-[var(--shadow-sm)]"
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.96 }}
+                  transition={springLatch}
+                  aria-label="Compartir"
+                >
+                  <svg className="w-5 h-5 text-[var(--color-concrete)]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="18" cy="5" r="3" />
+                    <circle cx="6" cy="12" r="3" />
+                    <circle cx="18" cy="19" r="3" />
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                  </svg>
+                </motion.button>
+              </div>
+            </motion.div>
+
+            <motion.h1
+              className="text-3xl md:text-4xl font-extrabold text-[var(--color-dark)] mb-3"
+              style={{ fontFamily: 'var(--font-title)' }}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...springReveal, delay: 0.08 }}
+            >
+              {product.title}
+            </motion.h1>
+
+            <motion.div
+              className="flex flex-wrap items-center gap-3 mb-4"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...springReveal, delay: 0.12 }}
+            >
+              <span className="inline-block px-3 py-1 text-xs font-bold rounded-full bg-[var(--color-primary)] text-[var(--color-dark)]">
+                {product.category}
+              </span>
+              <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-[var(--color-concrete-surface)] text-[var(--color-concrete)] border border-[var(--color-border)]">
+                {product.isAvailable ? 'Disponible' : 'No disponible'}
+              </span>
+            </motion.div>
+
+            {metaItems.length > 0 && (
+              <motion.div
+                className="flex flex-wrap items-center gap-4 text-sm text-[var(--color-concrete)] mb-6"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ ...springReveal, delay: 0.16 }}
+              >
+                {metaItems.map((item, i) => (
+                  <Fragment key={item.id}>
+                    {i > 0 && <span className="text-[var(--color-border)]" aria-hidden="true">·</span>}
+                    {item.node}
+                  </Fragment>
+                ))}
+              </motion.div>
+            )}
+
+            <motion.div
+              className="flex items-center justify-between bg-[var(--color-surface)] rounded-2xl shadow-[var(--shadow-sm)] border border-[var(--color-border)] p-4 mb-6"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...springReveal, delay: 0.2 }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-[var(--color-brown)] flex items-center justify-center text-[var(--color-surface)] font-bold text-sm overflow-hidden">
+                  {ownerAvatar ? (
+                    <img src={ownerAvatar} alt={ownerName} className="w-full h-full object-cover" />
+                  ) : (
+                    ownerInitials
+                  )}
+                </div>
+                <div>
+                  <p className="font-bold text-[var(--color-dark)] text-sm">{ownerName}</p>
+                  <div className="flex items-center gap-1.5 text-xs text-[var(--color-concrete)]">
+                    {isVerified ? (
+                      <>
+                        <svg className="w-3.5 h-3.5 text-[var(--color-brown)]" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                          <path fillRule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clipRule="evenodd" />
+                        </svg>
+                        <span>Identidad verificada</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-3.5 h-3.5 text-[var(--color-error)]" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                          <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                        </svg>
+                        <span>Sin verificar</span>
+                      </>
+                    )}
+                    {memberSince && <span className="text-[var(--color-border)]">·</span>}
+                    {memberSince && <span>Miembro desde {memberSince}</span>}
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-[var(--color-concrete)] mt-1">
+                    {ownerAverageRating != null ? (
+                      <>
+                        <svg className="w-3.5 h-3.5 text-[var(--color-amber-400)]" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <span aria-label={`Calificación del dueño: ${ownerAverageRating} de 5 en ${ownerRatingCount} ${ownerRatingCount === 1 ? 'calificación' : 'calificaciones'}`}>
+                          <strong className="text-[var(--color-dark)]">{ownerAverageRating.toFixed(1)}</strong>
+                          {' '}({ownerRatingCount} {ownerRatingCount === 1 ? 'calificación' : 'calificaciones'})
+                        </span>
+                      </>
+                    ) : (
+                      <span>Este dueño todavía no tiene calificaciones</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <motion.button
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-[var(--color-border)] text-sm font-semibold text-[var(--color-dark)] hover:border-[var(--color-primary)] hover:bg-[var(--color-concrete-surface)] transition-colors"
+                whileTap={{ scale: 0.96 }}
+                transition={springLatch}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 20.105V4.875A1.875 1.875 0 015.625 3h12.75A1.875 1.875 0 0120.25 4.875v10.5A1.875 1.875 0 0118.375 17.25H7.5l-3.75 2.855z" />
+                </svg>
+                Contactar
+              </motion.button>
+            </motion.div>
+
+            <motion.div
+              className="mb-6"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...springReveal, delay: 0.24 }}
+            >
+              <div className="flex gap-8 border-b border-[var(--color-border)]">
+                <button
+                  onClick={() => setActiveTab('descripcion')}
+                  className={`pb-3 text-sm font-semibold transition-colors ${
+                    activeTab === 'descripcion'
+                      ? 'text-[var(--color-dark)] border-b-2 border-[var(--color-primary)]'
+                      : 'text-[var(--color-concrete)] hover:text-[var(--color-dark)]'
+                  }`}
+                >
+                  Descripción
+                </button>
+                {product.policies && (
+                  <button
+                    onClick={() => setActiveTab('politicas')}
+                    className={`pb-3 text-sm font-semibold transition-colors ${
+                      activeTab === 'politicas'
+                        ? 'text-[var(--color-dark)] border-b-2 border-[var(--color-primary)]'
+                        : 'text-[var(--color-concrete)] hover:text-[var(--color-dark)]'
+                    }`}
+                  >
+                    Políticas
+                  </button>
+                )}
+              </div>
+
+              <motion.div
+                key={activeTab}
+                className="pt-5 text-sm text-[var(--color-concrete)] leading-relaxed"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={springReveal}
+              >
+                {activeTab === 'descripcion' ? (
+                  <p>{product.description || 'Sin descripción disponible.'}</p>
+                ) : (
+                  <p>{product.policies}</p>
+                )}
+              </motion.div>
+            </motion.div>
+
+            <ProductReviews product={product} onRated={handleRated} />
+
+          </div>
+
+          <motion.div
+            className="w-full lg:w-[380px] flex-shrink-0"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ ...springReveal, delay: 0.15 }}
+          >
+            <Reservation product={product} />
+          </motion.div>
+
+        </div>
+
+        <section className="mt-12">
+          <motion.h2
+            className="text-xl font-bold text-[var(--color-dark)] mb-5"
+            style={{ fontFamily: 'var(--font-title)' }}
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={springReveal}
+          >
+            Condiciones de alquiler
+          </motion.h2>
+          <div className="bg-[var(--color-surface)] rounded-2xl p-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <motion.div
+              className="flex flex-col items-center text-center"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={springReveal}
+            >
+              <span className="w-16 h-16 rounded-full bg-[var(--color-primary)] text-[var(--color-dark)] flex items-center justify-center text-2xl mb-4">
+                <i className="fas fa-piggy-bank" aria-hidden="true" />
+              </span>
+              <span className="w-0.5 h-8 bg-[var(--color-border)] mb-4" aria-hidden="true" />
+              <h3 className="font-bold text-[var(--color-dark)] mb-2">Depósito de garantía</h3>
+              <p className="text-sm text-[var(--color-concrete)] leading-relaxed m-0 max-w-xs">
+                Se retienen ${Number(product.deposit ?? 0).toLocaleString('es-AR')} que se liberan al devolver el producto en buen estado.
+              </p>
+            </motion.div>
+            <motion.div
+              className="flex flex-col items-center text-center"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ ...springReveal, delay: 0.05 }}
+            >
+              <span className="w-16 h-16 rounded-full bg-[var(--color-primary)] text-[var(--color-dark)] flex items-center justify-center text-2xl mb-4">
+                <i className="fas fa-calendar-xmark" aria-hidden="true" />
+              </span>
+              <span className="w-0.5 h-8 bg-[var(--color-border)] mb-4" aria-hidden="true" />
+              <h3 className="font-bold text-[var(--color-dark)] mb-2">Cancelación flexible</h3>
+              <p className="text-sm text-[var(--color-concrete)] leading-relaxed m-0 max-w-xs">
+                Cancelá gratis hasta 24 horas antes del retiro, sin penalización.
+              </p>
+            </motion.div>
+            <motion.div
+              className="flex flex-col items-center text-center"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ ...springReveal, delay: 0.1 }}
+            >
+              <span className="w-16 h-16 rounded-full bg-[var(--color-primary)] text-[var(--color-dark)] flex items-center justify-center text-2xl mb-4">
+                <i className="fas fa-rotate-left" aria-hidden="true" />
+              </span>
+              <span className="w-0.5 h-8 bg-[var(--color-border)] mb-4" aria-hidden="true" />
+              <h3 className="font-bold text-[var(--color-dark)] mb-2">Devolución</h3>
+              <p className="text-sm text-[var(--color-concrete)] leading-relaxed m-0 max-w-xs">
+                Devolvé el producto limpio y en las mismas condiciones en que lo recibiste.
+              </p>
+            </motion.div>
+            <motion.div
+              className="flex flex-col items-center text-center"
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ ...springReveal, delay: 0.15 }}
+            >
+              <span className="w-16 h-16 rounded-full bg-[var(--color-primary)] text-[var(--color-dark)] flex items-center justify-center text-2xl mb-4">
+                <i className="fas fa-clock" aria-hidden="true" />
+              </span>
+              <span className="w-0.5 h-8 bg-[var(--color-border)] mb-4" aria-hidden="true" />
+              <h3 className="font-bold text-[var(--color-dark)] mb-2">Alquiler mínimo</h3>
+              <p className="text-sm text-[var(--color-concrete)] leading-relaxed m-0 max-w-xs">
+                Se alquila por día, con un mínimo de 1 día de alquiler.
+              </p>
+            </motion.div>
+          </div>
+        </section>
+
+        {suggestions.length > 0 && (
+          <section className="mt-12">
+            <h2 className="text-xl font-bold text-[var(--color-dark)] mb-5" style={{ fontFamily: 'var(--font-title)' }}>
+              Productos similares
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {suggestions.map((p, i) => (
+                <ProductCard key={p.id} product={p} index={i} />
+              ))}
+            </div>
+          </section>
+        )}
+
+      </div>
+    </MotionConfig>
+  )
+}
+
+export default DetalleProducto

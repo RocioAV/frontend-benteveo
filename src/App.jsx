@@ -1,14 +1,72 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
+import Publicar from './pages/Publicar.jsx'
+import { Routes, Route } from 'react-router-dom'
+import Layout from './layouts/Layout.jsx'
+import ScrollToTop from './components/ScrollToTop.jsx'
+import RequireAuth from './components/RequireAuth.jsx'
 import ChatBot from './components/ChatBot/ChatBot.jsx'
+
+// Code-splitting por ruta: cada página se descarga bajo demanda,
+// reduciendo el tamaño del chunk inicial.
+const Home = lazy(() => import('./pages/Home.jsx'))
+const PageCatalogo = lazy(() => import('./pages/PageCatalogo.jsx'))
+const DetalleProducto = lazy(() => import('./pages/DetalleProducto.jsx'))
+const Reservation = lazy(() => import('./pages/Reservation.jsx'))
+const Login = lazy(() => import('./pages/Login.jsx'))
+const Registro = lazy(() => import('./pages/Registro.jsx'))
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword.jsx'))
+const NotFound = lazy(() => import('./pages/NotFound.jsx'))
+const DemoModales = lazy(() => import('./pages/DemoModales.jsx'))
+const MisReservas = lazy(() => import('./pages/MisReservas.jsx'))
+const Dashboard = lazy(() => import('./pages/Dashboard.jsx'))
+const ChatPage = lazy(() => import('./pages/ChatPage.jsx'))
+const AdminPanel = lazy(() => import('./pages/AdminPanel.jsx'))
+const PagoExitoso = lazy(() => import('./pages/PagoExitoso.jsx'))
+const PagoFallido = lazy(() => import('./pages/PagoFallido.jsx'))
+const PagoPendiente = lazy(() => import('./pages/PagoPendiente.jsx'))
+const EditarPublicacion = lazy(() => import('./pages/EditarPublicacion.jsx'))
+
+function PageFallback() {
+  return (
+    <div className="flex items-center justify-center py-24" role="status" aria-label="Cargando">
+      <div className="h-8 w-8 rounded-full border-2 border-[var(--color-border)] border-t-[var(--color-primary)] animate-spin" />
+    </div>
+  )
+}
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<h1>Benteveo - Home</h1>} />
-      </Routes>
-      <ChatBot />
-    </BrowserRouter>
+    <>
+      <ScrollToTop />
+      <Suspense fallback={<PageFallback />}>
+        <Routes>
+          {/* Páginas públicas con header + footer */}
+          <Route element={<Layout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/explorar" element={<PageCatalogo />} />
+            <Route path="/detalle/:id" element={<DetalleProducto />} />
+            <Route path="/reservation/:id" element={<RequireAuth><Reservation /></RequireAuth>} />
+            <Route path="/reservas" element={<RequireAuth><MisReservas /></RequireAuth>} />
+            <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+            <Route path="/admin" element={<RequireAuth><AdminPanel /></RequireAuth>} />
+            <Route path="/chat/:reservationId" element={<RequireAuth><ChatPage /></RequireAuth>} />
+            <Route path="/demo-modales" element={<DemoModales />} />
+            {/* Retorno desde Mercado Pago (back_urls) */}
+            <Route path="/pago-exitoso" element={<PagoExitoso />} />
+            <Route path="/pago-fallido" element={<PagoFallido />} />
+            <Route path="/pago-pendiente" element={<PagoPendiente />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+          <ChatBot />
+          {/* Autenticación: sin header/footer, solo botón de volver */}
+          <Route path="/publicar" element={<RequireAuth><Publicar /></RequireAuth>} />
+          <Route path="/publicaciones/:id/editar" element={<RequireAuth><EditarPublicacion /></RequireAuth>} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Registro />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+        </Routes>
+      </Suspense>
+    </>
   )
 }
 
