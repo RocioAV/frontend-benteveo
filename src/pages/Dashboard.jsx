@@ -486,8 +486,15 @@ function Dashboard() {
     if (key === 'cancel') {
       const updated = await cancelReservation(detail.id)
       patchReservation(updated)
-      // Cancelación aceptada por el backend: se simula el reembolso.
-      simulateDepositRefund('cancel')
+      // Si la reserva está en PENDING (p. ej., pago fallido: reserva creada sin aprobar),
+      // mostramos toast de cancelación pero no simulamos reembolso.
+      // El modal ya muestra "Reserva cancelada." vía feedback state.
+      if (detail.statusCode === 'PENDING') {
+        toast.info('Reserva cancelada.', { toastId: 'cancel-pending' })
+      } else {
+        // Para CONFIRMED o COMPLETED: simulamos el reembolso.
+        simulateDepositRefund('cancel')
+      }
       return
     }
     const updated = await runReservationAction(key, detail.id)

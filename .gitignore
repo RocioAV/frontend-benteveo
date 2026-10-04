@@ -19,6 +19,7 @@ dist-ssr
 .atl/
 .agents/
 .claude/
+.env
 
 # Editor directories and files
 .vscode/*
