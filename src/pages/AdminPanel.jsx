@@ -140,19 +140,19 @@ function UsuariosSection() {
   const [dni, setDni] = useState('')
   const [searching, setSearching] = useState(false)
   const [notFound, setNotFound] = useState(false)
-  const [mode, setMode] = useState('recent')
   const [page, setPage] = useState(1)
   const perPage = 10
 
-  const loadRecent = useCallback(async () => {
-    try {
-      const data = await fetchRecentUsers(50)
-      setUsers(Array.isArray(data) ? data : [])
-    } catch {
-      toast.error('Error al cargar usuarios')
-      setUsers([])
-    }
-  }, [])
+  const loadRecent = useCallback(
+    () =>
+      fetchRecentUsers(50)
+        .then((data) => setUsers(Array.isArray(data) ? data : []))
+        .catch(() => {
+          toast.error('Error al cargar usuarios')
+          setUsers([])
+        }),
+    [],
+  )
 
   useEffect(() => { loadRecent() }, [loadRecent])
 
@@ -164,7 +164,6 @@ function UsuariosSection() {
     setSearching(true)
     setNotFound(false)
     setUsers(null)
-    setMode('search')
     setPage(1)
     try {
       const u = await fetchUserByDni(trimmed)
@@ -185,7 +184,6 @@ function UsuariosSection() {
   const handleClear = () => {
     setDni('')
     setNotFound(false)
-    setMode('recent')
     setPage(1)
     loadRecent()
   }
@@ -290,18 +288,17 @@ function IdentidadSection({ onPhotoClick }) {
   const [rejectReason, setRejectReason] = useState('')
   const [processingId, setProcessingId] = useState(null)
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    try {
-      const data = await fetchPendingVerifications()
-      setRequests(Array.isArray(data) ? data : [])
-    } catch {
-      toast.error('Error al cargar verificaciones')
-      setRequests([])
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+  const load = useCallback(
+    () =>
+      fetchPendingVerifications()
+        .then((data) => setRequests(Array.isArray(data) ? data : []))
+        .catch(() => {
+          toast.error('Error al cargar verificaciones')
+          setRequests([])
+        })
+        .finally(() => setLoading(false)),
+    [],
+  )
 
   useEffect(() => { load() }, [load])
 

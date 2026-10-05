@@ -1,7 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, MotionConfig } from 'motion/react'
-import productsJson from '../data/products.json'
 import { getProducts } from '../services/product.service.js'
 import ProductCard from '../components/ProductCard/ProductCard.jsx'
 import './Home.css'
@@ -78,38 +77,50 @@ function renderCarouselCard(product, isClone = false) {
   )
 }
 
+function StatusNotice({ message, canRetry, onRetry }) {
+  return (
+    <div className="text-center py-10" role="status" aria-live="polite">
+      <p className="text-[var(--color-concrete)]">{message}</p>
+      {canRetry && (
+        <button
+          type="button"
+          className="mt-4 px-6 py-2 rounded-full bg-[var(--color-primary)] text-[var(--color-dark)] font-semibold hover:opacity-90 transition-opacity"
+          onClick={onRetry}
+        >
+          Reintentar
+        </button>
+      )}
+    </div>
+  )
+}
+
 function Home() {
   const [activeStep, setActiveStep] = useState(0)
   const wallRef = useRef(null)
   const viewportRef = useRef(null)
   const pausedRef = useRef(false)
 
-  // 'loading' | 'ready' | 'error' — el respaldo a products.json se aplica en
-  // el catch y cuando la API devuelve una lista vacía.
   const [loadState, setLoadState] = useState('loading')
   const [products, setProducts] = useState([])
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     let cancelled = false
     getProducts()
       .then((data) => {
         if (cancelled) return
-        if (Array.isArray(data) && data.length > 0) {
-          setProducts(data)
-        } else {
-          setProducts(productsJson) // API vacía → respaldo local
-        }
+        setProducts(Array.isArray(data) ? data : [])
         setLoadState('ready')
       })
       .catch(() => {
         if (cancelled) return
-        setProducts(productsJson) // API caída → respaldo local
+        setProducts([])
         setLoadState('error')
       })
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [reloadKey])
 
   // `distance` hoy es aleatorio (generateDistance), así que filtrar por ella
   // descartaría productos al azar: se usan todos los productos.
@@ -133,16 +144,15 @@ function Home() {
     [products],
   )
 
-  // La home no se queda en blanco: si la API falla o viene vacía se usó el
-  // respaldo local. Solo queda vacío si también el JSON local no tiene datos.
   const hasProducts = products.length > 0
   const statusMessage =
     loadState === 'loading'
       ? 'Cargando productos…'
       : loadState === 'error'
-        ? 'No pudimos conectar con el servidor. Mostrando productos de ejemplo.'
+        ? 'No pudimos conectar con el servidor.'
         : 'Todavía no hay productos disponibles.'
   const showStatus = loadState === 'loading' || !hasProducts
+  const retryLoad = () => setReloadKey((k) => k + 1)
 
   useEffect(() => {
     const reduce =
@@ -245,13 +255,11 @@ function Home() {
                 </div>
               </div>
             ) : (
-              <p
-                className="text-center text-[var(--color-concrete)] py-10"
-                role="status"
-                aria-live="polite"
-              >
-                {statusMessage}
-              </p>
+              <StatusNotice
+                message={statusMessage}
+                canRetry={loadState === 'error'}
+                onRetry={retryLoad}
+              />
             )}
           </div>
         </section>
@@ -352,13 +360,11 @@ function Home() {
           <p className="section-sub">Lo más alquilado y mejor calificado de tu barrio.</p>
 
           {showStatus ? (
-            <p
-              className="text-center text-[var(--color-concrete)] py-10"
-              role="status"
-              aria-live="polite"
-            >
-              {statusMessage}
-            </p>
+            <StatusNotice
+              message={statusMessage}
+              canRetry={loadState === 'error'}
+              onRetry={retryLoad}
+            />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {topRated.map((product, i) => (
@@ -375,13 +381,11 @@ function Home() {
           <h2 className="section-title">Productos destacados</h2>
 
           {showStatus ? (
-            <p
-              className="text-center text-[var(--color-concrete)] py-10"
-              role="status"
-              aria-live="polite"
-            >
-              {statusMessage}
-            </p>
+            <StatusNotice
+              message={statusMessage}
+              canRetry={loadState === 'error'}
+              onRetry={retryLoad}
+            />
           ) : (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

@@ -14,6 +14,7 @@ const STEPS = [
 ]
 
 const EMPTY = { front: null, back: null, selfie: null }
+const MAX_FILE_SIZE = 8 * 1024 * 1024
 
 function VerificationModal({ open, onClose }) {
   const [step, setStep] = useState(0)
@@ -21,16 +22,13 @@ function VerificationModal({ open, onClose }) {
   const [previews, setPreviews] = useState(EMPTY)
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
-  const [verifStatus, setVerifStatus] = useState(null)
-  const [loadingStatus, setLoadingStatus] = useState(false)
+  const [verifStatus, setVerifStatus] = useState(undefined)
 
   useEffect(() => {
     if (!open) return
-    setLoadingStatus(true)
     fetchVerificationStatus()
       .then((data) => setVerifStatus(data))
       .catch(() => setVerifStatus(null))
-      .finally(() => setLoadingStatus(false))
   }, [open])
 
   const current = STEPS[step]
@@ -39,6 +37,11 @@ function VerificationModal({ open, onClose }) {
   const handleFile = (e) => {
     const file = e.target.files?.[0]
     if (!file) return
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error('La imagen no puede superar 8 MB')
+      e.target.value = ''
+      return
+    }
     setImages((prev) => ({ ...prev, [current.key]: file }))
     setPreviews((prev) => ({ ...prev, [current.key]: URL.createObjectURL(file) }))
   }
@@ -66,7 +69,7 @@ function VerificationModal({ open, onClose }) {
 
   const handleClose = () => {
     reset()
-    setVerifStatus(null)
+    setVerifStatus(undefined)
     onClose()
   }
 
@@ -93,7 +96,7 @@ function VerificationModal({ open, onClose }) {
                 <i className="fas fa-xmark" aria-hidden="true" />
               </button>
 
-              {loadingStatus ? (
+              {verifStatus === undefined ? (
                 <div className="verification-done">
                   <i className="fas fa-spinner fa-spin" aria-hidden="true" />
                   <p>Cargando...</p>
@@ -200,7 +203,17 @@ function VerificationModal({ open, onClose }) {
                       onChange={handleFile}
                     />
                     {previews[current.key] ? (
-                      <button type="button" className="verification-change" onClick={() => setPreviews((p) => ({ ...p, [current.key]: null }))}>
+                      <button
+                        type="button"
+                        className="verification-change"
+                        onClick={() => {
+                          setPreviews((p) => {
+                            if (p[current.key]) URL.revokeObjectURL(p[current.key])
+                            return { ...p, [current.key]: null }
+                          })
+                          setImages((p) => ({ ...p, [current.key]: null }))
+                        }}
+                      >
                         Cambiar foto
                       </button>
                     ) : null}

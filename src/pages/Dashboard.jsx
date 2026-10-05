@@ -53,6 +53,7 @@ const STATUS_LABELS = {
 const ACTIVE_STATUSES = ['PENDING', 'CONFIRMED', 'ACTIVE']
 
 const PICKUP_TIME = '12:00'
+const MAX_AVATAR_SIZE = 5 * 1024 * 1024
 
 // Diálogos de confirmación por paso bilateral (las transiciones las autoriza el
 // backend; PENDING no tiene acción manual: el pago aprobado deja CONFIRMED).
@@ -550,13 +551,19 @@ function Dashboard() {
 
   const handleAvatarChange = async (e) => {
     const file = e.target.files?.[0]
+    e.target.value = ''
     if (!file) return
+    if (file.size > MAX_AVATAR_SIZE) {
+      toast.error('La imagen no puede superar 5 MB')
+      return
+    }
     const previewUrl = URL.createObjectURL(file)
     setAvatarPreview(previewUrl)
     try {
       await uploadAvatar(file)
-      toast.success('Foto de perfil actualizada.')
       await refreshUser()
+      setAvatarPreview(null)
+      toast.success('Foto de perfil actualizada.')
     } catch (err) {
       setAvatarPreview(null)
       toast.error(err.message || 'No pudimos subir tu foto.')

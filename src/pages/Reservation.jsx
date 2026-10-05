@@ -8,6 +8,7 @@ import { fetchProduct } from '../services/products.service.js'
 import { useAuth } from '../context/useAuth'
 import VerificationModal from '../components/VerificationModal/VerificationModal.jsx'
 import PaymentModal from '../components/modals/PaymentModal.jsx'
+import { rentalDays } from '../utils/rentalDays.js'
 
 const springReveal = { type: 'spring', stiffness: 260, damping: 26 }
 const springLatch = { type: 'spring', stiffness: 400, damping: 28 }
@@ -17,7 +18,6 @@ const MONTHS = [
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
 ]
 const WEEKDAYS = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do']
-const MS_PER_DAY = 1000 * 60 * 60 * 24
 
 function startOfDay(d) {
   const x = new Date(d)
@@ -97,8 +97,8 @@ function Reservation({ product: productProp }) {
   const blockedByVerification = isLoggedIn && !isVerified
 
   const daysOfRent =
-    startDate && endDate && endDate >= startDate
-      ? Math.round((endDate - startDate) / MS_PER_DAY)
+    startDate && endDate && endDate > startDate
+      ? rentalDays(startDate, endDate)
       : 0
   const subtotal = daysOfRent * product.pricePerDay
   const deposit = Number(product.deposit) || 0
@@ -123,7 +123,7 @@ function Reservation({ product: productProp }) {
     if (!startDate || (startDate && endDate)) {
       setStartDate(norm)
       setEndDate(null)
-    } else if (norm >= startDate) {
+    } else if (norm > startDate) {
       setEndDate(norm)
     } else {
       setStartDate(norm)
