@@ -146,9 +146,11 @@ function rentalDays(reservation) {
   return Number.isFinite(days) && days > 0 ? days : 1
 }
 
-function otherParty(reservation, role) {
+// La otra parte de la conversación según el punto de vista. Como inquilino el
+// backend no trae el nombre del dueño, así que se usa el cache `ownerNames`.
+function otherParty(reservation, role, ownerNames = {}) {
   if (role === 'owner') return reservation.user?.name || 'Inquilino'
-  return 'Propietario'
+  return ownerNames[reservation.product?.ownerId] || 'Propietario'
 }
 
 // Mensaje más útil del backend: primero el detalle por campo (fields),
@@ -757,26 +759,40 @@ function Dashboard() {
             <EmptyState message="Todavía no tenés conversaciones." />
           ) : (
             <div className="conversaciones-list">
-              {threads.map((thread, i) => (
-                <motion.button
-                  key={`${thread.role}-${thread.id}`}
-                  type="button"
-                  className="conversacion-card"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ ...springReveal, delay: Math.min(i * 0.04, 0.2) }}
-                  onClick={() => openChat(thread.id)}
-                >
-                  <span className="conversacion-avatar" aria-hidden="true">
-                    {getInitial(otherParty(thread, thread.role))}
-                  </span>
-                  <span className="conversacion-body">
-                    <span className="conversacion-name">{otherParty(thread, thread.role)}</span>
-                    <span className="conversacion-sub">{thread.product?.title || 'Producto'}</span>
-                  </span>
-                  <i className="fas fa-chevron-right conversacion-arrow" aria-hidden="true" />
-                </motion.button>
-              ))}
+              {threads.map((thread, i) => {
+                const name = otherParty(thread, thread.role, ownerNames)
+                const status = thread.status
+                return (
+                  <motion.button
+                    key={`${thread.role}-${thread.id}`}
+                    type="button"
+                    className="conversacion-card"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ ...springReveal, delay: Math.min(i * 0.04, 0.2) }}
+                    onClick={() => openChat(thread.id)}
+                    aria-label={`Conversación con ${name} por ${thread.product?.title || 'Producto'}`}
+                  >
+                    <span className="conversacion-avatar" aria-hidden="true">
+                      {getInitial(name)}
+                    </span>
+                    <span className="conversacion-body">
+                      <span className="conversacion-name">{name}</span>
+                      <span className="conversacion-sub">{thread.product?.title || 'Producto'}</span>
+                      <span className="conversacion-meta">
+                        <span className="conversacion-dates">
+                          <i className="fas fa-calendar-alt" aria-hidden="true" />{' '}
+                          {formatDate(thread.dateInit)} → {formatDate(thread.dateEnd)}
+                        </span>
+                        <span className={`reserva-badge reserva-badge--${status.toLowerCase()}`}>
+                          {STATUS_LABELS[status] || status}
+                        </span>
+                      </span>
+                    </span>
+                    <i className="fas fa-chevron-right conversacion-arrow" aria-hidden="true" />
+                  </motion.button>
+                )
+              })}
             </div>
           )}
         </section>
