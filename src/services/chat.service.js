@@ -1,61 +1,63 @@
-// Adapter de chat por reserva — WebSocket nativo + historial REST.
-//
-// Contrato (ver docs/PLAN-MEJORAS-UX-UI.md §Chat):
-// - Conexión: ws(s)://<host>/chat, token JWT por SUBPROTOCOLO (['benteveo', token]).
-//   El token NO viaja por query ni por header (el WS nativo no permite headers).
-// - Sala = reservationId (1 conversación = 1 reserva).
-// - Cliente → servidor: { type: 'join', reservationId }
-//                       { type: 'message:send', reservationId, content }
-//                       { type: 'leave', reservationId }
-// - Servidor → cliente: { type: 'message:history', reservationId, messages }
-//                       { type: 'message:new', message }
-//                       { type: 'error', code, message }
+// Adapter de chat por reserva: WebSocket nativo + historial REST.
+// La sesión se autentica con la cookie del navegador durante el handshake.
 
 import apiClient from './api'
 
-const SUBPROTOCOL = 'benteveo'
 const RECONNECT_BASE_MS = 1000
 const RECONNECT_MAX_MS = 10000
 
 // Deriva la URL del WebSocket desde la URL del API REST (mismo host, otro esquema).
 // Override explícito con VITE_WS_URL cuando el gateway vive en otro host.
-function buildWsUrl() {
-  const explicit = import.meta.env.VITE_WS_URL
+export function buildWsUrl() {
+  const explicit = import.meta.env.VITE_WS_URL?.trim()
   if (explicit) return explicit
 
-  const api = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'
+  const api = import.meta.env.VITE_API_URL
   try {
     const url = new URL(api)
     const proto = url.protocol === 'https:' ? 'wss' : 'ws'
-    return `${proto}://${url.host}/chat`
+    const apiPath = url.pathname.replace(/\/+$/, '') || '/api/v1'
+    return `${proto}://${url.host}${apiPath}/chat`
   } catch {
-    return 'ws://localhost:3000/chat'
+    return 'ws://localhost:3000/api/v1/chat'
   }
+}
+
+export function normalizeMessages(data) {
+  if (Array.isArray(data)) return data
+  if (data && Array.isArray(data.messages)) return data.messages
+  return []
 }
 
 // Historial de mensajes de una reserva (REST, fallback de la carga inicial).
 // Forward-compatible: si el endpoint aún no existe en el backend, devuelve [].
 export async function fetchMessages(reservationId) {
   try {
-    return await apiClient(`/reservations/${reservationId}/messages`)
+    const data = await apiClient(`/reservations/${reservationId}/messages`)
+    return normalizeMessages(data)
   } catch {
     return []
   }
+}
+
+export function createClientMessageId() {
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID()
+  return `client-${Date.now()}-${Math.random().toString(36).slice(2)}`
 }
 
 /**
  * Cliente de chat por reserva con reconexión exponencial y re-join automático.
  *
  * @param {object} opts
- * @param {string} opts.token        JWT del usuario autenticado
  * @param {(event: object) => void} opts.onEvent   recibe eventos del servidor
  * @param {(status: string) => void} opts.onStatus 'connecting' | 'open' | 'reconnecting' | 'closed'
+ * @param {(error: Event | Error) => void} opts.onError recibe errores del transporte
  */
 export class ChatClient {
-  constructor({ token, onEvent, onStatus }) {
-    this.token = token
+  constructor({ onEvent, onStatus, onError }) {
     this.onEvent = onEvent
     this.onStatus = onStatus
+    this.onError = onError
     this.ws = null
     this.roomId = null
     this.reconnectAttempts = 0
@@ -73,8 +75,14 @@ export class ChatClient {
     this._send({ type: 'join', reservationId })
   }
 
-  send(reservationId, content) {
-    this._send({ type: 'message:send', reservationId, content })
+  send(reservationId, content, clientMessageId = createClientMessageId()) {
+    const sent = this._send({
+      type: 'message:send',
+      reservationId,
+      content,
+      clientMessageId,
+    })
+    return sent ? clientMessageId : null
   }
 
   leave(reservationId) {
@@ -103,7 +111,15 @@ export class ChatClient {
     }
 
     this.onStatus?.('connecting')
-    const ws = new WebSocket(buildWsUrl(), [SUBPROTOCOL, this.token])
+    let ws
+    try {
+      ws = new WebSocket(buildWsUrl())
+    } catch (error) {
+      this.onError?.(error)
+      this.onStatus?.('closed')
+      if (!this.manualClose) this._scheduleReconnect()
+      return
+    }
     this.ws = ws
 
     ws.onopen = () => {
@@ -123,7 +139,13 @@ export class ChatClient {
       this.onEvent?.(event)
     }
 
+    ws.onerror = (error) => {
+      this.onError?.(error)
+      this.onStatus?.('closed')
+    }
+
     ws.onclose = () => {
+      if (this.ws === ws) this.ws = null
       this.onStatus?.('closed')
       if (!this.manualClose) this._scheduleReconnect()
     }
@@ -143,6 +165,8 @@ export class ChatClient {
   _send(payload) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(payload))
+      return true
     }
+    return false
   }
 }
