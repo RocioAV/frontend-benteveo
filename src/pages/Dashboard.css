@@ -1199,6 +1199,31 @@
   text-overflow: ellipsis;
 }
 
+.conversacion-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 6px;
+  min-width: 0;
+}
+
+.conversacion-dates {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--color-concrete);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.conversacion-meta .reserva-badge {
+  flex-shrink: 0;
+}
+
 .conversacion-arrow {
   color: var(--color-concrete);
 }
