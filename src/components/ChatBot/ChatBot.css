@@ -149,6 +149,36 @@
   border-bottom-right-radius: 4px;
 }
 
+.mensaje.bot .burbuja.error {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.burbuja p {
+  margin: 0 0 6px;
+}
+
+.burbuja p:last-child {
+  margin-bottom: 0;
+}
+
+.burbuja ul {
+  margin: 6px 0;
+  padding-left: 18px;
+}
+
+.burbuja li {
+  margin: 2px 0;
+}
+
+.burbuja code {
+  background: #f3f4f6;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
 .burbuja.escribiendo {
   display: flex;
   gap: 4px;

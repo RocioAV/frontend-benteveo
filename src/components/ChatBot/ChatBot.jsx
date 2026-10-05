@@ -1,79 +1,86 @@
-import { useState, useRef, useEffect } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { useAuth } from '../../context/useAuth'
-import { getGeminiResponse } from '../../services/gemini'
+import { fetchProduct } from '../../services/products.service'
+import { buildHistory, pageLabel, streamChat } from '../../services/gemini'
+import { parseChatMarkdown } from '../../utils/chat-markdown'
 import './ChatBot.css'
 
-const respuestas = {
-  hola: 'Hola! Soy Benti, el asistente de Benteveo. En que te puedo ayudar?',
-  alquiler: 'Para alquilar un objeto, buscalo en Explorar, elegi las fechas y confirma la reserva. El pago se realiza de forma segura por MercadoPago.',
-  publicar: 'Para publicar tu objeto, hace click en "Publica" y completa el formulario con fotos, precio por dia y descripcion. Necesitas tener la identidad verificada.',
-  pago: 'Los pagos se procesan por MercadoPago. Podes pagar con tarjeta de credito, debito o en cuotas. La plataforma cobra una comision del 10% sobre el total.',
-  garantia: 'Benteveo tiene un sistema de deposito en garantia. Tu dinero esta protegido hasta que recibas el objeto y se libera al devolverlo en buen estado.',
-  reserva: 'Para reservar, selecciona las fechas en el calendario del producto y confirma. El dueño confirma la reserva y despues coordinan la entrega.',
-  chat: 'Podes comunicarte directamente con el dueño del objeto a traves de nuestro chat interno, en Conversaciones del Dashboard.',
-  reputacion: 'Despues de cada alquiler, podes calificar con 1 a 5 estrellas. El promedio se muestra en la ficha del producto y genera confianza.',
-  favorito: 'Hace click en el corazon de cualquier tarjeta o ficha para guardarlo en "Mis favoritos" del Dashboard. Necesitas iniciar sesion.',
-  comentario: 'En la ficha de cada producto podes dejar un comentario con tu experiencia. Vos mismo podes eliminarlo despues.',
-  precio: 'Los precios los define cada dueño por dia. Podes ver el precio por dia y el deposito en la ficha de cada producto.',
-  verificacion: 'Para verificar tu identidad, subi tu DNI (frente y dorso) y una selfie desde tu perfil. Es obligatorio para alquilar o publicar y el administrador lo aprueba.',
-  registro: 'Para registrarte, completa nombre, email, DNI y contrasena (minimo 8 caracteres con mayuscula, minuscula, numero y simbolo). Despues verifica tu identidad.',
-  perfil: 'En Mi perfil del Dashboard editas nombre, telefono, bio y foto, y ves tu estado de verificacion.',
-  entrega: 'Todo se gestiona en Agenda: el dueño entrega y vos confirmas la recepcion. Cada boton aparece solo cuando es tu turno.',
-  devolucion: 'Al terminar, marca la devolucion y el dueño confirma la recepcion. Ahi la reserva pasa a Completada y se libera el deposito en garantia.',
-  calificar: 'En la ficha del producto podes calificar de 1 a 5 estrellas y dejar un comentario. El promedio se recalcula automaticamente.',
-  cancelar: 'La cancelacion es gratis si faltan mas de 48 horas para la entrega; si faltan 48 horas o menos, tiene cargo.',
-  delivery: 'La entrega a domicilio la define el dueño. Podes ver las opciones de entrega en cada producto.',
-  mision: 'Benteveo es una plataforma de alquiler hiperlocal que conecta vecinos para compartir objetos. Nuestra mision es reducir el consumo y fortalecer la comunidad.',
-  como_funciona: 'Benteveo funciona asi: 1) Busca un objeto, 2) Reserva las fechas, 3) Paga de forma segura, 4) Recibe el objeto, 5) Devuelve y califica.',
-  contacto: 'Podes contactarnos por email a soporte@benteveo.com o por WhatsApp al +54 11 1234-5678.',
-  email: 'Nuestro email de soporte es soporte@benteveo.com. Respondemos en menos de 24 horas.',
-  whatsapp: 'Nuestro WhatsApp de soporte es +54 11 1234-5678. Atendemos de lunes a viernes de 9 a 18 horas.',
-  ayuda: 'Podes escribirme cualquier pregunta sobre la plataforma. Estoy aqui para ayudarte!',
-  default: 'No estoy seguro de entender tu pregunta. Podes preguntarme sobre registro, perfil, alquileres, publicaciones, pagos, favoritos, calificaciones o garantias.'
+const STORAGE_KEY = 'benti-chat-messages'
+const MAX_STORED = 40
+const MENSAJE_ERROR =
+  'No pude conectar con Benti IA en este momento. Probá de nuevo en unos segundos.'
+const SALUDO = {
+  id: 1,
+  texto: 'Hola! Soy Benti, tu asistente virtual. Como te puedo ayudar?',
+  esBot: true,
 }
 
-function getRespuestaLocal(mensaje) {
-  const msg = mensaje.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-
-  for (const [clave, respuesta] of Object.entries(respuestas)) {
-    if (msg.includes(clave)) {
-      return respuesta
-    }
+function loadStored() {
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed) || parsed.length === 0) return null
+    return parsed.filter(
+      (m) => m && typeof m.texto === 'string' && typeof m.esBot === 'boolean' && typeof m.id === 'number',
+    )
+  } catch {
+    return null
   }
-
-  return respuestas.default
 }
 
-function pageLabel(pathname) {
-  if (pathname === '/') return 'Inicio'
-  if (pathname.startsWith('/explorar')) return 'Catálogo de productos'
-  if (pathname.startsWith('/detalle/')) return 'Ficha de un producto'
-  if (pathname.startsWith('/reservation/')) return 'Formulario de reserva'
-  if (pathname.startsWith('/pago-exitoso')) return 'Pago exitoso'
-  if (pathname.startsWith('/pago-fallido')) return 'Pago fallido'
-  if (pathname.startsWith('/pago-pendiente')) return 'Pago pendiente'
-  if (pathname.startsWith('/reservas')) return 'Mis reservas'
-  if (pathname.startsWith('/dashboard')) return 'Dashboard del usuario'
-  if (pathname.startsWith('/chat/')) return 'Chat de una reserva'
-  if (pathname.startsWith('/admin')) return 'Panel de administración'
-  if (pathname.startsWith('/publicar')) return 'Publicar producto'
-  if (pathname.startsWith('/login')) return 'Inicio de sesión'
-  if (pathname.startsWith('/register')) return 'Registro'
-  if (pathname.startsWith('/forgot-password')) return 'Recuperar contraseña'
-  return 'Página no encontrada'
+function persistir(mensajes) {
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(mensajes.slice(-MAX_STORED)))
+    return true
+  } catch {
+    return false
+  }
+}
+
+function renderInline(nodos, keyPrefix) {
+  return nodos.map((nodo, i) => {
+    if (nodo.type === 'bold') return <strong key={`${keyPrefix}-b${i}`}>{nodo.value}</strong>
+    if (nodo.type === 'code') return <code key={`${keyPrefix}-c${i}`}>{nodo.value}</code>
+    return nodo.value
+  })
+}
+
+function renderTexto(texto, keyPrefix) {
+  return parseChatMarkdown(texto).map((bloque, i) => {
+    const key = `${keyPrefix}-${i}`
+    if (bloque.type === 'list') {
+      return (
+        <ul key={key}>
+          {bloque.items.map((item, j) => (
+            <li key={`${key}-${j}`}>{renderInline(item, `${key}-${j}`)}</li>
+          ))}
+        </ul>
+      )
+    }
+    return (
+      <p key={key}>
+        {bloque.lines.map((linea, j) => (
+          <Fragment key={`${key}-${j}`}>
+            {j > 0 && <br />}
+            {renderInline(linea, `${key}-${j}`)}
+          </Fragment>
+        ))}
+      </p>
+    )
+  })
 }
 
 const ChatBot = () => {
   const location = useLocation()
-  const { status } = useAuth()
   const [isOpen, setIsOpen] = useState(false)
-  const [mensajes, setMensajes] = useState([
-    { id: 1, texto: 'Hola! Soy Benti, tu asistente virtual. Como te puedo ayudar?', esBot: true }
-  ])
+  const [mensajes, setMensajes] = useState(() => loadStored() ?? [SALUDO])
   const [input, setInput] = useState('')
   const [escribiendo, setEscribiendo] = useState(false)
+  const [producto, setProducto] = useState(null)
   const mensajesRef = useRef(null)
+  const inputRef = useRef(null)
+  const abortRef = useRef(null)
 
   useEffect(() => {
     if (mensajesRef.current) {
@@ -81,45 +88,106 @@ const ChatBot = () => {
     }
   }, [mensajes])
 
-  const handleSend = async () => {
-    if (!input.trim()) return
+  useEffect(() => {
+    persistir(mensajes)
+  }, [mensajes])
 
-    const nuevoMensaje = {
-      id: Date.now(),
-      texto: input,
-      esBot: false
+  useEffect(() => () => abortRef.current?.abort(), [])
+
+  useEffect(() => {
+    if (!isOpen) return undefined
+    const onKey = (event) => {
+      if (event.key === 'Escape') setIsOpen(false)
     }
+    window.addEventListener('keydown', onKey)
+    const timer = setTimeout(() => inputRef.current?.focus(), 50)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      clearTimeout(timer)
+    }
+  }, [isOpen])
 
-    setMensajes(prev => [...prev, nuevoMensaje])
+  useEffect(() => {
+    const match = location.pathname.match(/^\/detalle\/([^/]+)$/)
+    if (!match) return undefined
+    let cancelado = false
+    fetchProduct(match[1])
+      .then((p) => {
+        if (cancelado) return
+        const precio = Number(p.pricePerDay)
+        setProducto({
+          id: match[1],
+          title: p.title,
+          ...(Number.isFinite(precio) && precio > 0 ? { pricePerDay: precio } : {}),
+        })
+      })
+      .catch(() => undefined)
+    return () => {
+      cancelado = true
+    }
+  }, [location.pathname])
+
+  const handleSend = async () => {
+    const texto = input.trim()
+    if (!texto || escribiendo) return
+
+    const userMsg = { id: Date.now(), texto, esBot: false }
+    const historial = buildHistory(mensajes)
+    setMensajes((prev) => [...prev, userMsg])
     setInput('')
     setEscribiendo(true)
 
-    const historial = mensajes.slice(-6)
-    const contexto = {
-      pagina: pageLabel(location.pathname),
-      sesion: status === 'authed' ? 'usuario con sesión iniciada' : 'visitante sin sesión'
+    const controller = new AbortController()
+    abortRef.current = controller
+
+    const match = location.pathname.match(/^\/detalle\/([^/]+)$/)
+    const productoActual =
+      producto && match && producto.id === match[1] ? producto : null
+    const context = {
+      page: pageLabel(location.pathname),
+      ...(productoActual
+        ? { product: { title: productoActual.title, ...(productoActual.pricePerDay !== undefined ? { pricePerDay: productoActual.pricePerDay } : {}) } }
+        : {}),
     }
 
-    const respuestaAPI = await getGeminiResponse(input, historial, contexto)
+    const botId = Date.now() + 1
+    let llegoAlgo = false
 
-    let respuesta
+    const respuesta = await streamChat({
+      message: texto,
+      history: historial,
+      context,
+      signal: controller.signal,
+      onDelta: (delta) => {
+        if (!llegoAlgo) {
+          llegoAlgo = true
+          setMensajes((prev) => [...prev, { id: botId, texto: delta, esBot: true }])
+        } else {
+          setMensajes((prev) =>
+            prev.map((m) => (m.id === botId ? { ...m, texto: m.texto + delta } : m)),
+          )
+        }
+      },
+    })
 
-    if (respuestaAPI) {
-      respuesta = respuestaAPI
+    if (respuesta) {
+      setMensajes((prev) => {
+        const existe = prev.some((m) => m.id === botId)
+        if (existe) {
+          return prev.map((m) => (m.id === botId ? { ...m, texto: respuesta } : m))
+        }
+        return [...prev, { id: botId, texto: respuesta, esBot: true }]
+      })
     } else {
-      respuesta = getRespuestaLocal(input)
+      setMensajes((prev) => [...prev, { id: botId, texto: MENSAJE_ERROR, esBot: true, error: true }])
     }
 
-    setMensajes(prev => [...prev, {
-      id: Date.now() + 1,
-      texto: respuesta,
-      esBot: true
-    }])
     setEscribiendo(false)
+    abortRef.current = null
   }
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
       handleSend()
     }
   }
@@ -130,6 +198,7 @@ const ChatBot = () => {
         className={`chatbot-toggle ${isOpen ? 'open' : ''}`}
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Chat"
+        aria-expanded={isOpen}
       >
         {isOpen ? (
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -144,7 +213,12 @@ const ChatBot = () => {
       </button>
 
       {isOpen && (
-        <div className="chatbot-window">
+        <div
+          className="chatbot-window"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Asistente virtual Benti"
+        >
           <div className="chatbot-header">
             <div className="chatbot-avatar">B</div>
             <div className="chatbot-info">
@@ -153,15 +227,14 @@ const ChatBot = () => {
             </div>
           </div>
 
-          <div className="chatbot-mensajes" ref={mensajesRef}>
+          <div className="chatbot-mensajes" ref={mensajesRef} aria-live="polite">
             {mensajes.map((msg) => (
-              <div
-                key={msg.id}
-                className={`mensaje ${msg.esBot ? 'bot' : 'usuario'}`}
-              >
+              <div key={msg.id} className={`mensaje ${msg.esBot ? 'bot' : 'usuario'}`}>
                 {msg.esBot && <div className="avatar-bot">B</div>}
-                <div className="burbuja">
-                  {msg.texto}
+                <div className={`burbuja ${msg.error ? 'error' : ''}`}>
+                  {msg.esBot && !msg.error
+                    ? renderTexto(msg.texto, `m${msg.id}`)
+                    : msg.texto}
                 </div>
               </div>
             ))}
@@ -180,13 +253,19 @@ const ChatBot = () => {
 
           <div className="chatbot-input">
             <input
+              ref={inputRef}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Escribi tu pregunta..."
+              aria-label="Mensaje para Benti"
             />
-            <button onClick={handleSend} disabled={!input.trim()}>
+            <button
+              onClick={handleSend}
+              disabled={!input.trim() || escribiendo}
+              aria-label="Enviar"
+            >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="22" y1="2" x2="11" y2="13" />
                 <polygon points="22 2 15 22 11 13 2 9 22 2" />
