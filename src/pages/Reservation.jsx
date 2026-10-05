@@ -2,19 +2,15 @@ import './reservation.css'
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, MotionConfig } from 'motion/react'
-import { toast } from 'react-toastify'
 import Skeleton from '../components/Skeleton/Skeleton.jsx'
 import EmptyState from '../components/EmptyState/EmptyState.jsx'
 import { fetchProduct } from '../services/products.service.js'
-import { createReservation } from '../services/reservations.service.js'
 import { useAuth } from '../context/useAuth'
 import VerificationModal from '../components/VerificationModal/VerificationModal.jsx'
+import PaymentModal from '../components/modals/PaymentModal.jsx'
 
 const springReveal = { type: 'spring', stiffness: 260, damping: 26 }
 const springLatch = { type: 'spring', stiffness: 400, damping: 28 }
-
-// Costo de entrega a domicilio (placeholder — reemplazar por lógica real de envío).
-const DELIVERY_FEE = 1500
 
 const MONTHS = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -43,10 +39,10 @@ function Reservation({ product: productProp }) {
   })
   const [startDate, setStartDate] = useState(null)
   const [endDate, setEndDate] = useState(null)
-  const [delivery, setDelivery] = useState('retiro')
   const [submission, setSubmission] = useState(null)
-  const [submitting, setSubmitting] = useState(false)
   const [verificationOpen, setVerificationOpen] = useState(false)
+  const [paymentOpen, setPaymentOpen] = useState(false)
+  const [paymentData, setPaymentData] = useState(null)
 
   // Si llega como prop (desde DetalleProducto), no se fetchea: el estado inicial
   // ya viene listo. Si se monta por la ruta /reservation/:id, se busca el producto
@@ -102,11 +98,11 @@ function Reservation({ product: productProp }) {
 
   const daysOfRent =
     startDate && endDate && endDate >= startDate
-      ? Math.round((endDate - startDate) / MS_PER_DAY) + 1
+      ? Math.round((endDate - startDate) / MS_PER_DAY)
       : 0
   const subtotal = daysOfRent * product.pricePerDay
-  const deliveryCost = delivery === 'domicilio' ? DELIVERY_FEE : 0
-  const total = subtotal + deliveryCost
+  const deposit = Number(product.deposit) || 0
+  const total = subtotal + deposit
 
   const prevMonth = () => setViewMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))
   const nextMonth = () => setViewMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))
@@ -123,6 +119,7 @@ function Reservation({ product: productProp }) {
   const handleSelectDate = (date) => {
     const norm = startOfDay(date)
     if (norm < today) return
+    if (isBooked(norm)) return
     if (!startDate || (startDate && endDate)) {
       setStartDate(norm)
       setEndDate(null)
@@ -132,6 +129,15 @@ function Reservation({ product: productProp }) {
       setStartDate(norm)
       setEndDate(null)
     }
+  }
+
+  const isBooked = (date) => {
+    if (!product?.reservations) return false
+    return product.reservations.some((r) => {
+      const from = startOfDay(new Date(r.dateInit))
+      const to = startOfDay(new Date(r.dateEnd))
+      return date >= from && date <= to
+    })
   }
 
   const inRange = (d) => startDate && endDate && d > startDate && d < endDate
@@ -146,30 +152,16 @@ function Reservation({ product: productProp }) {
       return
     }
 
-    setSubmitting(true)
-    try {
-      const reservation = await createReservation({
-        productId: product.id,
-        dateInit: startDate.toISOString(),
-        dateEnd: endDate.toISOString(),
-      })
-
-      const params = new URLSearchParams({
-        titulo: product.title,
-        precio: String(product.pricePerDay),
-        dias: String(daysOfRent),
-        reserva: reservation?.id ?? reservation?._id ?? '',
-      })
-      navigate(`/pago?${params.toString()}`)
-    } catch (err) {
-      if (err.status === 401) {
-        toast.error('Iniciá sesión para reservar')
-      } else {
-        toast.error(err.message || 'No pudimos procesar tu reserva')
-      }
-    } finally {
-      setSubmitting(false)
-    }
+    setPaymentData({
+      productId: product.id,
+      dateInit: startDate.toISOString(),
+      dateEnd: endDate.toISOString(),
+      titulo: product.title,
+      precio: product.pricePerDay,
+      deposit: Number(product.deposit) || 0,
+      dias: daysOfRent,
+    })
+    setPaymentOpen(true)
   }
 
   return (
@@ -212,7 +204,8 @@ function Reservation({ product: productProp }) {
               {calendarCells.map((date, i) => {
                 if (!date) return <span key={`b-${i}`} className="calendar__day calendar__day--blank" />
                 const norm = startOfDay(date)
-                const disabled = norm < today
+                const booked = isBooked(norm)
+                const disabled = norm < today || booked
                 const isStart = startDate && norm.getTime() === startDate.getTime()
                 const isEnd = endDate && norm.getTime() === endDate.getTime()
                 return (
@@ -222,6 +215,7 @@ function Reservation({ product: productProp }) {
                     className={[
                       'calendar__day',
                       disabled ? 'calendar__day--disabled' : '',
+                      booked ? 'calendar__day--booked' : '',
                       isStart ? 'calendar__day--start' : '',
                       isEnd ? 'calendar__day--end' : '',
                       inRange(norm) ? 'calendar__day--range' : '',
@@ -247,35 +241,12 @@ function Reservation({ product: productProp }) {
           )}
 
           {/* Método de entrega */}
-          <fieldset className="delivery">
-            <legend>Método de entrega</legend>
-            <label className={`delivery__option ${delivery === 'domicilio' ? 'delivery__option--active' : ''}`}>
-              <input
-                type="radio"
-                name="delivery"
-                value="domicilio"
-                checked={delivery === 'domicilio'}
-                onChange={() => setDelivery('domicilio')}
-              />
-              <span className="delivery__body">
-                <strong>Entrega a domicilio</strong>
-                <small>Costo adicional ${DELIVERY_FEE.toLocaleString('es-AR')}</small>
-              </span>
-            </label>
-            <label className={`delivery__option ${delivery === 'retiro' ? 'delivery__option--active' : ''}`}>
-              <input
-                type="radio"
-                name="delivery"
-                value="retiro"
-                checked={delivery === 'retiro'}
-                onChange={() => setDelivery('retiro')}
-              />
-              <span className="delivery__body">
-                <strong>Retiro en el domicilio del propietario</strong>
-                <small>Sin costo</small>
-              </span>
-            </label>
-          </fieldset>
+          <div className="delivery delivery--info">
+            <p className="delivery__info-text">
+              <i className="fas fa-truck" aria-hidden="true" />
+              La entrega se coordina con el propietario. El retiro es sin costo.
+            </p>
+          </div>
 
           {/* Resumen */}
           <div className="reservation-summary">
@@ -287,11 +258,15 @@ function Reservation({ product: productProp }) {
               </span>
               <strong>${subtotal.toLocaleString('es-AR')}</strong>
             </p>
+            {deposit > 0 && (
+              <p>
+                <span>Depósito en garantía</span>
+                <strong>${deposit.toLocaleString('es-AR')}</strong>
+              </p>
+            )}
             <p>
               <span>Entrega</span>
-              <strong>
-                {deliveryCost === 0 ? 'Gratis' : `$${deliveryCost.toLocaleString('es-AR')}`}
-              </strong>
+              <strong>A coordinar</strong>
             </p>
             <p className="reservation-summary__total">
               <span>Total</span>
@@ -313,9 +288,9 @@ function Reservation({ product: productProp }) {
             className="reservation-submit"
             whileTap={{ scale: 0.96 }}
             transition={springLatch}
-            disabled={submitting || blockedByVerification}
+            disabled={blockedByVerification}
           >
-            {submitting ? 'Reservando…' : 'Continuar al pago'}
+            Continuar al pago
           </motion.button>
           <p className="reservation-secure">
             <i className="fas fa-lock" aria-hidden="true" /> Pago seguro · Sin costo de cancelación
@@ -330,6 +305,11 @@ function Reservation({ product: productProp }) {
       </section>
 
       <VerificationModal open={verificationOpen} onClose={() => setVerificationOpen(false)} />
+      <PaymentModal
+        isOpen={paymentOpen}
+        onClose={() => setPaymentOpen(false)}
+        reservation={paymentData}
+      />
     </MotionConfig>
   )
 }

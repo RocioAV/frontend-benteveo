@@ -242,6 +242,11 @@
   font-size: 1.4rem;
 }
 
+.verification-done-icon--ok {
+  background: #d1fae5;
+  color: #065f46;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .verification-panel {
     animation: none;

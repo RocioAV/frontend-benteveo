@@ -126,6 +126,14 @@
   text-decoration: line-through;
 }
 
+.calendar__day--booked {
+  color: var(--color-border);
+  background: transparent;
+  cursor: not-allowed;
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
 .calendar__day--start,
 .calendar__day--end {
   background-color: var(--color-primary);
@@ -207,6 +215,26 @@
 .delivery__body small {
   font-size: 0.78rem;
   color: var(--color-concrete);
+}
+
+.delivery--info {
+  padding: 0.85rem 1rem;
+  background: var(--color-concrete-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.delivery__info-text {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--color-dark);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.delivery__info-text i {
+  color: var(--color-primary);
 }
 
 /* ── Resumen ── */

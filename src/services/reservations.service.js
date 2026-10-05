@@ -45,17 +45,29 @@ export async function fetchReservation(id) {
   return mapReservation(data)
 }
 
-// Confirma una reserva (PATCH /reservations/:id/confirm) — PENDING → CONFIRMED.
-export async function confirmReservation(id) {
-  return apiClient(`/reservations/${id}/confirm`, { method: 'PATCH' })
-}
+// NOTA: no hay confirmación manual de PENDING → CONFIRMED: el backend no expone
+// PATCH /reservations/:id/confirm (el pago aprobado deja la reserva en CONFIRMED).
 
-// Confirma la entrega del producto (PATCH /reservations/:id/handoff) — CONFIRMED → ACTIVE.
+// Marca la entrega del producto (PATCH /reservations/:id/handoff) — solo el dueño.
+// La reserva permanece CONFIRMED y registra `actualHandoffAt`.
 export async function handoffReservation(id) {
   return apiClient(`/reservations/${id}/handoff`, { method: 'PATCH' })
 }
 
-// Confirma la devolución del cliente (PATCH /reservations/:id/return) — ACTIVE → COMPLETED.
+// El inquilino confirma la recepción (PATCH /reservations/:id/handoff/confirm) —
+// CONFIRMED → ACTIVE; registra `renterReceivedAt`.
+export async function confirmHandoffReceipt(id) {
+  return apiClient(`/reservations/${id}/handoff/confirm`, { method: 'PATCH' })
+}
+
+// El inquilino marca la devolución (PATCH /reservations/:id/return) — la reserva
+// permanece ACTIVE y registra `renterReturnedAt`.
 export async function returnReservation(id) {
   return apiClient(`/reservations/${id}/return`, { method: 'PATCH' })
+}
+
+// El dueño confirma la recepción final (PATCH /reservations/:id/return/confirm) —
+// ACTIVE → COMPLETED; registra `actualReturnAt`.
+export async function confirmReturnReceipt(id) {
+  return apiClient(`/reservations/${id}/return/confirm`, { method: 'PATCH' })
 }

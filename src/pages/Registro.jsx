@@ -5,7 +5,7 @@ import { toast } from 'react-toastify'
 import { useAuth } from '../context/useAuth'
 import logo from '../assets/BenteveoLogo.png'
 import soloLogo from '../assets/solo-logo-app.webp'
-import GoogleAuthButton from '../components/GoogleAuthButton'
+
 import './Registro.css'
 
 function EyeIcon() {
@@ -26,6 +26,9 @@ function EyeOffIcon() {
   )
 }
 
+// Orden en que se enfocan los campos inválidos tras un intento de envío.
+const FIELD_ORDER = ['name', 'email', 'dni', 'phone', 'password', 'password2']
+
 function Registro() {
   const navigate = useNavigate()
   const { register } = useAuth()
@@ -43,6 +46,7 @@ function Registro() {
   const [passwordStrengthError, setPasswordStrengthError] = useState('')
   const [passwordStrengthLevel, setPasswordStrengthLevel] = useState('')
   const [emailError, setEmailError] = useState('')
+  const [nameError, setNameError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
@@ -97,8 +101,39 @@ function Registro() {
     return ''
   }
 
+  // Validaciones por campo. El form usa noValidate: toda regla (incluidas las
+  // que antes resolvía el navegador) vive en JS para que siempre haya feedback
+  // visible en la UI y nunca un submit quede cortado en silencio.
+  const validateName = (name) => {
+    if (!name.trim()) return 'Ingresá tu nombre completo'
+    if (name.trim().length < 8) return 'El nombre debe tener al menos 8 caracteres'
+    return ''
+  }
+
+  const validateEmail = (email) => {
+    if (!email) return 'Ingresá tu correo electrónico'
+    return checkEmailFormat(email)
+  }
+
+  const validateDni = (dni) => {
+    if (!dni) return 'El DNI es obligatorio'
+    if (dni.length < 7 || dni.length > 8) return 'El DNI debe tener 7 u 8 números'
+    return ''
+  }
+
+  const validatePassword = (password) => {
+    if (!password) return 'Ingresá una contraseña'
+    return checkPasswordStrength(password)
+  }
+
+  const validatePassword2 = (data) => {
+    if (!data.password2) return 'Repetí la contraseña'
+    if (data.password !== data.password2) return 'Las contraseñas no coinciden'
+    return ''
+  }
+
   const checkPhoneFormat = (phone) => {
-    if (!phone) return ''
+    if (!phone) return 'El teléfono es obligatorio'
 
     if (phone.length === 10) {
       if (phone.startsWith('0')) {
@@ -149,13 +184,14 @@ function Registro() {
 
     const updatedData = { ...formData, [name]: cleanedValue }
     setFormData(updatedData)
+    setSubmitError('')
+
+    if (name === 'name') {
+      setNameError(validateName(cleanedValue))
+    }
 
     if (name === 'dni') {
-      if (cleanedValue && (cleanedValue.length < 7 || cleanedValue.length > 8)) {
-        setDniError('El DNI debe tener 7 u 8 números')
-      } else {
-        setDniError('')
-      }
+      setDniError(validateDni(cleanedValue))
     }
 
     if (name === 'phone') {
@@ -163,20 +199,18 @@ function Registro() {
     }
 
     if (name === 'password') {
-      setPasswordStrengthError(checkPasswordStrength(value))
+      setPasswordStrengthError(validatePassword(value))
       setPasswordStrengthLevel(getPasswordStrengthLevel(value))
     }
 
     if (name === 'email') {
-      setEmailError(checkEmailFormat(value))
+      setEmailError(validateEmail(value))
     }
 
     if (name === 'password' || name === 'password2') {
-      if (updatedData.password2 && updatedData.password !== updatedData.password2) {
-        setPasswordError('Las contraseñas no coinciden')
-      } else {
-        setPasswordError('')
-      }
+      // El mensaje de "Repetí la contraseña" solo aparece si ya se tipeó algo
+      // (o tras un intento de envío): no se avanza al campo siguiente vacío.
+      setPasswordError(updatedData.password2 ? validatePassword2(updatedData) : '')
     }
   }
 
@@ -185,29 +219,28 @@ function Registro() {
 
     if (loading) return
 
-    const emailIssue = checkEmailFormat(formData.email)
-    if (emailIssue) {
-      setEmailError(emailIssue)
-      return
+    const errors = {
+      name: validateName(formData.name),
+      email: validateEmail(formData.email),
+      dni: validateDni(formData.dni),
+      phone: checkPhoneFormat(formData.phone),
+      password: validatePassword(formData.password),
+      password2: validatePassword2(formData),
     }
 
-    const strengthIssue = checkPasswordStrength(formData.password)
-    if (strengthIssue) {
-      setPasswordStrengthError(strengthIssue)
-      return
-    }
+    setNameError(errors.name)
+    setEmailError(errors.email)
+    setDniError(errors.dni)
+    setPhoneError(errors.phone)
+    setPasswordStrengthError(errors.password)
+    setPasswordError(errors.password2)
+    setPasswordStrengthLevel(getPasswordStrengthLevel(formData.password))
 
-    if (formData.password !== formData.password2) {
-      setPasswordError('Las contraseñas no coinciden')
+    const firstInvalid = FIELD_ORDER.find((field) => errors[field])
+    if (firstInvalid) {
+      setSubmitError('Revisá los campos marcados')
+      document.getElementById(firstInvalid)?.focus()
       return
-    }
-
-    if (formData.phone) {
-      const phoneIssue = checkPhoneFormat(formData.phone)
-      if (phoneIssue) {
-        setPhoneError(phoneIssue)
-        return
-      }
     }
 
     setLoading(true)
@@ -251,7 +284,7 @@ function Registro() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 260, damping: 26 }}
         >
-          <form id="registroForm" onSubmit={handleSubmit}>
+          <form id="registroForm" onSubmit={handleSubmit} noValidate>
         <div className="registro-logo-badge">
           <img src={logo} alt="Logo Benteveo" />
         </div>
@@ -283,7 +316,15 @@ function Registro() {
               autoComplete="name"
               value={formData.name}
               onChange={handleChange}
+              className={nameError ? 'input-error' : ''}
+              aria-invalid={nameError ? 'true' : 'false'}
+              aria-describedby={nameError ? 'name-error' : undefined}
             />
+            {nameError && (
+              <span id="name-error" className="registro-error-message" role="alert">
+                {nameError}
+              </span>
+            )}
           </div>
 
           <div className="registro-field">
@@ -340,7 +381,7 @@ function Registro() {
           </div>
 
           <div className="registro-field">
-            <label htmlFor="phone">Teléfono (opcional)</label>
+            <label htmlFor="phone">Teléfono</label>
             <input
               type="tel"
               id="phone"
@@ -349,6 +390,7 @@ function Registro() {
               autoComplete="tel"
               inputMode="numeric"
               maxLength={13}
+              required
               value={formData.phone}
               onChange={handleChange}
               className={phoneError || phoneInvalidChar ? 'input-error' : ''}
@@ -438,11 +480,9 @@ function Registro() {
           )}
         </div>
 
-        <button type="submit" className="registro-submit-btn" disabled={loading}>
+        <button type="submit" className="registro-submit-btn" disabled={loading} >
           {loading ? 'Registrando...' : 'Registrarse'}
         </button>
-        <div className="registro-divider" aria-hidden="true"><span>o</span></div>
-        <GoogleAuthButton label="Registrarse con Google" />
         </form>
         </motion.div>
 

@@ -1,11 +1,3 @@
-function generateRating() {
-  return parseFloat((Math.random() * 1 + 4).toFixed(1))
-}
-
-function generateReviewCount() {
-  return Math.floor(Math.random() * 26) + 5
-}
-
 function generateCompletedRentals() {
   return Math.floor(Math.random() * 41) + 10
 }
@@ -20,17 +12,17 @@ export function createProduct(apiData) {
     ownerId: apiData.ownerId,
     title: apiData.title,
     description: apiData.descripcion,
-    pricePerDay: apiData.priceDay,
-    pricePerMonth: apiData.priceMonth,
-    deposit: apiData.deposit,
+    pricePerDay: Number(apiData.priceDay),
+    pricePerMonth: Number(apiData.priceMonth),
+    deposit: Number(apiData.deposit),
     category: apiData.category,
     region: apiData.state,
     city: apiData.city,
     deliveryMethod: 'A coordinar',
     imageUrl: apiData.photos?.[0]?.url || '',
     isAvailable: apiData.isAvailable,
-    rating: generateRating(),
-    reviewCount: generateReviewCount(),
+    rating: apiData.rating == null ? 0 : Number(apiData.rating),
+    reviewCount: apiData.reviewCount == null ? 0 : Number(apiData.reviewCount),
     completedRentals: generateCompletedRentals(),
     distance: generateDistance(),
     policies:

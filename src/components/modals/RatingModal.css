@@ -116,6 +116,15 @@
   margin-top: 1.25rem;
 }
 
+.bv-rating-modal__error {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-error);
+  text-align: center;
+  margin: 1rem 0 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .bv-rating-modal__star {
     transition: none;

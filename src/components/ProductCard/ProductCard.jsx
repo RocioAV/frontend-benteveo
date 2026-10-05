@@ -1,11 +1,12 @@
-import { useState } from 'react'
 import { motion } from 'motion/react'
 import { Link } from 'react-router-dom'
 import { formatProximity, getAvailabilityDays } from '../../utils/products.js'
+import { useFavorites } from '../../context/useFavorites'
 import styles from './ProductCard.module.css'
 
 function ProductCard({ product, index = 0 }) {
-  const [isFav, setIsFav] = useState(false)
+  const { isFavorite, toggleFavorite } = useFavorites()
+  const isFav = isFavorite(product.id)
   const proximity = formatProximity(product.distance)
   const location = proximity || `${product.city}, ${product.region}`
   const availableDays = getAvailabilityDays(product)
@@ -22,7 +23,18 @@ function ProductCard({ product, index = 0 }) {
       <Link to={`/detalle/${product.id}`} className={styles.card}>
         <div className={styles.media}>
           {product.imageUrl ? (
-            <img src={product.imageUrl} alt={product.title} loading="lazy" decoding="async" />
+            <img
+              src={product.imageUrl}
+              alt={product.title}
+              loading="lazy"
+              decoding="async"
+              onError={(event) => {
+                // Evita bucle: solo se intenta una vez y siempre al placeholder local.
+                const img = event.currentTarget
+                img.onerror = null
+                img.src = '/images/placeholder.svg'
+              }}
+            />
           ) : (
             <div className={styles.mediaPlaceholder}>
               <i className="fa-solid fa-toolbox" aria-hidden="true" />
@@ -44,7 +56,7 @@ function ProductCard({ product, index = 0 }) {
               <span className={styles.price}>${product.pricePerDay.toLocaleString('es-AR')}</span>
               <span className={styles.per}>/día</span>
             </div>
-            {product.rating != null && (
+            {Number(product.rating) > 0 && (
               <div className={styles.rating}>
                 <i className="fa-solid fa-star" aria-hidden="true" />
                 <span>{Number(product.rating).toFixed(1)}</span>
@@ -60,7 +72,11 @@ function ProductCard({ product, index = 0 }) {
         transition={{ type: 'spring', stiffness: 400, damping: 20 }}
         aria-label={isFav ? 'Quitar de favoritos' : 'Agregar a favoritos'}
         aria-pressed={isFav}
-        onClick={() => setIsFav((prev) => !prev)}
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          toggleFavorite(product.id)
+        }}
       >
         <i className={isFav ? 'fa-solid fa-heart' : 'fa-regular fa-heart'} aria-hidden="true" />
       </motion.button>

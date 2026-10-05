@@ -40,8 +40,16 @@ export function matchesQuery(product, query) {
 }
 
 // Días disponibles para alquiler (simulado hasta que exista data real de calendario).
-// Determinístico por producto: 3 a 7 días según el id.
+// Determinístico por producto: 3 a 7 días. Soporta ids numéricos y UUID (strings).
 export function getAvailabilityDays(product) {
-  const id = Number(product?.id) || 0
-  return 3 + (id % 5)
+  const raw = product?.id
+  const key = typeof raw === 'number' ? String(raw) : String(raw ?? '')
+  if (key === '') return 3
+  // Hash estable (FNV-1a) para que un UUID produzca siempre el mismo resultado.
+  let hash = 0
+  for (let i = 0; i < key.length; i++) {
+    hash ^= key.charCodeAt(i)
+    hash = Math.imul(hash, 0x01000193) >>> 0
+  }
+  return 3 + (hash % 5)
 }

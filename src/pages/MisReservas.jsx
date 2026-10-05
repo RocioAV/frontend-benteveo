@@ -36,7 +36,7 @@ function formatDate(iso) {
 function rentalDays(reservation) {
   const start = new Date(reservation.dateInit)
   const end = new Date(reservation.dateEnd)
-  const days = Math.round((end - start) / MS_PER_DAY) + 1
+  const days = Math.ceil((end - start) / MS_PER_DAY)
   return Number.isFinite(days) && days > 0 ? days : 1
 }
 

@@ -23,6 +23,7 @@ export function mapProduct(p) {
     deliveryMethod: p.deliveryMethod ?? null,
     imageUrl: photos[0]?.url ?? null,
     images: photos.map((photo) => photo.url),
+    photos: photos.map(({ id, url, publicId }) => ({ id, url, publicId })),
     isAvailable: p.isAvailable,
     rating: p.rating ?? null,
     reviewCount: p.reviewCount ?? 0,
@@ -31,6 +32,7 @@ export function mapProduct(p) {
     reviews: p.reviews ?? [],
     policies: p.policies ?? null,
     owner: p.owner ?? null,
+    reservations: p.reservations ?? [],
   }
 }
 
@@ -49,7 +51,41 @@ export async function fetchPublicProfile(userId) {
   return apiClient(`/user/${userId}`)
 }
 
-// Elimina un producto del usuario autenticado (DELETE /products/:id).
 export async function deleteProduct(id) {
   return apiClient(`/products/${id}`, { method: 'DELETE' })
+}
+
+export async function updateProduct(id, data) {
+  return apiClient(`/products/${id}`, {
+    method: 'PATCH',
+    body: data,
+  })
+}
+
+export async function createProduct(data) {
+  return apiClient('/products', { method: 'POST', body: data })
+}
+
+export async function uploadProductPhotos(productId, files) {
+  const formData = new FormData()
+  for (const file of files) {
+    formData.append('photos', file)
+  }
+  return apiClient(`/products/${productId}/photos`, {
+    method: 'POST',
+    body: formData,
+  })
+}
+
+export async function deleteProductPhoto(publicId) {
+  return apiClient(`/products/photos?publicId=${encodeURIComponent(publicId)}`, {
+    method: 'DELETE',
+  })
+}
+
+export async function toggleAvailability(productId, isAvailable) {
+  return apiClient(`/products/${productId}`, {
+    method: 'PATCH',
+    body: { isAvailable },
+  })
 }

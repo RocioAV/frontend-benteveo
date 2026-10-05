@@ -1,8 +1,10 @@
 import { lazy, Suspense } from 'react'
+import Publicar from './pages/Publicar.jsx'
 import { Routes, Route } from 'react-router-dom'
 import Layout from './layouts/Layout.jsx'
 import ScrollToTop from './components/ScrollToTop.jsx'
 import RequireAuth from './components/RequireAuth.jsx'
+import ChatBot from './components/ChatBot/ChatBot.jsx'
 
 // Code-splitting por ruta: cada página se descarga bajo demanda,
 // reduciendo el tamaño del chunk inicial.
@@ -10,7 +12,6 @@ const Home = lazy(() => import('./pages/Home.jsx'))
 const PageCatalogo = lazy(() => import('./pages/PageCatalogo.jsx'))
 const DetalleProducto = lazy(() => import('./pages/DetalleProducto.jsx'))
 const Reservation = lazy(() => import('./pages/Reservation.jsx'))
-const Pago = lazy(() => import('./pages/Pago.jsx'))
 const Login = lazy(() => import('./pages/Login.jsx'))
 const Registro = lazy(() => import('./pages/Registro.jsx'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword.jsx'))
@@ -19,6 +20,11 @@ const DemoModales = lazy(() => import('./pages/DemoModales.jsx'))
 const MisReservas = lazy(() => import('./pages/MisReservas.jsx'))
 const Dashboard = lazy(() => import('./pages/Dashboard.jsx'))
 const ChatPage = lazy(() => import('./pages/ChatPage.jsx'))
+const AdminPanel = lazy(() => import('./pages/AdminPanel.jsx'))
+const PagoExitoso = lazy(() => import('./pages/PagoExitoso.jsx'))
+const PagoFallido = lazy(() => import('./pages/PagoFallido.jsx'))
+const PagoPendiente = lazy(() => import('./pages/PagoPendiente.jsx'))
+const EditarPublicacion = lazy(() => import('./pages/EditarPublicacion.jsx'))
 
 function PageFallback() {
   return (
@@ -42,16 +48,23 @@ function App() {
             <Route path="/reservation/:id" element={<RequireAuth><Reservation /></RequireAuth>} />
             <Route path="/reservas" element={<RequireAuth><MisReservas /></RequireAuth>} />
             <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+            <Route path="/admin" element={<RequireAuth><AdminPanel /></RequireAuth>} />
             <Route path="/chat/:reservationId" element={<RequireAuth><ChatPage /></RequireAuth>} />
-            <Route path="/pago" element={<RequireAuth><Pago /></RequireAuth>} />
             <Route path="/demo-modales" element={<DemoModales />} />
+            {/* Retorno desde Mercado Pago (back_urls) */}
+            <Route path="/pago-exitoso" element={<PagoExitoso />} />
+            <Route path="/pago-fallido" element={<PagoFallido />} />
+            <Route path="/pago-pendiente" element={<PagoPendiente />} />
             <Route path="*" element={<NotFound />} />
           </Route>
           {/* Autenticación: sin header/footer, solo botón de volver */}
+          <Route path="/publicar" element={<RequireAuth><Publicar /></RequireAuth>} />
+          <Route path="/publicaciones/:id/editar" element={<RequireAuth><EditarPublicacion /></RequireAuth>} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Registro />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
         </Routes>
+        <ChatBot />
       </Suspense>
     </>
   )
