@@ -179,7 +179,13 @@ function MisReservas() {
                         className="misreservas__chatBtn"
                         whileTap={{ scale: 0.96 }}
                         transition={springLatch}
-                        onClick={() => setActiveChat({ id: reservation.id, otherName: other })}
+                       onClick={() =>
+                         setActiveChat({
+                           id: reservation.id,
+                           otherName: other,
+                           readOnly: status === 'CANCELLED' || status === 'COMPLETED',
+                         })
+                       }
                       >
                         <i className="fas fa-comment" aria-hidden="true" /> Chatear
                       </motion.button>
@@ -223,7 +229,11 @@ function MisReservas() {
               >
                 <i className="fas fa-xmark" aria-hidden="true" />
               </button>
-              <ChatWindow reservationId={activeChat.id} otherName={activeChat.otherName} />
+              <ChatWindow
+                reservationId={activeChat.id}
+                otherName={activeChat.otherName}
+                readOnly={activeChat.readOnly}
+              />
             </motion.div>
           </div>
         )}

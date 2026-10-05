@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, MotionConfig } from 'motion/react'
 import { useAuth } from '../../context/useAuth'
-import { ChatClient, fetchMessages } from '../../services/chat.service.js'
+import { ChatClient, createClientMessageId, fetchMessages } from '../../services/chat.service.js'
 import styles from './ChatWindow.module.css'
 
 // Springs (DESIGN.md §3 — gramática mecánico-líquida)
@@ -42,59 +42,86 @@ function initials(name) {
   return letters || '?'
 }
 
-// Reemplaza el mensaje optimista local (mismo contenido del mismo emisor) por el
-// confirmado por el servidor. Si no hay pendiente, lo agrega al final.
-function upsertMessage(messages, message) {
-  const pendingIndex = messages.findIndex(
-    (m) => m.pending && m.senderId === message.senderId && m.content === message.content,
-  )
-  if (pendingIndex !== -1) {
+// Reconciles the sender's optimistic message and deduplicates the server
+// broadcast received by every participant in the room.
+function upsertMessage(messages, message, clientMessageId) {
+  if (!message || typeof message !== 'object') return messages
+
+  const pendingIndex = clientMessageId
+    ? messages.findIndex((item) => item.clientMessageId === clientMessageId)
+    : -1
+  const serverIndex = message.id
+    ? messages.findIndex((item) => item.id === message.id)
+    : -1
+  const existingIndex = pendingIndex !== -1 ? pendingIndex : serverIndex
+  const confirmedMessage = { ...message, pending: false }
+
+  if (existingIndex !== -1) {
     const next = [...messages]
-    next[pendingIndex] = message
+    next[existingIndex] = confirmedMessage
     return next
   }
-  return [...messages, message]
+
+  return [...messages, confirmedMessage]
+}
+
+function mergeHistory(messages, history) {
+  const next = history.reduce((current, message) => upsertMessage(current, message), [])
+
+  messages.forEach((message) => {
+    const alreadyIncluded = next.some(
+      (item) =>
+        item.id === message.id ||
+        (message.clientMessageId && item.clientMessageId === message.clientMessageId),
+    )
+    if (!alreadyIncluded) next.push(message)
+  })
+
+  return next
 }
 
 function ChatWindow({ reservationId, otherName, readOnly = false }) {
   const { userId } = useAuth()
 
-  // El token de WebSocket aún no está definido: el subprotocolo que lo
-  // transporta es una decisión de diseño pendiente (fuera de scope). Sin token
-  // no se instancia ChatClient; se renderiza un placeholder en su lugar.
-  const wsToken = null
-  const hasWsToken = Boolean(wsToken)
-
   const [messages, setMessages] = useState([])
   const [draft, setDraft] = useState('')
   const [status, setStatus] = useState('connecting')
   const [historyLoaded, setHistoryLoaded] = useState(false)
+  const [chatError, setChatError] = useState('')
   const clientRef = useRef(null)
   const listRef = useRef(null)
 
   // Historial (REST, best-effort) + conexión WebSocket en tiempo real.
   useEffect(() => {
-    if (!hasWsToken) return
-
     let cancelled = false
 
     fetchMessages(reservationId).then((history) => {
       if (cancelled) return
-      setMessages(Array.isArray(history) ? history : [])
+      setMessages((current) => mergeHistory(current, Array.isArray(history) ? history : []))
       setHistoryLoaded(true)
     })
 
     const client = new ChatClient({
-      token: wsToken,
       onEvent: (event) => {
         if (event.type === 'message:history') {
           setMessages(Array.isArray(event.messages) ? event.messages : [])
           setHistoryLoaded(true)
         } else if (event.type === 'message:new') {
-          setMessages((prev) => upsertMessage(prev, event.message))
+          setMessages((prev) => upsertMessage(prev, event.message, event.clientMessageId))
+        } else if (event.type === 'error') {
+          if (event.clientMessageId) {
+            setMessages((prev) =>
+              prev.filter((message) => message.clientMessageId !== event.clientMessageId),
+            )
+          }
+          setChatError(event.message || 'No pudimos procesar el mensaje.')
         }
       },
-      onStatus: setStatus,
+      onStatus: (nextStatus) => {
+        setStatus(nextStatus)
+        if (nextStatus === 'open') setChatError('')
+      },
+      onError: () => setChatError('Se perdió la conexión. Intentando reconectar…'),
     })
     clientRef.current = client
     client.connect()
@@ -105,7 +132,7 @@ function ChatWindow({ reservationId, otherName, readOnly = false }) {
       client.disconnect()
       clientRef.current = null
     }
-  }, [reservationId, hasWsToken])
+  }, [reservationId])
 
   // Auto-scroll al último mensaje.
   useEffect(() => {
@@ -116,28 +143,24 @@ function ChatWindow({ reservationId, otherName, readOnly = false }) {
   const handleSend = (e) => {
     e.preventDefault()
     const content = draft.trim()
-    if (!content || !clientRef.current) return
+    if (!content || !clientRef.current || status !== 'open' || readOnly) return
 
-    clientRef.current.send(reservationId, content)
+    const clientMessageId = createClientMessageId()
+    const sent = clientRef.current.send(reservationId, content, clientMessageId)
+    if (!sent) return
+
     setMessages((prev) => [
       ...prev,
       {
-        id: `local-${Date.now()}`,
+        id: `local-${clientMessageId}`,
         senderId: userId,
         content,
         createdAt: new Date().toISOString(),
         pending: true,
+        clientMessageId,
       },
     ])
     setDraft('')
-  }
-
-  if (!hasWsToken) {
-    return (
-      <div className={styles.chat}>
-        <p className={styles.chatHint}>Chat no disponible</p>
-      </div>
-    )
   }
 
   return (
@@ -157,6 +180,12 @@ function ChatWindow({ reservationId, otherName, readOnly = false }) {
             </div>
           </div>
         </header>
+
+        {chatError && (
+          <p className={styles.chatError} role="alert">
+            {chatError}
+          </p>
+        )}
 
         <div className={styles.chatBody} ref={listRef} role="log" aria-live="polite" aria-label="Mensajes">
           {!historyLoaded ? (
@@ -197,14 +226,14 @@ function ChatWindow({ reservationId, otherName, readOnly = false }) {
             onChange={(e) => setDraft(e.target.value)}
             placeholder={readOnly ? 'Conversación cerrada' : 'Escribí un mensaje…'}
             aria-label="Mensaje"
-            disabled={status === 'closed' || readOnly}
+            disabled={status !== 'open' || readOnly}
           />
           <motion.button
             type="submit"
             className={styles.chatSend}
             whileTap={{ scale: 0.96 }}
             transition={springLatch}
-            disabled={!draft.trim() || status === 'closed' || readOnly}
+            disabled={!draft.trim() || status !== 'open' || readOnly}
             aria-label="Enviar mensaje"
           >
             <i className="fas fa-paper-plane" aria-hidden="true" />
