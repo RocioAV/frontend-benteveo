@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   useAuthMock: vi.fn(),
   ChatClientMock: vi.fn(),
   fetchMessagesMock: vi.fn(),
+  fetchInquiryMessagesMock: vi.fn(),
   createClientMessageIdMock: vi.fn(),
   client: null,
 }))
@@ -19,6 +20,10 @@ vi.mock('../../services/chat.service.js', () => ({
   ChatClient: mocks.ChatClientMock,
   fetchMessages: mocks.fetchMessagesMock,
   createClientMessageId: mocks.createClientMessageIdMock,
+}))
+
+vi.mock('../../services/inquiries.service.js', () => ({
+  fetchInquiryMessages: mocks.fetchInquiryMessagesMock,
 }))
 
 vi.mock('motion/react', () => ({
@@ -36,6 +41,7 @@ describe('ChatWindow', () => {
     mocks.useAuthMock.mockReset()
     mocks.ChatClientMock.mockReset()
     mocks.fetchMessagesMock.mockReset()
+    mocks.fetchInquiryMessagesMock.mockReset()
     mocks.createClientMessageIdMock.mockReset()
 
     mocks.useAuthMock.mockReturnValue({ userId: 'user-1' })
@@ -138,5 +144,50 @@ describe('ChatWindow', () => {
     expect(screen.getByRole('button', { name: 'Enviar mensaje' })).toBeDisabled()
     expect(screen.getByText('Esta conversación está cerrada. Solo lectura.')).toBeInTheDocument()
     expect(mocks.client.send).not.toHaveBeenCalled()
+  })
+
+  it('renders inquiry history and uses inquiry events without changing the chat UI', async () => {
+    mocks.fetchInquiryMessagesMock.mockResolvedValue([
+      {
+        id: 'inquiry-message-1',
+        senderId: 'user-2',
+        content: 'Mensaje de consulta',
+        createdAt: '2026-10-04T12:00:00.000Z',
+      },
+    ])
+
+    render(
+      <ChatWindow
+        inquiryId="inquiry-1"
+        targetType="inquiry"
+        otherName="Propietario"
+      />,
+    )
+
+    expect(await screen.findByText('Mensaje de consulta')).toBeInTheDocument()
+    expect(mocks.fetchInquiryMessagesMock).toHaveBeenCalledWith('inquiry-1')
+    expect(mocks.ChatClientMock).toHaveBeenCalledWith(expect.objectContaining({ targetType: 'inquiry' }))
+    expect(mocks.client.join).toHaveBeenCalledWith('inquiry-1')
+
+    const user = userEvent.setup()
+    await user.type(screen.getByRole('textbox', { name: 'Mensaje' }), 'Consulta nueva')
+    await user.click(screen.getByRole('button', { name: 'Enviar mensaje' }))
+
+    expect(mocks.client.send).toHaveBeenCalledWith('inquiry-1', 'Consulta nueva', 'client-1')
+
+    act(() => {
+      mocks.client.emit({
+        type: 'inquiry:message:new',
+        clientMessageId: 'client-1',
+        message: {
+          id: 'inquiry-message-2',
+          senderId: 'user-1',
+          content: 'Consulta nueva',
+          createdAt: '2026-10-04T12:01:00.000Z',
+        },
+      })
+    })
+
+    await waitFor(() => expect(screen.getAllByText('Consulta nueva')).toHaveLength(1))
   })
 })

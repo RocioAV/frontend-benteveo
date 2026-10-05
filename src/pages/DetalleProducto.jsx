@@ -7,6 +7,8 @@ import Skeleton from '../components/Skeleton/Skeleton.jsx'
 import EmptyState from '../components/EmptyState/EmptyState.jsx'
 import ProductReviews from '../components/ProductReviews/ProductReviews.jsx'
 import { fetchProduct, fetchProducts, fetchPublicProfile } from '../services/products.service.js'
+import { createInquiry } from '../services/inquiries.service.js'
+import { useAuth } from '../context/useAuth'
 import { useFavorites } from '../context/useFavorites'
 
 const springReveal = { type: 'spring', stiffness: 260, damping: 26 }
@@ -16,6 +18,7 @@ const springSoft = { type: 'spring', stiffness: 170, damping: 26 }
 function DetalleProducto() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { status: sessionStatus, userId } = useAuth()
   const { isFavorite, toggleFavorite } = useFavorites()
 
   const [product, setProduct] = useState(null) // null = cargando
@@ -23,6 +26,8 @@ function DetalleProducto() {
   const [suggestions, setSuggestions] = useState([])
   const [error, setError] = useState(false)
   const [prevId, setPrevId] = useState(id)
+  const [contactStatus, setContactStatus] = useState('idle')
+  const [contactError, setContactError] = useState('')
 
   const [activeTab, setActiveTab] = useState('descripcion')
   const [activeImage, setActiveImage] = useState(0)
@@ -35,6 +40,8 @@ function DetalleProducto() {
     setSuggestions([])
     setActiveTab('descripcion')
     setActiveImage(0)
+    setContactStatus('idle')
+    setContactError('')
   }
 
   useEffect(() => {
@@ -130,6 +137,26 @@ function DetalleProducto() {
     : 'P'
   const isVerified = owner?.isIdentityVerified ?? false
   const memberSince = owner?.createdAt ? new Date(owner.createdAt).getFullYear() : null
+  const isOwner = userId != null && product.ownerId === userId
+  const canContact = !isOwner && product.isAvailable !== false
+
+  const handleContact = async () => {
+    if (contactStatus === 'loading' || !canContact) return
+    if (sessionStatus !== 'authed') {
+      navigate('/login', { state: { from: `/detalle/${product.id}` } })
+      return
+    }
+
+    setContactStatus('loading')
+    setContactError('')
+    try {
+      const inquiry = await createInquiry(product.id)
+      navigate(`/chat/inquiry/${inquiry.id}`)
+    } catch (err) {
+      setContactStatus('error')
+      setContactError(err?.message || 'No pudimos abrir la consulta. Probá de nuevo.')
+    }
+  }
 
   const locationText = [product.city, product.region].filter(Boolean).join(', ')
   const metaItems = []
@@ -430,17 +457,34 @@ function DetalleProducto() {
                   </div>
                 </div>
               </div>
-              <motion.button
-                className="flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-[var(--color-border)] text-sm font-semibold text-[var(--color-dark)] hover:border-[var(--color-primary)] hover:bg-[var(--color-concrete-surface)] transition-colors"
-                whileTap={{ scale: 0.96 }}
-                transition={springLatch}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 20.105V4.875A1.875 1.875 0 015.625 3h12.75A1.875 1.875 0 0120.25 4.875v10.5A1.875 1.875 0 0118.375 17.25H7.5l-3.75 2.855z" />
-                </svg>
-                Contactar
-              </motion.button>
+              {isOwner ? (
+                <span className="text-sm font-semibold text-[var(--color-concrete)]">Tu publicación</span>
+              ) : (
+                <motion.button
+                  type="button"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-[var(--color-border)] text-sm font-semibold text-[var(--color-dark)] hover:border-[var(--color-primary)] hover:bg-[var(--color-concrete-surface)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  whileTap={{ scale: 0.96 }}
+                  transition={springLatch}
+                  onClick={handleContact}
+                  disabled={!canContact || contactStatus === 'loading' || sessionStatus === 'loading'}
+                  aria-busy={contactStatus === 'loading'}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 20.105V4.875A1.875 1.875 0 015.625 3h12.75A1.875 1.875 0 0120.25 4.875v10.5c0 1.036-.839 1.875-1.875 1.875H7.5l-3.75 2.855z" />
+                  </svg>
+                  {contactStatus === 'loading'
+                    ? 'Abriendo…'
+                    : product.isAvailable === false
+                      ? 'No disponible'
+                      : 'Contactar'}
+                </motion.button>
+              )}
             </motion.div>
+            {contactError && (
+              <p className="mt-2 text-sm text-[var(--color-error)]" role="alert">
+                {contactError}
+              </p>
+            )}
 
             <motion.div
               className="mb-6"

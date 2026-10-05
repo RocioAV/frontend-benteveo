@@ -1,13 +1,13 @@
-// Adapter de chat por reserva: WebSocket nativo + historial REST.
-// La sesión se autentica con la cookie del navegador durante el handshake.
+// Native WebSocket chat client plus REST history.
+// The session is authenticated with the browser cookie during the handshake.
 
 import apiClient from './api'
 
 const RECONNECT_BASE_MS = 1000
 const RECONNECT_MAX_MS = 10000
 
-// Deriva la URL del WebSocket desde la URL del API REST (mismo host, otro esquema).
-// Override explícito con VITE_WS_URL cuando el gateway vive en otro host.
+// Derive the WebSocket URL from the REST API URL (same host, different scheme).
+// Use VITE_WS_URL when the gateway lives on another host.
 export function buildWsUrl() {
   const explicit = import.meta.env.VITE_WS_URL?.trim()
   if (explicit) return explicit
@@ -29,8 +29,8 @@ export function normalizeMessages(data) {
   return []
 }
 
-// Historial de mensajes de una reserva (REST, fallback de la carga inicial).
-// Forward-compatible: si el endpoint aún no existe en el backend, devuelve [].
+// Reservation history (REST fallback for the initial load).
+// If the endpoint is unavailable, keep the existing empty-history behavior.
 export async function fetchMessages(reservationId) {
   try {
     const data = await apiClient(`/reservations/${reservationId}/messages`)
@@ -46,7 +46,7 @@ export function createClientMessageId() {
 }
 
 /**
- * Cliente de chat por reserva con reconexión exponencial y re-join automático.
+ * Chat client with exponential reconnect and automatic re-join.
  *
  * @param {object} opts
  * @param {(event: object) => void} opts.onEvent   recibe eventos del servidor
@@ -54,10 +54,11 @@ export function createClientMessageId() {
  * @param {(error: Event | Error) => void} opts.onError recibe errores del transporte
  */
 export class ChatClient {
-  constructor({ onEvent, onStatus, onError }) {
+  constructor({ onEvent, onStatus, onError, targetType = 'reservation' }) {
     this.onEvent = onEvent
     this.onStatus = onStatus
     this.onError = onError
+    this.targetType = targetType === 'inquiry' ? 'inquiry' : 'reservation'
     this.ws = null
     this.roomId = null
     this.reconnectAttempts = 0
@@ -72,21 +73,18 @@ export class ChatClient {
 
   join(reservationId) {
     this.roomId = reservationId
-    this._send({ type: 'join', reservationId })
+    this._send(this._targetPayload('join', reservationId))
   }
 
   send(reservationId, content, clientMessageId = createClientMessageId()) {
-    const sent = this._send({
-      type: 'message:send',
-      reservationId,
-      content,
-      clientMessageId,
-    })
+    const sent = this._send(
+      this._targetPayload('message:send', reservationId, { content, clientMessageId }),
+    )
     return sent ? clientMessageId : null
   }
 
   leave(reservationId) {
-    this._send({ type: 'leave', reservationId })
+    this._send(this._targetPayload('leave', reservationId))
     if (this.roomId === reservationId) this.roomId = null
   }
 
@@ -125,8 +123,8 @@ export class ChatClient {
     ws.onopen = () => {
       this.reconnectAttempts = 0
       this.onStatus?.('open')
-      // Tras una reconexión, re-suscribirse a la sala activa.
-      if (this.roomId) this._send({ type: 'join', reservationId: this.roomId })
+      // Re-subscribe to the active room after reconnecting.
+      if (this.roomId) this._send(this._targetPayload('join', this.roomId))
     }
 
     ws.onmessage = (evt) => {
@@ -168,5 +166,19 @@ export class ChatClient {
       return true
     }
     return false
+  }
+
+  _targetPayload(action, id, extra = {}) {
+    if (this.targetType === 'inquiry') {
+      const type = action === 'join'
+        ? 'inquiry:join'
+        : action === 'leave'
+          ? 'inquiry:leave'
+          : 'inquiry:message:send'
+      return { type, inquiryId: id, ...extra }
+    }
+
+    const type = action === 'join' ? 'join' : action === 'leave' ? 'leave' : 'message:send'
+    return { type, reservationId: id, ...extra }
   }
 }

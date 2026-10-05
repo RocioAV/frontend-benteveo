@@ -5,6 +5,7 @@ import { toast } from 'react-toastify'
 import { useAuth } from '../context/useAuth'
 import { fetchProducts, fetchPublicProfile, deleteProduct, toggleAvailability } from '../services/products.service.js'
 import { fetchFavorites } from '../services/favorites.service.js'
+import { fetchInquiries } from '../services/inquiries.service.js'
 import { useFavorites } from '../context/useFavorites'
 import ProductCard from '../components/ProductCard/ProductCard.jsx'
 import {
@@ -151,6 +152,24 @@ function otherParty(reservation, role) {
   return 'Propietario'
 }
 
+function inquiryOtherParty(inquiry, role) {
+  if (role === 'owner') return inquiry.requester?.name || 'Inquilino'
+  return inquiry.product?.owner?.name || 'Propietario'
+}
+
+function conversationOtherParty(thread) {
+  return thread.kind === 'inquiry'
+    ? inquiryOtherParty(thread, thread.role)
+    : otherParty(thread, thread.role)
+}
+
+function conversationContext(thread) {
+  if (thread.kind === 'inquiry') {
+    return thread.role === 'owner' ? 'Consulta entrante · Pre-alquiler' : 'Consulta pre-alquiler'
+  }
+  return 'Reserva'
+}
+
 // Mensaje más útil del backend: primero el detalle por campo (fields),
 // luego el message del ApiError y por último un fallback genérico.
 function getProfileErrorMessage(err) {
@@ -179,6 +198,8 @@ function Dashboard() {
   const [data, setData] = useState(null) // null = cargando
   const [error, setError] = useState(false)
   const [reloadToken, setReloadToken] = useState(0)
+  const [inquiries, setInquiries] = useState(null)
+  const [inquiriesError, setInquiriesError] = useState(false)
 
   const [confirm, setConfirm] = useState(null) // { type, id, title, message }
   const [confirmBusy, setConfirmBusy] = useState(false) // PATCH del diálogo en curso
@@ -224,6 +245,26 @@ function Dashboard() {
       cancelled = true
     }
   }, [userId, reloadToken])
+
+  useEffect(() => {
+    if (activeSection !== 'conversaciones') return undefined
+
+    let cancelled = false
+
+    fetchInquiries()
+      .then((list) => {
+        if (cancelled) return
+        setInquiries(list)
+        setInquiriesError(false)
+      })
+      .catch(() => {
+        if (!cancelled) setInquiriesError(true)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [activeSection, reloadToken, userId])
 
   // Hidratación proactiva del `mine` de cada COMPLETED única al cargar los
   // datos (ambos roles). Deduplica IDs, corre solo ante datos nuevos (sin
@@ -306,15 +347,29 @@ function Dashboard() {
   }, [data])
 
   const goToSection = (id) => {
+    if (id === 'conversaciones' && activeSection !== id) {
+      setInquiries(null)
+      setInquiriesError(false)
+    }
     setSearchParams(id === 'perfil' ? {} : { tab: id }, { replace: true })
   }
   const openChat = (reservationId) => {
     navigate(`/chat/${reservationId}`)
   }
 
+  const openConversation = (thread) => {
+    if (thread.kind === 'inquiry') {
+      navigate(`/chat/inquiry/${thread.id}`)
+      return
+    }
+    openChat(thread.id)
+  }
+
   const handleRetry = () => {
     setData(null)
     setError(false)
+    setInquiries(null)
+    setInquiriesError(false)
     setReloadToken((t) => t + 1)
   }
 
@@ -739,10 +794,27 @@ function Dashboard() {
     }
 
     if (activeSection === 'conversaciones') {
+      if (inquiriesError) {
+        return (
+          <EmptyState
+            message="No pudimos cargar tus consultas. Probá de nuevo en unos segundos."
+            actionLabel="Reintentar"
+            onAction={handleRetry}
+          />
+        )
+      }
+
+      if (inquiries === null) return <Skeleton rows={3} />
+
       const threads = [
-        ...renterReservations.map((r) => ({ ...r, role: 'renter' })),
-        ...ownerReservations.map((r) => ({ ...r, role: 'owner' })),
-      ]
+        ...renterReservations.map((r) => ({ ...r, kind: 'reservation', role: 'renter' })),
+        ...ownerReservations.map((r) => ({ ...r, kind: 'reservation', role: 'owner' })),
+        ...inquiries.map((inquiry) => ({
+          ...inquiry,
+          kind: 'inquiry',
+          role: inquiry.product?.ownerId === userId ? 'owner' : 'requester',
+        })),
+      ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 
       return (
         <section aria-labelledby="conversaciones-titulo">
@@ -765,14 +837,16 @@ function Dashboard() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ ...springReveal, delay: Math.min(i * 0.04, 0.2) }}
-                  onClick={() => openChat(thread.id)}
+                  onClick={() => openConversation(thread)}
+                  aria-label={`${conversationContext(thread)} con ${conversationOtherParty(thread)} sobre ${thread.product?.title || 'Producto'}`}
                 >
                   <span className="conversacion-avatar" aria-hidden="true">
-                    {getInitial(otherParty(thread, thread.role))}
+                    {getInitial(conversationOtherParty(thread))}
                   </span>
                   <span className="conversacion-body">
-                    <span className="conversacion-name">{otherParty(thread, thread.role)}</span>
+                    <span className="conversacion-name">{conversationOtherParty(thread)}</span>
                     <span className="conversacion-sub">{thread.product?.title || 'Producto'}</span>
+                    <span className="conversacion-sub">{conversationContext(thread)}</span>
                   </span>
                   <i className="fas fa-chevron-right conversacion-arrow" aria-hidden="true" />
                 </motion.button>

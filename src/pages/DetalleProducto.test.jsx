@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import DetalleProducto from './DetalleProducto.jsx'
 
@@ -7,10 +8,14 @@ const {
   fetchProductMock,
   fetchProductsMock,
   fetchPublicProfileMock,
+  createInquiryMock,
+  useAuthMock,
 } = vi.hoisted(() => ({
   fetchProductMock: vi.fn(),
   fetchProductsMock: vi.fn(),
   fetchPublicProfileMock: vi.fn(),
+  createInquiryMock: vi.fn(),
+  useAuthMock: vi.fn(),
 }))
 
 vi.mock('../services/products.service.js', () => ({
@@ -19,12 +24,16 @@ vi.mock('../services/products.service.js', () => ({
   fetchPublicProfile: fetchPublicProfileMock,
 }))
 
+vi.mock('../services/inquiries.service.js', () => ({
+  createInquiry: createInquiryMock,
+}))
+
 vi.mock('../context/useFavorites', () => ({
   useFavorites: () => ({ isFavorite: () => false, toggleFavorite: vi.fn() }),
 }))
 
 vi.mock('../context/useAuth', () => ({
-  useAuth: () => ({ status: 'anon', user: null, userId: null }),
+  useAuth: useAuthMock,
 }))
 
 vi.mock('./Reservation.jsx', () => ({
@@ -65,17 +74,24 @@ function product() {
   }
 }
 
-function renderDetail() {
+function renderDetail({ status = 'anon', userId = null } = {}) {
+  useAuthMock.mockReturnValue({ status, user: null, userId })
   return render(
     <MemoryRouter initialEntries={['/detalle/prod-1']}>
       <Routes>
         <Route path="/detalle/:id" element={<DetalleProducto />} />
+        <Route path="/chat/inquiry/:inquiryId" element={<div>Inquiry chat</div>} />
       </Routes>
     </MemoryRouter>,
   )
 }
 
 describe('DetalleProducto — calificación del dueño', () => {
+  beforeEach(() => {
+    createInquiryMock.mockReset()
+    useAuthMock.mockReset()
+  })
+
   it('muestra el promedio y la cantidad de calificaciones del perfil público', async () => {
     fetchProductMock.mockResolvedValue(product())
     fetchProductsMock.mockResolvedValue([])
@@ -114,5 +130,47 @@ describe('DetalleProducto — calificación del dueño', () => {
       await screen.findByText(/todavía no tiene calificaciones/i),
     ).toBeInTheDocument()
     expect(screen.queryByText(/\(0 calificaciones\)/)).not.toBeInTheDocument()
+  })
+
+  it('crea la consulta y abre el chat para un usuario autenticado', async () => {
+    const user = userEvent.setup()
+    fetchProductMock.mockResolvedValue(product())
+    fetchProductsMock.mockResolvedValue([])
+    fetchPublicProfileMock.mockResolvedValue({ name: 'Dueño Uno' })
+    createInquiryMock.mockResolvedValue({ id: 'inquiry-1' })
+
+    renderDetail({ status: 'authed', userId: 'renter-1' })
+
+    await user.click(await screen.findByRole('button', { name: /^contactar$/i }))
+
+    await waitFor(() => expect(createInquiryMock).toHaveBeenCalledWith('prod-1'))
+    expect(await screen.findByText('Inquiry chat')).toBeInTheDocument()
+  })
+
+  it('muestra el error de creación sin perder el acceso a reintentar', async () => {
+    const user = userEvent.setup()
+    fetchProductMock.mockResolvedValue(product())
+    fetchProductsMock.mockResolvedValue([])
+    fetchPublicProfileMock.mockResolvedValue({ name: 'Dueño Uno' })
+    createInquiryMock.mockRejectedValue(new Error('El producto ya no está disponible'))
+
+    renderDetail({ status: 'authed', userId: 'renter-1' })
+
+    await user.click(await screen.findByRole('button', { name: /^contactar$/i }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('El producto ya no está disponible')
+    expect(screen.getByRole('button', { name: /^contactar$/i })).not.toBeDisabled()
+  })
+
+  it('no ofrece auto-contacto al dueño del producto', async () => {
+    fetchProductMock.mockResolvedValue(product())
+    fetchProductsMock.mockResolvedValue([])
+    fetchPublicProfileMock.mockResolvedValue({ name: 'Dueño Uno' })
+
+    renderDetail({ status: 'authed', userId: 'owner-1' })
+
+    expect(await screen.findByText('Tu publicación')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^contactar$/i })).not.toBeInTheDocument()
+    expect(createInquiryMock).not.toHaveBeenCalled()
   })
 })
