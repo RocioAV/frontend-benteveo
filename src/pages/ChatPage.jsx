@@ -6,6 +6,7 @@ import ChatWindow from '../components/ChatWindow/ChatWindow.jsx'
 import Skeleton from '../components/Skeleton/Skeleton.jsx'
 import EmptyState from '../components/EmptyState/EmptyState.jsx'
 import { fetchReservation } from '../services/reservations.service.js'
+import { fetchPublicProfile } from '../services/products.service.js'
 import './ChatPage.css'
 
 const springReveal = { type: 'spring', stiffness: 260, damping: 26 }
@@ -33,6 +34,9 @@ function ChatPage() {
 
   const [reservation, setReservation] = useState(null) // null = cargando
   const [error, setError] = useState(false)
+  // Nombre real del dueño: /reservations/:id no lo incluye, así que como
+  // inquilino se pide una vez (GET /user/:id). Sin nombre, fallback "Propietario".
+  const [ownerNameCache, setOwnerNameCache] = useState({ id: null, name: null })
 
   useEffect(() => {
     let cancelled = false
@@ -49,6 +53,21 @@ function ChatPage() {
       cancelled = true
     }
   }, [reservationId])
+
+  const ownerId = reservation?.product?.ownerId
+  useEffect(() => {
+    if (!ownerId || ownerId === userId) return undefined
+    let cancelled = false
+    fetchPublicProfile(ownerId)
+      .then((profile) => {
+        if (cancelled || !profile?.name) return
+        setOwnerNameCache({ id: ownerId, name: profile.name })
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [ownerId, userId])
 
   if (error) {
     return (
@@ -74,7 +93,9 @@ function ChatPage() {
 
   const product = reservation.product
   const isOwner = product?.ownerId === userId
-  const otherName = isOwner ? reservation.user?.name || 'Inquilino' : 'Propietario'
+  const otherName = isOwner
+    ? reservation.user?.name || 'Inquilino'
+    : (ownerNameCache.id === ownerId ? ownerNameCache.name : null) || 'Propietario'
   const status = reservation.status
   const readOnly = status === 'CANCELLED' || status === 'COMPLETED'
 
