@@ -36,8 +36,8 @@ function Footer() {
           <h4 className={styles.bvFooterHeading}>Sobre nosotros</h4>
           <ul className={styles.bvFooterList}>
             <li><Link to="/explorar" className={styles.bvFooterLink}>Catálogo</Link></li>
-            <li><a href="#" className={styles.bvFooterLink}>Preguntas frecuentes</a></li>
-            <li><a href="#" className={styles.bvFooterLink}>Términos y condiciones</a></li>
+            <li><Link to="/preguntas-frecuentes" className={styles.bvFooterLink}>Preguntas frecuentes</Link></li>
+            <li><Link to="/politicas" className={styles.bvFooterLink}>Términos y condiciones</Link></li>
           </ul>
         </div>
 

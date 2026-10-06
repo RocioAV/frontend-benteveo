@@ -6,6 +6,7 @@ import {
   updateProduct,
   uploadProductPhotos,
 } from '../services/products.service.js'
+import Skeleton from '../components/Skeleton/Skeleton.jsx'
 import { provincias, fetchLocalitiesByProvince } from '../services/locations.service.js'
 import './EditarPublicacion.css'
 
@@ -263,7 +264,20 @@ function EditarPublicacion() {
       ? [formData.city, ...localities]
       : localities
 
-  if (loading) return <p role="status">Cargando publicación...</p>
+  if (loading) {
+    return (
+      <main className="editar-publicacion-page">
+        <section className="editar-publicacion-loading" aria-busy="true">
+          <div className="editar-publicacion-loading-header" aria-hidden="true">
+            <div className="editar-publicacion-loading-back" />
+            <div className="editar-publicacion-loading-title" />
+            <div className="editar-publicacion-loading-subtitle" />
+          </div>
+          <Skeleton variant="form" rows={9} label="Cargando publicación" />
+        </section>
+      </main>
+    )
+  }
 
   if (error) return <p role="alert">No pudimos cargar la publicación.</p>
 

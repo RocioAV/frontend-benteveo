@@ -20,11 +20,14 @@ const DemoModales = lazy(() => import('./pages/DemoModales.jsx'))
 const MisReservas = lazy(() => import('./pages/MisReservas.jsx'))
 const Dashboard = lazy(() => import('./pages/Dashboard.jsx'))
 const ChatPage = lazy(() => import('./pages/ChatPage.jsx'))
+const InquiryChatPage = lazy(() => import('./pages/InquiryChatPage.jsx'))
 const AdminPanel = lazy(() => import('./pages/AdminPanel.jsx'))
 const PagoExitoso = lazy(() => import('./pages/PagoExitoso.jsx'))
 const PagoFallido = lazy(() => import('./pages/PagoFallido.jsx'))
 const PagoPendiente = lazy(() => import('./pages/PagoPendiente.jsx'))
 const EditarPublicacion = lazy(() => import('./pages/EditarPublicacion.jsx'))
+const PreguntasFrecuentes = lazy(() => import('./pages/PreguntasFrecuentes.jsx'))
+const Politicas = lazy(() => import('./pages/Politicas.jsx'))
 
 function PageFallback() {
   return (
@@ -45,11 +48,14 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/explorar" element={<PageCatalogo />} />
             <Route path="/detalle/:id" element={<DetalleProducto />} />
+            <Route path="/preguntas-frecuentes" element={<PreguntasFrecuentes />} />
+            <Route path="/politicas" element={<Politicas />} />
             <Route path="/reservation/:id" element={<RequireAuth><Reservation /></RequireAuth>} />
             <Route path="/reservas" element={<RequireAuth><MisReservas /></RequireAuth>} />
             <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
             <Route path="/admin" element={<RequireAuth><AdminPanel /></RequireAuth>} />
             <Route path="/chat/:reservationId" element={<RequireAuth><ChatPage /></RequireAuth>} />
+            <Route path="/chat/inquiry/:inquiryId" element={<RequireAuth><InquiryChatPage /></RequireAuth>} />
             <Route path="/demo-modales" element={<DemoModales />} />
             {/* Retorno desde Mercado Pago (back_urls) */}
             <Route path="/pago-exitoso" element={<PagoExitoso />} />

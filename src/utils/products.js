@@ -1,5 +1,9 @@
 // Utilidades compartidas de productos: distancia, proximidad y búsqueda.
 
+export const PROXIMITY_RADIUS_KM = 1
+
+const ESTIMATED_DISTANCE_OPTIONS = [0.4, 0.7, 0.9, 1.3, 1.8, 2.4]
+
 // Normaliza texto para búsqueda insensible a mayúsculas y acentos
 // ("electronica" matchea "Electrónica", "jardineria" matchea "Jardinería").
 export function normalizeText(str) {
@@ -11,8 +15,10 @@ export function normalizeText(str) {
 
 // "2.3 km" / "0,8 km" -> 2.3 / 0.8. Devuelve null si no hay distancia válida.
 export function parseDistance(distance) {
+  if (typeof distance === 'number') return Number.isFinite(distance) && distance >= 0 ? distance : null
   if (typeof distance !== 'string') return null
-  const n = parseFloat(distance.replace(',', '.'))
+  const match = distance.replace(',', '.').match(/\d+(?:\.\d+)?/)
+  const n = match ? Number(match[0]) : NaN
   return Number.isFinite(n) ? n : null
 }
 
@@ -25,10 +31,46 @@ export function formatProximity(distance) {
   return `A ${cuadras} ${cuadras === 1 ? 'cuadra' : 'cuadras'} de distancia`
 }
 
-// true si el producto está dentro del rango (o si la distancia es desconocida).
-export function isWithinRange(distance, maxKm = 10) {
+// true si la distancia conocida está dentro del radio configurado.
+export function isWithinRange(distance, maxKm = PROXIMITY_RADIUS_KM) {
   const km = parseDistance(distance)
-  return km === null || km <= maxKm
+  return km !== null && km <= maxKm
+}
+
+function getStableHash(value) {
+  let hash = 0
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i)
+    hash = Math.imul(hash, 0x01000193) >>> 0
+  }
+  return hash
+}
+
+// El backend todavía no expone coordenadas para calcular la distancia real.
+// Este fallback sólo hace visible el flujo de demo y siempre produce el mismo resultado.
+export function getEstimatedDistance(product) {
+  const key = `${product?.id ?? ''}:${product?.title ?? ''}`
+  const index = getStableHash(key) % ESTIMATED_DISTANCE_OPTIONS.length
+  return ESTIMATED_DISTANCE_OPTIONS[index]
+}
+
+export function getProductProximity(product, maxKm = PROXIMITY_RADIUS_KM) {
+  const parsedDistance = parseDistance(product?.distance)
+  const distanceKm = parsedDistance ?? getEstimatedDistance(product)
+
+  return {
+    distanceKm,
+    estimated: parsedDistance === null,
+    withinRadius: distanceKm <= maxKm,
+  }
+}
+
+export function formatDistanceLabel(distanceKm) {
+  const formattedDistance = Number(distanceKm).toLocaleString('es-AR', {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 1,
+  })
+  return `Distancia: ${formattedDistance} km`
 }
 
 // true si el producto matchea la query (título, categoría o ciudad, sin acentos).

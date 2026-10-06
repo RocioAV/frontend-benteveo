@@ -4,7 +4,9 @@ import { MotionConfig } from 'motion/react'
 import ProductCard from '../components/ProductCard/ProductCard.jsx'
 import EmptyState from '../components/EmptyState/EmptyState.jsx'
 import Skeleton from '../components/Skeleton/Skeleton.jsx'
-import { isWithinRange, matchesQuery } from '../utils/products.js'
+import LocationModal from '../components/modals/LocationModal.jsx'
+import { useLocation } from '../context/LocationContext.jsx'
+import { PROXIMITY_RADIUS_KM, getProductProximity, matchesQuery } from '../utils/products.js'
 import { fetchProducts } from '../services/products.service.js'
 import './PageCatalogo.css'
 
@@ -20,10 +22,21 @@ const CATEGORY_ICONS = {
   Jardinería: 'seedling',
 }
 
+function formatCoordinates(position) {
+  const latitude = position?.coords?.latitude
+  const longitude = position?.coords?.longitude
+
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null
+
+  return `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
+}
+
 function PageCatalogo() {
   const { query = '', onSearch = () => {} } = useOutletContext() || {}
+  const { status: locationStatus, position } = useLocation()
   const [selectedCategory, setSelectedCategory] = useState('Todos')
   const [currentPage, setCurrentPage] = useState(1)
+  const [locationModalOpen, setLocationModalOpen] = useState(false)
   const trackRef = useRef(null)
 
   const [products, setProducts] = useState(null) // null = cargando
@@ -51,6 +64,20 @@ function PageCatalogo() {
     setError(false)
     setReloadToken((token) => token + 1)
   }
+
+  const locationReady = locationStatus === 'active' || locationStatus === 'demo'
+  const locationError = locationStatus === 'denied'
+    || locationStatus === 'unavailable'
+    || locationStatus === 'timeout'
+  const locationStatusText = locationReady
+    ? locationStatus === 'demo' ? 'Zona de referencia activa' : 'Ubicación activa'
+    : locationError ? 'No pudimos verificar tu ubicación'
+      : locationStatus === 'requesting' ? 'Verificando ubicación…'
+        : 'Ubicación sin activar'
+  const locationActionText = locationReady
+    ? 'Ver estado'
+    : locationError ? 'Reintentar ubicación' : 'Activar ubicación'
+  const locationCoordinates = locationStatus === 'active' ? formatCoordinates(position) : null
 
   if (error) {
     return (
@@ -84,27 +111,34 @@ function PageCatalogo() {
             </h1>
           </header>
           <EmptyState message="Todavía no hay productos publicados. Volvé más tarde." />
+          <LocationModal open={locationModalOpen} onClose={() => setLocationModalOpen(false)} />
         </section>
       </MotionConfig>
     )
   }
 
-  const nearbyProducts = products.filter((product) => isWithinRange(product.distance))
-  const categories = ['Todos', ...new Set(nearbyProducts.map((product) => product.category))]
+  const categories = ['Todos', ...new Set(products.map((product) => product.category).filter(Boolean))]
   const filteredByCategory =
     selectedCategory === 'Todos'
-      ? nearbyProducts
-      : nearbyProducts.filter((product) => product.category === selectedCategory)
+      ? products
+      : products.filter((product) => product.category === selectedCategory)
   const filteredProducts =
     query.trim() === ''
       ? filteredByCategory
       : filteredByCategory.filter((product) => matchesQuery(product, query))
+  const nearbyCount = filteredProducts.filter((product) => getProductProximity(product).withinRadius).length
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PRODUCTS_PER_PAGE))
   const safePage = Math.min(currentPage, totalPages)
   const paginatedProducts = filteredProducts.slice(
     (safePage - 1) * PRODUCTS_PER_PAGE,
     safePage * PRODUCTS_PER_PAGE
+  )
+  const paginatedNearbyProducts = paginatedProducts.filter(
+    (product) => getProductProximity(product).withinRadius,
+  )
+  const paginatedDistantProducts = paginatedProducts.filter(
+    (product) => !getProductProximity(product).withinRadius,
   )
 
   const handleClearFilters = () => {
@@ -124,7 +158,7 @@ function PageCatalogo() {
           filteredProducts.length === 1 ? 'resultado' : 'resultados'
         } para «${query.trim()}»`
       : selectedCategory === 'Todos'
-        ? `${nearbyProducts.length} productos disponibles`
+        ? `${filteredProducts.length} productos disponibles · ${nearbyCount} cerca`
         : `${filteredProducts.length} en ${selectedCategory}`
 
   return (
@@ -136,6 +170,36 @@ function PageCatalogo() {
           </h1>
           <p className="catalogo__descripcion">Encontrá lo que necesitás cerca tuyo.</p>
         </header>
+
+        {locationCoordinates ? (
+          <p className="location-confirmation" role="status" aria-live="polite">
+            Tu ubicación es {locationCoordinates}
+          </p>
+        ) : (
+          <section className={`location-banner${locationReady ? ' location-banner--active' : ''}`} aria-labelledby="location-banner-title">
+            <div className="location-banner__icon" aria-hidden="true">
+              <i className={`fas ${locationReady ? 'fa-location-dot' : 'fa-location-crosshairs'}`} />
+            </div>
+            <div className="location-banner__copy">
+              <p className="location-banner__eyebrow">Cercanía · radio de 10 cuadras ({PROXIMITY_RADIUS_KM} km)</p>
+              <h2 id="location-banner-title">{locationStatusText}</h2>
+              <p>
+                {locationReady
+                  ? locationStatus === 'demo'
+                    ? 'Estamos usando una zona de referencia para ordenar resultados por cercanía.'
+                    : 'Usamos tu ubicación sólo durante esta sesión para verificar la cercanía.'
+                  : `Activá la ubicación para verificar qué herramientas están dentro de ${PROXIMITY_RADIUS_KM} km.`}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="location-banner__action"
+              onClick={() => setLocationModalOpen(true)}
+            >
+              {locationActionText}
+            </button>
+          </section>
+        )}
 
         {/* Slider de categorías */}
         <div className="category-slider">
@@ -195,11 +259,38 @@ function PageCatalogo() {
           />
         ) : (
           <>
-            <div className="catalogo__grilla">
-              {paginatedProducts.map((product, i) => (
-                <ProductCard key={product.id} product={product} index={i} />
-              ))}
-            </div>
+            {paginatedNearbyProducts.length > 0 && (
+              <section aria-labelledby="productos-cercanos-titulo">
+                <div className="catalogo__section-heading">
+                  <div>
+                   <p className="catalogo__section-eyebrow">Dentro de {PROXIMITY_RADIUS_KM} km · 10 cuadras</p>
+                   <h2 id="productos-cercanos-titulo" className="catalogo__section-title">Cerca tuyo</h2>
+                  </div>
+                </div>
+                <div className="catalogo__grilla">
+                  {paginatedNearbyProducts.map((product, i) => (
+                    <ProductCard key={product.id} product={product} index={i} />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {paginatedDistantProducts.length > 0 && (
+              <section className="catalogo__distant-section" aria-labelledby="productos-lejanos-titulo">
+                <div className="catalogo__section-heading">
+                  <div>
+                   <p className="catalogo__section-eyebrow">Más allá del radio</p>
+                   <h2 id="productos-lejanos-titulo" className="catalogo__section-title">Fuera de tu radio</h2>
+                  </div>
+                  <span className="catalogo__section-note">Podés consultar la distancia, pero no abrir el detalle</span>
+                </div>
+                <div className="catalogo__grilla">
+                  {paginatedDistantProducts.map((product, i) => (
+                    <ProductCard key={product.id} product={product} index={i} locked />
+                  ))}
+                </div>
+              </section>
+            )}
 
             {totalPages > 1 && (
               <nav className="pagination" aria-label="Paginación de productos">
@@ -274,6 +365,7 @@ function PageCatalogo() {
             </section>
           </>
         )}
+        <LocationModal open={locationModalOpen} onClose={() => setLocationModalOpen(false)} />
       </section>
     </MotionConfig>
   )

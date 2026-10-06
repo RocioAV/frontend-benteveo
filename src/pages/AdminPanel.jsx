@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, MotionConfig, AnimatePresence } from 'motion/react'
 import { toast } from 'react-toastify'
 import { useAuth } from '../context/useAuth'
@@ -53,6 +53,32 @@ function formatDate(iso) {
     return new Date(iso).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' })
   } catch {
     return '\u2014'
+  }
+}
+
+async function loadRecentUsers(setUsers, setLoading) {
+  setLoading(true)
+  try {
+    const data = await fetchRecentUsers(50)
+    setUsers(Array.isArray(data) ? data : [])
+  } catch {
+    toast.error('Error al cargar usuarios')
+    setUsers([])
+  } finally {
+    setLoading(false)
+  }
+}
+
+async function loadPendingVerifications(setRequests, setLoading) {
+  setLoading(true)
+  try {
+    const data = await fetchPendingVerifications()
+    setRequests(Array.isArray(data) ? data : [])
+  } catch {
+    toast.error('Error al cargar verificaciones')
+    setRequests([])
+  } finally {
+    setLoading(false)
   }
 }
 
@@ -137,6 +163,7 @@ function AdminPanel() {
 
 function UsuariosSection() {
   const [users, setUsers] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [dni, setDni] = useState('')
   const [searching, setSearching] = useState(false)
   const [notFound, setNotFound] = useState(false)
@@ -144,17 +171,7 @@ function UsuariosSection() {
   const [page, setPage] = useState(1)
   const perPage = 10
 
-  const loadRecent = useCallback(async () => {
-    try {
-      const data = await fetchRecentUsers(50)
-      setUsers(Array.isArray(data) ? data : [])
-    } catch {
-      toast.error('Error al cargar usuarios')
-      setUsers([])
-    }
-  }, [])
-
-  useEffect(() => { loadRecent() }, [loadRecent])
+  useEffect(() => { loadRecentUsers(setUsers, setLoading) }, [])
 
   const handleSearch = async (e) => {
     e.preventDefault()
@@ -162,6 +179,7 @@ function UsuariosSection() {
     if (!trimmed) return
 
     setSearching(true)
+    setLoading(true)
     setNotFound(false)
     setUsers(null)
     setMode('search')
@@ -179,6 +197,7 @@ function UsuariosSection() {
       setUsers([])
     } finally {
       setSearching(false)
+      setLoading(false)
     }
   }
 
@@ -187,7 +206,7 @@ function UsuariosSection() {
     setNotFound(false)
     setMode('recent')
     setPage(1)
-    loadRecent()
+    loadRecentUsers(setUsers, setLoading)
   }
 
   const totalPages = users ? Math.ceil(users.length / perPage) : 0
@@ -220,11 +239,13 @@ function UsuariosSection() {
         <EmptyState message="No se encontró ningún usuario con ese DNI." />
       )}
 
-      {!notFound && users && users.length === 0 && (
+      {loading ? (
+        <Skeleton rows={4} label="Cargando usuarios" />
+      ) : notFound ? null : users && users.length === 0 && (
         <EmptyState message="No hay usuarios registrados." />
       )}
 
-      {!notFound && paginatedUsers.length > 0 && (
+      {!loading && !notFound && paginatedUsers.length > 0 && (
         <>
           <div className="admin-table-wrap">
             <table className="admin-table">
@@ -290,20 +311,7 @@ function IdentidadSection({ onPhotoClick }) {
   const [rejectReason, setRejectReason] = useState('')
   const [processingId, setProcessingId] = useState(null)
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    try {
-      const data = await fetchPendingVerifications()
-      setRequests(Array.isArray(data) ? data : [])
-    } catch {
-      toast.error('Error al cargar verificaciones')
-      setRequests([])
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => { load() }, [load])
+  useEffect(() => { loadPendingVerifications(setRequests, setLoading) }, [])
 
   const handleApprove = async (id) => {
     setProcessingId(id)
@@ -345,7 +353,7 @@ function IdentidadSection({ onPhotoClick }) {
       </div>
 
       {loading ? (
-        <Skeleton rows={3} />
+        <Skeleton rows={3} label="Cargando solicitudes de verificación" />
       ) : requests.length === 0 ? (
         <EmptyState message="No hay solicitudes de verificación pendientes." />
       ) : (
@@ -535,7 +543,7 @@ function PublicacionesSection() {
       )}
 
       {loadingProducts ? (
-        <Skeleton rows={4} />
+        <Skeleton rows={4} label="Cargando publicaciones" />
       ) : products && products.length === 0 ? (
         <EmptyState message="Este usuario no tiene publicaciones." />
       ) : products ? (
@@ -713,7 +721,7 @@ function ReservasSection() {
       )}
 
       {loadingRes ? (
-        <Skeleton rows={4} />
+        <Skeleton rows={4} label="Cargando reservas" />
       ) : reservations && reservations.length === 0 ? (
         <EmptyState message="Este usuario no tiene reservas." />
       ) : reservations ? (

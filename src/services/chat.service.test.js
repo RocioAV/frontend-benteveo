@@ -128,4 +128,38 @@ describe('chat.service', () => {
     })
     expect(onStatus).toHaveBeenCalledWith('reconnecting')
   })
+
+  it('uses inquiry events and rejoins the inquiry after reconnecting', () => {
+    vi.useFakeTimers()
+    vi.stubEnv('VITE_WS_URL', 'wss://api.example.test/api/v1/chat')
+    const client = new ChatClient({ targetType: 'inquiry' })
+
+    client.join('inquiry-1')
+    client.connect()
+
+    const firstSocket = FakeWebSocket.instances[0]
+    firstSocket.open()
+    expect(JSON.parse(firstSocket.sent[0])).toEqual({
+      type: 'inquiry:join',
+      inquiryId: 'inquiry-1',
+    })
+
+    expect(client.send('inquiry-1', '¿Está disponible?', 'client-2')).toBe('client-2')
+    expect(JSON.parse(firstSocket.sent[1])).toEqual({
+      type: 'inquiry:message:send',
+      inquiryId: 'inquiry-1',
+      content: '¿Está disponible?',
+      clientMessageId: 'client-2',
+    })
+
+    firstSocket.close()
+    vi.advanceTimersByTime(1000)
+
+    const secondSocket = FakeWebSocket.instances[1]
+    secondSocket.open()
+    expect(JSON.parse(secondSocket.sent[0])).toEqual({
+      type: 'inquiry:join',
+      inquiryId: 'inquiry-1',
+    })
+  })
 })

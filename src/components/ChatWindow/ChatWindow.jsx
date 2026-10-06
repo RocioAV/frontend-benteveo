@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, MotionConfig } from 'motion/react'
 import { useAuth } from '../../context/useAuth'
 import { ChatClient, createClientMessageId, fetchMessages } from '../../services/chat.service.js'
+import { fetchInquiryMessages } from '../../services/inquiries.service.js'
+import Skeleton from '../Skeleton/Skeleton.jsx'
 import styles from './ChatWindow.module.css'
 
 // Springs (DESIGN.md §3 — gramática mecánico-líquida)
@@ -80,8 +82,16 @@ function mergeHistory(messages, history) {
   return next
 }
 
-function ChatWindow({ reservationId, otherName, readOnly = false }) {
+function ChatWindow({
+  reservationId,
+  inquiryId,
+  targetType = 'reservation',
+  otherName,
+  readOnly = false,
+}) {
   const { userId } = useAuth()
+  const isInquiry = targetType === 'inquiry'
+  const targetId = isInquiry ? inquiryId : reservationId
 
   const [messages, setMessages] = useState([])
   const [draft, setDraft] = useState('')
@@ -91,22 +101,27 @@ function ChatWindow({ reservationId, otherName, readOnly = false }) {
   const clientRef = useRef(null)
   const listRef = useRef(null)
 
-  // Historial (REST, best-effort) + conexión WebSocket en tiempo real.
+  // REST history (best-effort) plus the native WebSocket connection.
   useEffect(() => {
     let cancelled = false
 
-    fetchMessages(reservationId).then((history) => {
+    const historyPromise = isInquiry
+      ? fetchInquiryMessages(targetId)
+      : fetchMessages(targetId)
+
+    historyPromise.then((history) => {
       if (cancelled) return
       setMessages((current) => mergeHistory(current, Array.isArray(history) ? history : []))
       setHistoryLoaded(true)
     })
 
     const client = new ChatClient({
+      targetType,
       onEvent: (event) => {
-        if (event.type === 'message:history') {
+        if (event.type === (isInquiry ? 'inquiry:history' : 'message:history')) {
           setMessages(Array.isArray(event.messages) ? event.messages : [])
           setHistoryLoaded(true)
-        } else if (event.type === 'message:new') {
+        } else if (event.type === (isInquiry ? 'inquiry:message:new' : 'message:new')) {
           setMessages((prev) => upsertMessage(prev, event.message, event.clientMessageId))
         } else if (event.type === 'error') {
           if (event.clientMessageId) {
@@ -125,14 +140,14 @@ function ChatWindow({ reservationId, otherName, readOnly = false }) {
     })
     clientRef.current = client
     client.connect()
-    client.join(reservationId)
+    client.join(targetId)
 
     return () => {
       cancelled = true
       client.disconnect()
       clientRef.current = null
     }
-  }, [reservationId])
+  }, [targetId, targetType, isInquiry])
 
   // Auto-scroll al último mensaje.
   useEffect(() => {
@@ -146,7 +161,7 @@ function ChatWindow({ reservationId, otherName, readOnly = false }) {
     if (!content || !clientRef.current || status !== 'open' || readOnly) return
 
     const clientMessageId = createClientMessageId()
-    const sent = clientRef.current.send(reservationId, content, clientMessageId)
+    const sent = clientRef.current.send(targetId, content, clientMessageId)
     if (!sent) return
 
     setMessages((prev) => [
@@ -189,7 +204,7 @@ function ChatWindow({ reservationId, otherName, readOnly = false }) {
 
         <div className={styles.chatBody} ref={listRef} role="log" aria-live="polite" aria-label="Mensajes">
           {!historyLoaded ? (
-            <p className={styles.chatHint}>Cargando conversación…</p>
+            <Skeleton variant="chat" rows={4} label="Cargando conversación" />
           ) : messages.length === 0 ? (
             <p className={styles.chatHint}>
               Todavía no hay mensajes. Escribí para coordinar la entrega.

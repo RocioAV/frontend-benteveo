@@ -6,8 +6,13 @@ import ProductCard from '../components/ProductCard/ProductCard.jsx'
 import Skeleton from '../components/Skeleton/Skeleton.jsx'
 import EmptyState from '../components/EmptyState/EmptyState.jsx'
 import ProductReviews from '../components/ProductReviews/ProductReviews.jsx'
+import LocationModal from '../components/modals/LocationModal.jsx'
 import { fetchProduct, fetchProducts, fetchPublicProfile } from '../services/products.service.js'
+import { createInquiry } from '../services/inquiries.service.js'
+import { useAuth } from '../context/useAuth'
 import { useFavorites } from '../context/useFavorites'
+import { useLocation } from '../context/LocationContext.jsx'
+import { PROXIMITY_RADIUS_KM, formatDistanceLabel, getProductProximity } from '../utils/products.js'
 
 const springReveal = { type: 'spring', stiffness: 260, damping: 26 }
 const springLatch = { type: 'spring', stiffness: 400, damping: 28 }
@@ -16,13 +21,18 @@ const springSoft = { type: 'spring', stiffness: 170, damping: 26 }
 function DetalleProducto() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { status: sessionStatus, userId } = useAuth()
   const { isFavorite, toggleFavorite } = useFavorites()
+  const { status: locationStatus } = useLocation()
 
   const [product, setProduct] = useState(null) // null = cargando
   const [owner, setOwner] = useState(null)
   const [suggestions, setSuggestions] = useState([])
   const [error, setError] = useState(false)
   const [prevId, setPrevId] = useState(id)
+  const [contactStatus, setContactStatus] = useState('idle')
+  const [contactError, setContactError] = useState('')
+  const [locationModalOpen, setLocationModalOpen] = useState(false)
 
   const [activeTab, setActiveTab] = useState('descripcion')
   const [activeImage, setActiveImage] = useState(0)
@@ -35,6 +45,8 @@ function DetalleProducto() {
     setSuggestions([])
     setActiveTab('descripcion')
     setActiveImage(0)
+    setContactStatus('idle')
+    setContactError('')
   }
 
   useEffect(() => {
@@ -130,6 +142,37 @@ function DetalleProducto() {
     : 'P'
   const isVerified = owner?.isIdentityVerified ?? false
   const memberSince = owner?.createdAt ? new Date(owner.createdAt).getFullYear() : null
+  const isOwner = userId != null && product.ownerId === userId
+  const canContact = !isOwner && product.isAvailable !== false
+  const proximity = getProductProximity(product)
+  const locationReady = locationStatus === 'active' || locationStatus === 'demo'
+  const locationError = locationStatus === 'denied'
+    || locationStatus === 'unavailable'
+    || locationStatus === 'timeout'
+  const locationStatusLabel = locationReady
+    ? locationStatus === 'demo' ? 'Zona de referencia activa' : 'Ubicación activa'
+    : locationError ? 'Ubicación pendiente de verificación'
+      : locationStatus === 'requesting' ? 'Verificando ubicación…'
+        : 'Ubicación sin activar'
+  const locationDistanceLabel = formatDistanceLabel(proximity.distanceKm)
+
+  const handleContact = async () => {
+    if (contactStatus === 'loading' || !canContact) return
+    if (sessionStatus !== 'authed') {
+      navigate('/login', { state: { from: `/detalle/${product.id}` } })
+      return
+    }
+
+    setContactStatus('loading')
+    setContactError('')
+    try {
+      const inquiry = await createInquiry(product.id)
+      navigate(`/chat/inquiry/${inquiry.id}`)
+    } catch (err) {
+      setContactStatus('error')
+      setContactError(err?.message || 'No pudimos abrir la consulta. Probá de nuevo.')
+    }
+  }
 
   const locationText = [product.city, product.region].filter(Boolean).join(', ')
   const metaItems = []
@@ -158,7 +201,7 @@ function DetalleProducto() {
           </svg>
           <span>
             {locationText}
-            {product.distance != null ? ` · ${product.distance}` : ''}
+            {` · ${locationDistanceLabel}`}
           </span>
         </div>
       ),
@@ -378,6 +421,45 @@ function DetalleProducto() {
               </motion.div>
             )}
 
+            <section
+              className="mb-6 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)] p-4"
+              aria-labelledby="detalle-ubicacion-titulo"
+            >
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex items-start gap-3">
+                  <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)] text-[var(--color-dark)]" aria-hidden="true">
+                    <i className="fas fa-location-dot" />
+                  </span>
+                  <div>
+                    <p className="mb-1 text-xs font-bold uppercase tracking-[0.08em] text-[var(--color-brown)]">Cercanía</p>
+                    <h2 id="detalle-ubicacion-titulo" className="font-bold text-[var(--color-dark)]">{locationStatusLabel}</h2>
+                    <p className="mt-1 text-sm text-[var(--color-concrete)]">
+                       {locationDistanceLabel} · Radio: {PROXIMITY_RADIUS_KM} km (10 cuadras)
+                    </p>
+                  </div>
+                </div>
+                {!locationReady && (
+                  <button
+                    type="button"
+                    onClick={() => setLocationModalOpen(true)}
+                    className="rounded-full border-2 border-[var(--color-border)] px-4 py-2 text-sm font-semibold text-[var(--color-dark)] transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-surface)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-primary)] focus-visible:outline-offset-2"
+                  >
+                    {locationError ? 'Reintentar ubicación' : 'Activar ubicación'}
+                  </button>
+                )}
+              </div>
+              {!locationReady && (
+                <p className="mt-3 border-t border-[var(--color-border)] pt-3 text-sm leading-relaxed text-[var(--color-concrete)]">
+                  Activá la ubicación para verificar la cercanía real antes de reservar. No pedimos permiso automáticamente.
+                </p>
+              )}
+              {locationReady && !proximity.withinRadius && (
+                <p className="mt-3 border-t border-[var(--color-border)] pt-3 text-sm font-semibold leading-relaxed text-[var(--color-brown)]" role="alert">
+                  Este producto está fuera de tu radio. La reserva permanece bloqueada hasta encontrar una herramienta dentro de {PROXIMITY_RADIUS_KM} km.
+                </p>
+              )}
+            </section>
+
             <motion.div
               className="flex items-center justify-between bg-[var(--color-surface)] rounded-2xl shadow-[var(--shadow-sm)] border border-[var(--color-border)] p-4 mb-6"
               initial={{ opacity: 0, y: 12 }}
@@ -430,17 +512,34 @@ function DetalleProducto() {
                   </div>
                 </div>
               </div>
-              <motion.button
-                className="flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-[var(--color-border)] text-sm font-semibold text-[var(--color-dark)] hover:border-[var(--color-primary)] hover:bg-[var(--color-concrete-surface)] transition-colors"
-                whileTap={{ scale: 0.96 }}
-                transition={springLatch}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 20.105V4.875A1.875 1.875 0 015.625 3h12.75A1.875 1.875 0 0120.25 4.875v10.5A1.875 1.875 0 0118.375 17.25H7.5l-3.75 2.855z" />
-                </svg>
-                Contactar
-              </motion.button>
+              {isOwner ? (
+                <span className="text-sm font-semibold text-[var(--color-concrete)]">Tu publicación</span>
+              ) : (
+                <motion.button
+                  type="button"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-full border-2 border-[var(--color-border)] text-sm font-semibold text-[var(--color-dark)] hover:border-[var(--color-primary)] hover:bg-[var(--color-concrete-surface)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  whileTap={{ scale: 0.96 }}
+                  transition={springLatch}
+                  onClick={handleContact}
+                  disabled={!canContact || contactStatus === 'loading' || sessionStatus === 'loading'}
+                  aria-busy={contactStatus === 'loading'}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 20.105V4.875A1.875 1.875 0 015.625 3h12.75A1.875 1.875 0 0120.25 4.875v10.5c0 1.036-.839 1.875-1.875 1.875H7.5l-3.75 2.855z" />
+                  </svg>
+                  {contactStatus === 'loading'
+                    ? 'Abriendo…'
+                    : product.isAvailable === false
+                      ? 'No disponible'
+                      : 'Contactar'}
+                </motion.button>
+              )}
             </motion.div>
+            {contactError && (
+              <p className="mt-2 text-sm text-[var(--color-error)]" role="alert">
+                {contactError}
+              </p>
+            )}
 
             <motion.div
               className="mb-6"
@@ -498,7 +597,23 @@ function DetalleProducto() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ ...springReveal, delay: 0.15 }}
           >
-            <Reservation product={product} />
+            {locationReady && proximity.withinRadius ? (
+              <Reservation product={product} />
+            ) : (
+              <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)] p-6 text-center">
+                <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-concrete-surface)] text-[var(--color-concrete)]" aria-hidden="true">
+                  <i className="fas fa-lock" />
+                </span>
+                <h2 className="font-bold text-[var(--color-dark)]">
+                  {locationReady ? 'Reserva fuera de alcance' : 'Verificá tu cercanía'}
+                </h2>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--color-concrete)]">
+                  {locationReady
+                     ? `Este producto supera el radio de ${PROXIMITY_RADIUS_KM} km.`
+                    : 'Activá la ubicación para comprobar si podés reservar este producto.'}
+                </p>
+              </div>
+            )}
           </motion.div>
 
         </div>
@@ -589,13 +704,19 @@ function DetalleProducto() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {suggestions.map((p, i) => (
-                <ProductCard key={p.id} product={p} index={i} />
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  index={i}
+                  locked={!getProductProximity(p).withinRadius}
+                />
               ))}
             </div>
           </section>
         )}
 
       </div>
+      <LocationModal open={locationModalOpen} onClose={() => setLocationModalOpen(false)} />
     </MotionConfig>
   )
 }
