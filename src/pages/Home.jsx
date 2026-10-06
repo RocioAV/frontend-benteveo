@@ -1,9 +1,10 @@
-import { useState, useEffect, useLayoutEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, MotionConfig } from 'motion/react'
 import productsJson from '../data/products.json'
 import { getProducts } from '../services/product.service.js'
 import ProductCard from '../components/ProductCard/ProductCard.jsx'
+import Skeleton from '../components/Skeleton/Skeleton.jsx'
 import './Home.css'
 
 const PLACEHOLDER_IMG = '/images/placeholder.svg'
@@ -111,38 +112,25 @@ function Home() {
     }
   }, [])
 
-  // `distance` hoy es aleatorio (generateDistance), así que filtrar por ella
-  // descartaría productos al azar: se usan todos los productos.
-  const nearbyProducts = useMemo(() => products, [products])
+  const nearbyProducts = products
 
   // El carrusel del hero renderiza cada producto UNA sola vez: máximo
   // CAROUSEL_MAX elementos, ordenados por rating descendente.
-  const carouselProducts = useMemo(
-    () =>
-      [...products]
-        .sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0))
-        .slice(0, CAROUSEL_MAX),
-    [products],
-  )
+  const carouselProducts = [...products]
+    .sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0))
+    .slice(0, CAROUSEL_MAX)
 
-  const topRated = useMemo(
-    () =>
-      [...products]
-        .sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0))
-        .slice(0, 4),
-    [products],
-  )
+  const topRated = [...products]
+    .sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0))
+    .slice(0, 4)
 
   // La home no se queda en blanco: si la API falla o viene vacía se usó el
   // respaldo local. Solo queda vacío si también el JSON local no tiene datos.
   const hasProducts = products.length > 0
-  const statusMessage =
-    loadState === 'loading'
-      ? 'Cargando productos…'
-      : loadState === 'error'
-        ? 'No pudimos conectar con el servidor. Mostrando productos de ejemplo.'
-        : 'Todavía no hay productos disponibles.'
-  const showStatus = loadState === 'loading' || !hasProducts
+  const isLoading = loadState === 'loading'
+  const statusMessage = loadState === 'error'
+    ? 'No pudimos conectar con el servidor. Mostrando productos de ejemplo.'
+    : 'Todavía no hay productos disponibles.'
 
   useEffect(() => {
     const reduce =
@@ -237,7 +225,9 @@ function Home() {
           </div>
 
           <div className="tool-wall" ref={wallRef}>
-            {hasProducts ? (
+            {isLoading ? (
+              <Skeleton variant="carousel" rows={3} label="Cargando productos" />
+            ) : hasProducts ? (
               <div className="carousel-viewport" ref={viewportRef}>
                 <div className="carousel-track">
                   {carouselProducts.map((product) => renderCarouselCard(product))}
@@ -255,7 +245,7 @@ function Home() {
             )}
           </div>
         </section>
-      </MotionConfig>
+        </MotionConfig>
 
       {/* STEPS — Publicá en 3 simples pasos */}
       <section
@@ -351,7 +341,9 @@ function Home() {
           <h2 className="section-title">Los favoritos de los clientes</h2>
           <p className="section-sub">Lo más alquilado y mejor calificado de tu barrio.</p>
 
-          {showStatus ? (
+          {isLoading ? (
+            <Skeleton variant="cards" rows={4} label="Cargando productos favoritos" />
+          ) : !hasProducts ? (
             <p
               className="text-center text-[var(--color-concrete)] py-10"
               role="status"
@@ -374,7 +366,9 @@ function Home() {
         <div className="featured-container">
           <h2 className="section-title">Productos destacados</h2>
 
-          {showStatus ? (
+          {isLoading ? (
+            <Skeleton variant="cards" rows={4} label="Cargando productos destacados" />
+          ) : !hasProducts ? (
             <p
               className="text-center text-[var(--color-concrete)] py-10"
               role="status"

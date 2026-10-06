@@ -20,12 +20,17 @@ vi.mock('../components/ProductCard/ProductCard.jsx', () => ({
 }))
 
 // Mock del servicio: PageCatalogo ahora carga productos de forma async.
-const { fetchProductsMock } = vi.hoisted(() => ({
+const { fetchProductsMock, useLocationMock } = vi.hoisted(() => ({
   fetchProductsMock: vi.fn(),
+  useLocationMock: vi.fn(),
 }))
 
 vi.mock('../services/products.service.js', () => ({
   fetchProducts: fetchProductsMock,
+}))
+
+vi.mock('../context/LocationContext.jsx', () => ({
+  useLocation: useLocationMock,
 }))
 
 function renderCatalogo() {
@@ -39,6 +44,8 @@ function renderCatalogo() {
 describe('PageCatalogo', () => {
   beforeEach(() => {
     fetchProductsMock.mockResolvedValue(products)
+    useLocationMock.mockReset()
+    useLocationMock.mockReturnValue({ status: 'idle', position: null })
   })
 
   it('muestra el contador y 12 cards en la primera página', async () => {
@@ -69,5 +76,32 @@ describe('PageCatalogo', () => {
     await screen.findByText(/productos disponibles/)
     await user.click(screen.getByRole('button', { name: '2' }))
     expect(screen.getByRole('button', { name: '2', current: 'page' })).toBeInTheDocument()
+  })
+
+  it('confirma la ubicación real y oculta el banner de activación', async () => {
+    useLocationMock.mockReturnValue({
+      status: 'active',
+      position: {
+        coords: {
+          latitude: -34.60372,
+          longitude: -58.38159,
+        },
+      },
+    })
+
+    renderCatalogo()
+
+    expect(await screen.findByText('Tu ubicación es -34.60372, -58.38159')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Ubicación activa' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Ver estado' })).not.toBeInTheDocument()
+  })
+
+  it('mantiene el flujo demo sin inventar coordenadas', async () => {
+    useLocationMock.mockReturnValue({ status: 'demo', position: null })
+
+    renderCatalogo()
+
+    expect(await screen.findByRole('heading', { name: 'Zona de referencia activa' })).toBeInTheDocument()
+    expect(screen.queryByText(/Tu ubicación es/)).not.toBeInTheDocument()
   })
 })

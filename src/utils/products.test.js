@@ -5,6 +5,8 @@ import {
   formatProximity,
   isWithinRange,
   matchesQuery,
+  getProductProximity,
+  formatDistanceLabel,
 } from './products.js'
 
 describe('normalizeText', () => {
@@ -29,7 +31,7 @@ describe('parseDistance', () => {
   it('devuelve null para valores inválidos', () => {
     expect(parseDistance(undefined)).toBe(null)
     expect(parseDistance('n/a')).toBe(null)
-    expect(parseDistance(42)).toBe(null)
+    expect(parseDistance(42)).toBe(42)
   })
 })
 
@@ -50,14 +52,38 @@ describe('formatProximity', () => {
 })
 
 describe('isWithinRange', () => {
-  it('filtra productos a más de 10 km', () => {
-    expect(isWithinRange('9.0 km')).toBe(true)
-    expect(isWithinRange('10 km')).toBe(true)
-    expect(isWithinRange('12 km')).toBe(false)
+  it('filtra productos a más de 1 km', () => {
+    expect(isWithinRange('0.9 km')).toBe(true)
+    expect(isWithinRange('1 km')).toBe(true)
+    expect(isWithinRange('1.2 km')).toBe(false)
   })
 
-  it('considera dentro de rango la distancia desconocida', () => {
-    expect(isWithinRange(undefined)).toBe(true)
+  it('no considera cercana una distancia desconocida', () => {
+    expect(isWithinRange(undefined)).toBe(false)
+  })
+})
+
+describe('getProductProximity', () => {
+  it('respeta la distancia entregada por el contrato', () => {
+    expect(getProductProximity({ id: 'known', distance: '0.8 km' })).toEqual({
+      distanceKm: 0.8,
+      estimated: false,
+      withinRadius: true,
+    })
+  })
+
+  it('usa una distancia estimada determinista cuando falta el dato', () => {
+    const product = { id: 'fallback-1', title: 'Taladro' }
+
+    expect(getProductProximity(product)).toEqual(getProductProximity(product))
+    expect(getProductProximity(product).estimated).toBe(true)
+  })
+})
+
+describe('formatDistanceLabel', () => {
+  it('usa una etiqueta neutral para el fallback interno', () => {
+    expect(formatDistanceLabel(0.7, true)).toBe('Distancia: 0,7 km')
+    expect(formatDistanceLabel(1.2)).toBe('Distancia: 1,2 km')
   })
 })
 

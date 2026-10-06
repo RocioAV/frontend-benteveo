@@ -10,12 +10,14 @@ const {
   fetchPublicProfileMock,
   createInquiryMock,
   useAuthMock,
+  useLocationMock,
 } = vi.hoisted(() => ({
   fetchProductMock: vi.fn(),
   fetchProductsMock: vi.fn(),
   fetchPublicProfileMock: vi.fn(),
   createInquiryMock: vi.fn(),
   useAuthMock: vi.fn(),
+  useLocationMock: vi.fn(),
 }))
 
 vi.mock('../services/products.service.js', () => ({
@@ -34,6 +36,10 @@ vi.mock('../context/useFavorites', () => ({
 
 vi.mock('../context/useAuth', () => ({
   useAuth: useAuthMock,
+}))
+
+vi.mock('../context/LocationContext.jsx', () => ({
+  useLocation: useLocationMock,
 }))
 
 vi.mock('./Reservation.jsx', () => ({
@@ -90,6 +96,8 @@ describe('DetalleProducto — calificación del dueño', () => {
   beforeEach(() => {
     createInquiryMock.mockReset()
     useAuthMock.mockReset()
+    useLocationMock.mockReset()
+    useLocationMock.mockReturnValue({ status: 'idle' })
   })
 
   it('muestra el promedio y la cantidad de calificaciones del perfil público', async () => {
@@ -172,5 +180,18 @@ describe('DetalleProducto — calificación del dueño', () => {
     expect(await screen.findByText('Tu publicación')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /^contactar$/i })).not.toBeInTheDocument()
     expect(createInquiryMock).not.toHaveBeenCalled()
+  })
+
+  it('muestra una etiqueta neutral para la distancia del fallback', async () => {
+    fetchProductMock.mockResolvedValue({ ...product(), distance: '0.8 km' })
+    fetchProductsMock.mockResolvedValue([])
+    fetchPublicProfileMock.mockResolvedValue({ name: 'Dueño Uno' })
+
+    renderDetail()
+
+    expect(
+      await screen.findByText(/Distancia: 0,8 km · Radio: 1 km \(10 cuadras\)/),
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/distancia estimada/i)).not.toBeInTheDocument()
   })
 })

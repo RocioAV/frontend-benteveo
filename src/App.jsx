@@ -26,6 +26,8 @@ const PagoExitoso = lazy(() => import('./pages/PagoExitoso.jsx'))
 const PagoFallido = lazy(() => import('./pages/PagoFallido.jsx'))
 const PagoPendiente = lazy(() => import('./pages/PagoPendiente.jsx'))
 const EditarPublicacion = lazy(() => import('./pages/EditarPublicacion.jsx'))
+const PreguntasFrecuentes = lazy(() => import('./pages/PreguntasFrecuentes.jsx'))
+const Politicas = lazy(() => import('./pages/Politicas.jsx'))
 
 function PageFallback() {
   return (
@@ -46,6 +48,8 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/explorar" element={<PageCatalogo />} />
             <Route path="/detalle/:id" element={<DetalleProducto />} />
+            <Route path="/preguntas-frecuentes" element={<PreguntasFrecuentes />} />
+            <Route path="/politicas" element={<Politicas />} />
             <Route path="/reservation/:id" element={<RequireAuth><Reservation /></RequireAuth>} />
             <Route path="/reservas" element={<RequireAuth><MisReservas /></RequireAuth>} />
             <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />

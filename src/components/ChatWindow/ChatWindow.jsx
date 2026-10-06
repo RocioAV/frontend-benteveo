@@ -3,6 +3,7 @@ import { motion, MotionConfig } from 'motion/react'
 import { useAuth } from '../../context/useAuth'
 import { ChatClient, createClientMessageId, fetchMessages } from '../../services/chat.service.js'
 import { fetchInquiryMessages } from '../../services/inquiries.service.js'
+import Skeleton from '../Skeleton/Skeleton.jsx'
 import styles from './ChatWindow.module.css'
 
 // Springs (DESIGN.md §3 — gramática mecánico-líquida)
@@ -203,7 +204,7 @@ function ChatWindow({
 
         <div className={styles.chatBody} ref={listRef} role="log" aria-live="polite" aria-label="Mensajes">
           {!historyLoaded ? (
-            <p className={styles.chatHint}>Cargando conversación…</p>
+            <Skeleton variant="chat" rows={4} label="Cargando conversación" />
           ) : messages.length === 0 ? (
             <p className={styles.chatHint}>
               Todavía no hay mensajes. Escribí para coordinar la entrega.

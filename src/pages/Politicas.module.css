@@ -1,0 +1,138 @@
+.page {
+  width: min(100% - 2rem, 70rem);
+  margin: 0 auto;
+  padding: clamp(2.5rem, 6vw, 5rem) 0 clamp(3rem, 7vw, 6rem);
+}
+
+.hero {
+  max-width: 48rem;
+  margin-bottom: 2rem;
+}
+
+.eyebrow,
+.sectionNumber {
+  margin: 0 0 0.6rem;
+  color: var(--color-brown);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0 0 0.9rem;
+  color: var(--color-dark);
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.intro {
+  max-width: 42rem;
+  margin: 0;
+  color: var(--color-concrete);
+  font-size: clamp(1rem, 2vw, 1.15rem);
+  line-height: 1.65;
+}
+
+.notice {
+  max-width: 58rem;
+  margin-bottom: clamp(2.5rem, 6vw, 4rem);
+  padding: 1rem 1.25rem;
+  border-left: 4px solid var(--color-primary);
+  background: var(--color-concrete-surface);
+  color: var(--color-dark);
+  font-size: 0.94rem;
+  line-height: 1.65;
+}
+
+.sections {
+  display: grid;
+  gap: 0;
+  max-width: 60rem;
+}
+
+.section {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  gap: clamp(1rem, 4vw, 3rem);
+  padding: 2rem 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.section:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.sectionNumber {
+  margin-top: 0.25rem;
+  color: var(--color-primary-hover);
+  font-variant-numeric: tabular-nums;
+}
+
+.section h2 {
+  margin: 0 0 0.75rem;
+  color: var(--color-dark);
+  font-size: clamp(1.25rem, 3vw, 1.6rem);
+  line-height: 1.2;
+}
+
+.section p:not(.sectionNumber) {
+  max-width: 48rem;
+  margin: 0 0 0.9rem;
+  color: var(--color-concrete);
+  line-height: 1.7;
+}
+
+.section p:last-child {
+  margin-bottom: 0;
+}
+
+.aiSection {
+  margin-top: 1rem;
+  padding: 1.5rem;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 45%, var(--color-border));
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+}
+
+.footer {
+  max-width: 60rem;
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+  color: var(--color-concrete);
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+
+.footer p {
+  margin: 0;
+}
+
+.footer a {
+  color: var(--color-brown);
+  font-weight: 800;
+  text-underline-offset: 0.2em;
+}
+
+.footer a:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+@media (max-width: 38rem) {
+  .section {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+
+  .sectionNumber {
+    margin-bottom: 0.5rem;
+  }
+
+  .aiSection {
+    padding: 1.25rem;
+  }
+}
